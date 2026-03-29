@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.4] - 2025-03-29
+
+### Fixed
+- **[B-01]** Dois `onHeadersReceived` na mesma session — o segundo sobrescrevia o primeiro
+  - Unificado em um único handler com lógica condicional
+  - Cookies do jogo agora são estendidos via headers corretamente
+- **[B-02]** `mainWindow.destroy()` no handler `close` — causava `closed` nunca disparar
+  - Removido destroy() manual, Electron faz isso automaticamente
+- **[B-03]** Importação morta `cleanup` de cookies.js em main.js
+  - cleanup() foi removido na v1.9.2 mas main.js ainda tentava importar
+- **[B-04]** F12 listado no menu mas não funciona em produção
+  - Removido da lista de atalhos visível ao usuário
+
+### Changed
+- **[C-01]** Versão hardcoded "v1.9.1" → lida dinamicamente do package.json
+- **[C-04]** Removido `bun.lock` — projeto usa npm
+
 ## [1.9.3] - 2025-03-29
 
 ### Fixed — Linux

@@ -8,30 +8,44 @@ const logger = require('../utils/logger');
 
 const COOKIE_EXPIRY = 31536000; // 1 ano em segundos
 
+// Domínios de tracking para remover cookies
+const TRACKING_DOMAINS = [
+  'facebook.com',
+  'google.com',
+  'doubleclick.net',
+  'google-analytics.com',
+  'sentry.io',
+  'track.oasgames.com',
+  'track.narutowebgame.com',
+  'mdata.cool'
+];
+
+// Domínios permitidos (nunca remover)
+const ALLOWED_DOMAINS = [
+  'narutowebgame.com',
+  'oasgames.com'
+];
+
+/**
+ * Verifica se hostname é de domínio do jogo
+ */
+function isGameDomain(hostname) {
+  return ALLOWED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+}
+
+/**
+ * Verifica se hostname é de domínio de tracking
+ */
+function isTrackingDomain(hostname) {
+  return TRACKING_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+}
+
 /**
  * Configura cookies persistentes
  * @param {Electron.Session} session 
  */
 function setupPersistentCookies(session) {
   const convertingCookies = new Set();
-  
-  // Domínios de tracking para remover cookies
-  const TRACKING_DOMAINS = [
-    'facebook.com',
-    'google.com',
-    'doubleclick.net',
-    'google-analytics.com',
-    'sentry.io',
-    'track.oasgames.com',
-    'track.narutowebgame.com',
-    'mdata.cool'
-  ];
-  
-  // Domínios permitidos (nunca remover)
-  const ALLOWED_DOMAINS = [
-    'narutowebgame.com',
-    'oasgames.com'
-  ];
 
   session.cookies.on('changed', (event, cookie, cause, removed) => {
     if (removed) return;
@@ -71,39 +85,38 @@ function setupPersistentCookies(session) {
     }
   });
   
-  // Intercepta headers para bloquear tracking cookies na origem
-  // Só monitora domínios do jogo para não interferir em assets externos
-  session.webRequest.onHeadersReceived(
-    { urls: ['*://*.oasgames.com/*', '*://*.narutowebgame.com/*'] },
-    (details, callback) => {
-      const setCookie = details.responseHeaders?.['set-cookie'];
-      
-      if (!setCookie) {
-        return callback({});
-      }
-      
+  // ÚNICO onHeadersReceived - Electron só permite um por session
+  session.webRequest.onHeadersReceived((details, callback) => {
+    const setCookie = details.responseHeaders?.['set-cookie'];
+    
+    if (!setCookie) {
+      return callback({});
+    }
+    
+    let hostname;
+    try {
+      hostname = new URL(details.url).hostname;
+    } catch {
+      return callback({});
+    }
+    
+    const responseHeaders = { ...details.responseHeaders };
+    
+    if (isTrackingDomain(hostname)) {
+      // Bloqueia tracking cookies na origem
+      delete responseHeaders['set-cookie'];
+    } else if (isGameDomain(hostname)) {
       // Estende cookies do jogo
-      const responseHeaders = { ...details.responseHeaders };
       responseHeaders['set-cookie'] = setCookie.map(cookie => {
         if (!cookie.toLowerCase().includes('expires=') && !cookie.toLowerCase().includes('max-age=')) {
           return cookie + `; Max-Age=${COOKIE_EXPIRY}`;
         }
         return cookie;
       });
-      
-      callback({ responseHeaders });
     }
-  );
-  
-  // Bloqueia tracking cookies em todos os domínios
-  session.webRequest.onHeadersReceived(
-    { urls: TRACKING_DOMAINS.map(d => `*://*.${d}/*`) },
-    (details, callback) => {
-      const responseHeaders = { ...details.responseHeaders };
-      delete responseHeaders['set-cookie'];
-      callback({ responseHeaders });
-    }
-  );
+    
+    callback({ responseHeaders });
+  });
   
   logger.info('Cookies persistentes configurados');
 }

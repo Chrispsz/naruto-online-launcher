@@ -1,6 +1,6 @@
 /**
- * Naruto Online Launcher v1.9.3
- * Linux fixes + simplificações
+ * Naruto Online Launcher v1.9.4
+ * Bug fixes + cleanup
  * 
  * SINGLE WINDOW - Flash PPAPI
  */
@@ -26,7 +26,6 @@ const { createMmsCfg } = require('./flash/mms');
 const { applyFlags } = require('./chromium/flags');
 const { createWindow, getMainWindow, preconnectServers } = require('./window/create');
 const { setupMenu } = require('./window/menu');
-const { cleanup: cleanupCookies } = require('./network/cookies');
 
 // Estado global
 let config = null;
@@ -71,6 +70,9 @@ app.on('second-instance', () => {
 config = loadConfig();
 applyFlags(config.hardwareProfile);
 
+// Ler versão do package.json
+const { version } = require('../package.json');
+
 app.on('ready', () => {
   setProcessPriority(config.hardwareProfile);
   
@@ -81,22 +83,15 @@ app.on('ready', () => {
   // Preconnect em background
   setImmediate(() => preconnectServers());
   
-  logger.info('v1.9.1 Iniciado');
+  logger.info(`v${version} Iniciado`);
 });
 
 // Cleanup no shutdown
 app.on('window-all-closed', () => {
-  cleanupCookies();
   app.exit(0);
 });
 
 // Erros não tratados
 process.on('uncaughtException', (e) => logger.error('Exceção não tratada', e.message));
-process.on('SIGTERM', () => {
-  cleanupCookies();
-  app.exit(0);
-});
-process.on('SIGINT', () => {
-  cleanupCookies();
-  app.exit(0);
-});
+process.on('SIGTERM', () => app.exit(0));
+process.on('SIGINT', () => app.exit(0));

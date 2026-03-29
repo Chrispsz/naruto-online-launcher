@@ -75,7 +75,7 @@ function setupMenu(config, saveConfig, mainWindowGetter) {
           click: () => dialog.showMessageBox({
             type: 'info',
             title: 'Atalhos',
-            message: 'F5 = Limpar Login\nF6 = Trocar Região\nF7 = Trocar Hardware\nF11 = Tela Cheia\nF12 = DevTools'
+            message: 'F5 = Limpar Login\nF6 = Trocar Região\nF7 = Trocar Hardware\nF11 = Tela Cheia'
           })
         }
       ]

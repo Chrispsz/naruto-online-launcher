@@ -144,7 +144,7 @@ function createWindow(config, saveConfig) {
     `).catch(() => {});
   });
   
-  // Fecha aplicação - sem preventDefault para evitar double-close
+  // Fecha aplicação - cleanup e deixa Electron destruir naturalmente
   mainWindow.on('close', () => {
     if (isClosing) return;
     isClosing = true;
@@ -153,8 +153,8 @@ function createWindow(config, saveConfig) {
     if (typeof shortcutsHandler === 'function') {
       shortcutsHandler();
     }
-    
-    mainWindow.destroy();
+    // Não chamar destroy() - Electron faz isso automaticamente
+    // e permite que o evento 'closed' dispare corretamente
   });
   
   mainWindow.on('closed', () => {
