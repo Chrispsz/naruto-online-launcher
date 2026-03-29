@@ -1,5 +1,5 @@
 /**
- * Naruto Online Launcher v1.7.0
+ * Naruto Online Launcher v1.7.1
  * Modularizado com logger estruturado e validação
  * 
  * SINGLE WINDOW - Flash PPAPI
@@ -12,6 +12,7 @@ const logger = require('./utils/logger');
 const { loadConfig, saveConfig } = require('./config/settings');
 const { findFlashPlugin, configureFlash } = require('./flash/plugin');
 const { createMmsCfg } = require('./flash/mms');
+const { applyFlags } = require('./chromium/flags');
 const { createWindow, getMainWindow } = require('./window/create');
 const { setupMenu } = require('./window/menu');
 
@@ -29,55 +30,11 @@ if (flashPath) {
 }
 
 // ============================================================
-// CHROMIUM FLAGS
-// ============================================================
-function applyHardwareFlags(profile) {
-  // Flags universais
-  app.commandLine.appendSwitch('disable-background-timer-throttling');
-  app.commandLine.appendSwitch('disable-renderer-backgrounding');
-  app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
-  app.commandLine.appendSwitch('memory-pressure-off');
-  app.commandLine.appendSwitch('enable-highres-timer');
-  app.commandLine.appendSwitch('disable-hang-monitor');
-  
-  // Cache expandido
-  app.commandLine.appendSwitch('disk-cache-size', '524288000');    // 500MB
-  app.commandLine.appendSwitch('media-cache-size', '134217728');   // 128MB
-  
-  logger.info(`Perfil de hardware: ${profile}`);
-  
-  if (profile === 'modern') {
-    app.commandLine.appendSwitch('ignore-gpu-blocklist');
-    app.commandLine.appendSwitch('enable-gpu-rasterization');
-    app.commandLine.appendSwitch('enable-zero-copy');
-    app.commandLine.appendSwitch('enable-native-gpu-memory-buffers');
-    app.commandLine.appendSwitch('canvas-oop-rasterization');
-    app.commandLine.appendSwitch('enable-accelerated-video-decode');
-    app.commandLine.appendSwitch('use-angle', process.platform === 'win32' ? 'd3d11' : 'gl');
-    app.commandLine.appendSwitch('enable-features', 
-      process.platform === 'win32' ? 'D3D11VideoDecoder,DirectComposition' : 'VaapiVideoDecoder');
-    logger.info('Flags: D3D11/GL, GPU rasterization, zero-copy');
-    
-  } else if (profile === 'legacy') {
-    app.commandLine.appendSwitch('ignore-gpu-blocklist');
-    app.commandLine.appendSwitch('in-process-gpu');
-    app.commandLine.appendSwitch('use-angle', process.platform === 'win32' ? 'd3d11' : 'gl');
-    app.commandLine.appendSwitch('enable-accelerated-video-decode');
-    logger.info('Flags: D3D11/OpenGL, in-process-gpu');
-    
-  } else {
-    app.commandLine.appendSwitch('disable-gpu');
-    app.commandLine.appendSwitch('use-angle', 'swiftshader');
-    logger.info('Flags: CPU only (SwiftShader)');
-  }
-}
-
-// ============================================================
 // APP LIFECYCLE
 // ============================================================
 // Carrega config antes de app.ready
 config = loadConfig();
-applyHardwareFlags(config.hardwareProfile);
+applyFlags(config.hardwareProfile);
 
 app.on('ready', () => {
   try { 
@@ -90,7 +47,7 @@ app.on('ready', () => {
   setupMenu(config, saveConfig);
   createWindow(config);
   
-  logger.info('v1.7.0 Iniciado');
+  logger.info('v1.7.1 Iniciado');
 });
 
 // Single instance
