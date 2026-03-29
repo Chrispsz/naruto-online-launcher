@@ -4,7 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [1.7.0] - 2025-01-XX
+## [1.7.1] - 2025-03-29
+
+### Added
+- **Jest tests** - 45 tests for config, network, utils modules
+  - `src/config/__tests__/` - regions, hardware, settings tests
+  - `src/network/__tests__/` - blocker tests
+  - `src/utils/__tests__/` - logger tests
+- Scripts: `npm test`, `npm run test:watch`, `npm run test:coverage`
+
+### Changed
+- **Extracted `applyHardwareFlags`** to `src/chromium/flags.js`
+- `main.js` reduced from 114 to 55 lines
+- Added Jest support to ESLint config
+
+## [1.7.0] - 2025-03-29
 
 ### Added
 - **Modular code architecture** - Code split into organized modules

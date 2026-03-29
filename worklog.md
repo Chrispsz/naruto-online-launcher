@@ -5,10 +5,33 @@
 | Campo | Valor |
 |-------|-------|
 | **Nome** | Naruto Online Launcher |
-| **Versão** | v1.7.0 |
+| **Versão** | v1.7.1 |
 | **Tipo** | Electron App (Flash Game Launcher) |
 | **Repositório** | https://github.com/Chrispsz/naruto-online-launcher |
 | **Branch** | main (única) |
+
+---
+
+## 📅 v1.7.1 - Chromium Flags + Testes
+
+### ✅ Chromium Flags Extraído
+- `applyHardwareFlags` movido para `src/chromium/flags.js`
+- main.js: 114 → 55 linhas
+- Funções separadas: `applyModernFlags`, `applyLegacyFlags`, `applyCpuFlags`
+
+### ✅ Testes Automatizados
+- **45 testes** com Jest
+- Cobertura: config, network, utils
+- Scripts: `npm test`, `npm run test:coverage`
+
+```
+Test Suites: 5 passed, 5 total
+Tests:       45 passed, 45 total
+```
+
+### ✅ ESLint Atualizado
+- Adicionado `"jest": true` no env
+- Suporte a describe, test, expect, jest
 
 ---
 
