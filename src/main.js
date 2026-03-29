@@ -1,6 +1,6 @@
 /**
- * Naruto Online Launcher v1.9.5
- * Final optimizations
+ * Naruto Online Launcher v2.0.0
+ * First Public Release
  * 
  * SINGLE WINDOW - Flash PPAPI
  */

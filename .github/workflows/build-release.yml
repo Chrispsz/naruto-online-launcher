@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20  # Node 20 LTS
+          node-version: 20
 
       - name: System deps (Linux)
         if: runner.os == 'Linux'
@@ -100,25 +100,40 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: artifacts/**/*
+          generate_release_notes: true
           body: |
-            ## Naruto Online Launcher
+            ## 🍥 Naruto Online Launcher
             
-            ### Downloads
-            - **naruto-online-linux.zip** - Linux AppImage com instalador
-            - **naruto-online-win.zip** - Windows portable
+            Ultra-optimized Flash game launcher for Naruto Online.
             
-            ### Instalação (Linux)
+            ### 📦 Downloads
+            
+            | Platform | File |
+            |----------|------|
+            | Linux | `naruto-online-linux.zip` (AppImage + installer) |
+            | Windows | `naruto-online-win.zip` (Portable EXE) |
+            
+            ### 🚀 Installation
+            
+            **Linux:**
             ```bash
             unzip naruto-online-linux.zip
             chmod +x install.sh
             ./install.sh
             ```
             
-            ### Controles
-            | Tecla | Ação |
-            |-------|------|
-            | F5 | Limpar Login |
-            | F6 | Trocar Região |
-            | F7 | Trocar Hardware |
-            | F11 | Tela Cheia |
-            | F12 | DevTools |
+            **Windows:**
+            Extract and run `NarutoOnline.exe`
+            
+            ### ⌨️ Controls
+            
+            | Key | Action |
+            |-----|--------|
+            | F5 | Clear Login |
+            | F6 | Switch Region |
+            | F7 | Switch Hardware Profile |
+            | F11 | Fullscreen |
+            | ESC | Exit Fullscreen |
+            
+            ### 🌍 Supported Regions
+            🇧🇷 PT | 🇺🇸 EN | 🇫🇷 FR | 🇩🇪 DE | 🇪🇸 ES | 🇵🇱 PL

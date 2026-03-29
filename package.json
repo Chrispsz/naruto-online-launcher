@@ -1,14 +1,27 @@
 {
   "name": "naruto-online-launcher",
-  "version": "1.9.5",
-  "description": "Naruto Online Flash Launcher - Otimizado para Flash 64-bit",
+  "version": "2.0.0",
+  "description": "Ultra-optimized Flash game launcher for Naruto Online - No tracking, no ads, full GPU acceleration",
   "main": "src/main.js",
-  "author": "pyzch",
+  "author": "Chrispsz",
   "license": "MIT",
+  "homepage": "https://github.com/Chrispsz/naruto-online-launcher#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Chrispsz/naruto-online-launcher.git"
+    "url": "git+https://github.com/Chrispsz/naruto-online-launcher.git"
   },
+  "bugs": {
+    "url": "https://github.com/Chrispsz/naruto-online-launcher/issues"
+  },
+  "keywords": [
+    "naruto",
+    "naruto-online",
+    "flash",
+    "launcher",
+    "game",
+    "electron",
+    "ppapi"
+  ],
   "engines": {
     "node": ">=12.0.0"
   },
