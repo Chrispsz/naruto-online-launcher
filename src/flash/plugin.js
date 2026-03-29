@@ -38,12 +38,13 @@ function findFlashPlugin() {
     try {
       if (fs.existsSync(pluginPath)) {
         const stats = fs.statSync(pluginPath);
-        if (stats.size > 5000000) {
+        // 1MB é suficiente para detectar arquivo válido (alguns builds são ~4.8MB)
+        if (stats.size > 1000000) {
           logger.info(`Flash encontrado: ${pluginPath}`);
           return pluginPath;
         }
       }
-    } catch (e) {
+    } catch {
       // Continua procurando
     }
   }
@@ -63,10 +64,9 @@ function configureFlash(flashPath) {
   app.commandLine.appendSwitch('ppapi-flash-args', [
     'enable_hardware_pepper_video_decoder=1',
     'enable_stagevideo_auto=1',
-    'enable_hw_accel=1',
-    'enable_request_autherror=0'
+    'enable_hw_accel=1'
   ].join(' '));
-  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096');
+  app.commandLine.appendSwitch('js-flags', '--max-old-space-size=512');
   
   logger.info(`Flash ${version} configurado`);
   return true;

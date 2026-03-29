@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.5] - 2025-03-29
+
+### Changed
+- **[W-03]** insertCSS só injeta uma vez (flag cssInjected)
+- **[W-04]** Flash threshold 5MB → 1MB (aceita builds menores)
+- **[OE-05]** preconnect só no servidor da região atual (era 4 servidores)
+- **[OE-06]** Removida flag Flash inválida `enable_request_autherror=0`
+- **[OE-07]** js-flags `max-old-space-size` 4GB → 512MB
+
 ## [1.9.4] - 2025-03-29
 
 ### Fixed

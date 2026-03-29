@@ -19,37 +19,27 @@ const {
 
 const WINDOW_TITLE = 'Naruto Online';
 
-// Servidores para preconnect
-const GAME_SERVERS = [
-  'https://naruto.oasgames.com',
-  'https://naruto.narutowebgame.com',
-  'https://gf1.geo.gfsrv.net',
-  'https://cdn.oasgames.com'
-];
-
 let mainWindow = null;
 let isClosing = false;
+let cssInjected = false;
 
 /**
- * Preconnect para servidores do jogo (reduz latência)
+ * Preconnect para servidor da região atual (reduz latência)
  */
-function preconnectServers() {
+function preconnectServers(region) {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   
   const session = mainWindow.webContents.session;
   
-  GAME_SERVERS.forEach(server => {
-    try {
-      session.preconnect({
-        url: server,
-        numSockets: 2
-      });
-    } catch {
-      // Ignora erros de preconnect
-    }
-  });
-  
-  logger.debug('Preconnect realizado');
+  try {
+    session.preconnect({
+      url: getGameUrl(region),
+      numSockets: 1
+    });
+    logger.debug('Preconnect realizado');
+  } catch {
+    // Ignora erros de preconnect
+  }
 }
 
 function createWindow(config, saveConfig) {
@@ -136,12 +126,15 @@ function createWindow(config, saveConfig) {
   mainWindow.webContents.on('did-finish-load', () => {
     session.cookies.flushStore().catch(() => {});
     
-    // Esconde barra OAS
-    mainWindow.webContents.insertCSS(`
-      .oas-bar, #oas-bar { display: none !important; height: 0 !important; }
-      .oas-bar-hide, #oas-bar-hide { display: none !important; }
-      #oas-player { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
-    `).catch(() => {});
+    // Esconde barra OAS - só injeta uma vez
+    if (!cssInjected) {
+      cssInjected = true;
+      mainWindow.webContents.insertCSS(`
+        .oas-bar, #oas-bar { display: none !important; height: 0 !important; }
+        .oas-bar-hide, #oas-bar-hide { display: none !important; }
+        #oas-player { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
+      `).catch(() => {});
+    }
   });
   
   // Fecha aplicação - cleanup e deixa Electron destruir naturalmente

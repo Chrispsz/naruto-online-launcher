@@ -1,6 +1,6 @@
 /**
- * Naruto Online Launcher v1.9.4
- * Bug fixes + cleanup
+ * Naruto Online Launcher v1.9.5
+ * Final optimizations
  * 
  * SINGLE WINDOW - Flash PPAPI
  */
@@ -81,7 +81,7 @@ app.on('ready', () => {
   createWindow(config, saveConfig);
   
   // Preconnect em background
-  setImmediate(() => preconnectServers());
+  setImmediate(() => preconnectServers(config.region));
   
   logger.info(`v${version} Iniciado`);
 });
