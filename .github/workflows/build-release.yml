@@ -1,0 +1,124 @@
+name: Build & Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+          - os: windows-2022
+            platform: win
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14  # Electron 9 precisa de Node <= 14
+
+      - name: System deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 \
+            xdg-utils libatspi2.0-0 libuuid1 libappindicator3-1
+
+      - name: npm install
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Download Flash (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p flash
+          curl -sL "https://github.com/darktohka/clean-flash-builds/releases/download/v1.7/flash_player_patched_ppapi_linux.x86_64.tar.gz" | tar -xzf - -C flash
+          ls -la flash/
+
+      - name: Download Flash (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir flash
+          Invoke-WebRequest -Uri "https://github.com/darktohka/clean-flash-builds/releases/download/v1.53/ChineseFlash-PPAPI-PepperFlashPlayer.zip" -OutFile flash.zip
+          Expand-Archive flash.zip -DestinationPath flash
+          Remove-Item flash.zip
+          dir flash
+
+      - name: Build (Linux)
+        if: runner.os == 'Linux'
+        run: npx electron-builder --linux AppImage --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: npx electron-builder --win portable --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p release
+          cp dist/*.AppImage release/
+          cp linux/install.sh release/ || true
+          cp linux/uninstall.sh release/ || true
+          cd release && zip -r ../naruto-online-linux.zip .
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          mkdir release
+          cp dist/*.exe release/
+          Compress-Archive -Path release/* -DestinationPath naruto-online-win.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: naruto-online-${{ matrix.platform }}.zip
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          body: |
+            ## Naruto Online Launcher
+            
+            ### Downloads
+            - **naruto-online-linux.zip** - Linux AppImage com instalador
+            - **naruto-online-win.zip** - Windows portable
+            
+            ### Instalação (Linux)
+            ```bash
+            unzip naruto-online-linux.zip
+            chmod +x install.sh
+            ./install.sh
+            ```
+            
+            ### Controles
+            | Tecla | Ação |
+            |-------|------|
+            | F5 | Limpar Login |
+            | F6 | Trocar Região |
+            | F7 | Trocar Hardware |
+            | F11 | Tela Cheia |
+            | F12 | DevTools |

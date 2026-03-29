@@ -1,0 +1,64 @@
+{
+  "name": "naruto-online-launcher",
+  "version": "1.6.0",
+  "description": "Naruto Online Flash Launcher - Otimizado para Flash 64-bit",
+  "main": "src/main.js",
+  "author": "pyzch",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chrispsz/naruto-online-launcher.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux AppImage --win portable",
+    "build:linux": "electron-builder --linux AppImage",
+    "build:win": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "9.4.4",
+    "electron-builder": "22.14.13"
+  },
+  "dependencies": {},
+  "build": {
+    "appId": "com.naruto.launcher",
+    "productName": "Naruto Online",
+    "npmRebuild": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/main.js"
+    ],
+    "extraResources": [
+      {
+        "from": "flash",
+        "to": "flash",
+        "filter": ["*.so", "*.dll"]
+      },
+      {
+        "from": "assets/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Game",
+      "executableName": "naruto-online",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "executableName": "NarutoOnline",
+      "icon": "assets/icon.ico"
+    },
+    "electronVersion": "9.4.4"
+  }
+}

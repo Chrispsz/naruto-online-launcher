@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Naruto Online
+Comment=Naruto Online Flash Launcher
+Exec=/home/SEU_USUARIO/Documentos/naruto/Naruto.Online-1.0.0.AppImage --no-sandbox
+Icon=/home/SEU_USUARIO/Documentos/naruto/icon.png
+Terminal=false
+Type=Application
+Categories=Game;
+StartupWMClass=naruto-online
