@@ -142,20 +142,6 @@ function createWindow(config, saveConfig) {
       .oas-bar-hide, #oas-bar-hide { display: none !important; }
       #oas-player { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
     `).catch(() => {});
-    
-    // Substitui logintype=3 - DOM traversal simplificado
-    mainWindow.webContents.executeJavaScript(`
-      (function() {
-        // Elementos com onclick
-        document.querySelectorAll('[onclick*="logintype=3"]').forEach(el => {
-          el.setAttribute('onclick', el.getAttribute('onclick').replace(/logintype=3/g, 'logintype=4'));
-        });
-        // Scripts com src
-        document.querySelectorAll('script[src*="logintype=3"]').forEach(s => {
-          s.src = s.src.replace(/logintype=3/g, 'logintype=4');
-        });
-      })();
-    `).catch(() => {});
   });
   
   // Fecha aplicação - sem preventDefault para evitar double-close

@@ -1,6 +1,6 @@
 /**
  * Chromium Flags Configuration
- * Configura flags do Chromium baseado no perfil de hardware
+ * NOTA: Electron 11 usa Chromium 87 - flags de Cr88+ causam crash no Linux
  */
 
 'use strict';
@@ -8,7 +8,7 @@
 const { app } = require('electron');
 const logger = require('../utils/logger');
 
-// Flags universais (aplicadas em todos os perfis)
+// Flags universais
 const UNIVERSAL_FLAGS = [
   'disable-background-timer-throttling',
   'disable-renderer-backgrounding',
@@ -18,104 +18,60 @@ const UNIVERSAL_FLAGS = [
   'disable-hang-monitor'
 ];
 
-// Flags de cache
+// Cache flags
 const CACHE_FLAGS = {
-  'disk-cache-size': '524288000',   // 500MB
-  'media-cache-size': '134217728'   // 128MB
+  'disk-cache-size': '524288000',
+  'media-cache-size': '134217728'
+};
+
+// Funções de perfil
+const PROFILE_APPLIERS = {
+  modern: () => {
+    ['ignore-gpu-blocklist', 'enable-gpu-rasterization', 'enable-zero-copy', 'enable-accelerated-video-decode']
+      .forEach(f => app.commandLine.appendSwitch(f));
+    
+    // Linux precisa de use-gl: desktop, não use-angle (causa crash no Chromium 87)
+    if (process.platform === 'linux') {
+      app.commandLine.appendSwitch('use-gl', 'desktop');
+      app.commandLine.appendSwitch('enable-features', 'VaapiVideoDecoder');
+      logger.info('Flags: GPU, GL desktop, VA-API');
+    } else {
+      app.commandLine.appendSwitch('use-angle', 'd3d11');
+      app.commandLine.appendSwitch('enable-features', 'D3D11VideoDecoder,DirectComposition');
+      logger.info('Flags: GPU, D3D11, zero-copy');
+    }
+  },
+  
+  legacy: () => {
+    ['ignore-gpu-blocklist', 'in-process-gpu', 'enable-accelerated-video-decode']
+      .forEach(f => app.commandLine.appendSwitch(f));
+    
+    if (process.platform === 'linux') {
+      app.commandLine.appendSwitch('use-gl', 'desktop');
+      logger.info('Flags: GPU, in-process, GL desktop');
+    } else {
+      app.commandLine.appendSwitch('use-angle', 'd3d11');
+      logger.info('Flags: GPU, in-process, D3D11');
+    }
+  },
+  
+  cpu: () => {
+    app.commandLine.appendSwitch('disable-gpu');
+    app.commandLine.appendSwitch('use-angle', 'swiftshader');
+    logger.info('Flags: CPU only');
+  }
 };
 
 /**
- * Aplica flags para perfil Moderno
- * GPUs: RX 6000+, RTX 3000+, GTX 1600+
- * NOTA: Electron 11 usa Chromium 87, então removemos flags de Cr88+
- */
-function applyModernFlags() {
-  const flags = [
-    'ignore-gpu-blocklist',
-    'enable-gpu-rasterization',
-    'enable-zero-copy',
-    // REMOVIDAS - introduzidas após Chromium 87:
-    // 'enable-native-gpu-memory-buffers', // Cr89+
-    // 'canvas-oop-rasterization',         // Cr88+
-    'enable-accelerated-video-decode'
-  ];
-  
-  flags.forEach(f => app.commandLine.appendSwitch(f));
-  
-  // D3D11 no Windows, OpenGL no Linux
-  app.commandLine.appendSwitch('use-angle', process.platform === 'win32' ? 'd3d11' : 'gl');
-  
-  const features = process.platform === 'win32' 
-    ? 'D3D11VideoDecoder,DirectComposition' 
-    : 'VaapiVideoDecoder';
-  app.commandLine.appendSwitch('enable-features', features);
-  
-  logger.info('Flags: D3D11/GL, GPU rasterization, zero-copy (Chromium 87 compat)');
-}
-
-/**
- * Aplica flags para perfil Legacy
- * GPUs: GTX 900/1000, Radeon HD/RX 500, Intel HD
- */
-function applyLegacyFlags() {
-  const flags = [
-    'ignore-gpu-blocklist',
-    'in-process-gpu',
-    'enable-accelerated-video-decode'
-  ];
-  
-  flags.forEach(f => app.commandLine.appendSwitch(f));
-  app.commandLine.appendSwitch('use-angle', process.platform === 'win32' ? 'd3d11' : 'gl');
-  
-  logger.info('Flags: D3D11/OpenGL, in-process-gpu');
-}
-
-/**
- * Aplica flags para perfil CPU Only
- * Para máquinas sem GPU dedicada ou com problemas de GPU
- */
-function applyCpuFlags() {
-  app.commandLine.appendSwitch('disable-gpu');
-  app.commandLine.appendSwitch('use-angle', 'swiftshader');
-  
-  logger.info('Flags: CPU only (SwiftShader)');
-}
-
-/**
- * Aplica todas as flags do Chromium baseado no perfil de hardware
- * @param {string} profile - Perfil de hardware: 'modern', 'legacy', ou 'cpu'
+ * Aplica flags do Chromium baseado no perfil
+ * @param {string} profile - 'modern', 'legacy', ou 'cpu'
  */
 function applyFlags(profile) {
-  // Flags universais
   UNIVERSAL_FLAGS.forEach(flag => app.commandLine.appendSwitch(flag));
+  Object.entries(CACHE_FLAGS).forEach(([k, v]) => app.commandLine.appendSwitch(k, v));
   
-  // Flags de cache
-  Object.entries(CACHE_FLAGS).forEach(([key, value]) => {
-    app.commandLine.appendSwitch(key, value);
-  });
-  
-  logger.info(`Perfil de hardware: ${profile}`);
-  
-  // Flags específicas do perfil
-  switch (profile) {
-    case 'modern':
-      applyModernFlags();
-      break;
-    case 'legacy':
-      applyLegacyFlags();
-      break;
-    case 'cpu':
-    default:
-      applyCpuFlags();
-      break;
-  }
+  logger.info(`Perfil: ${profile}`);
+  (PROFILE_APPLIERS[profile] || PROFILE_APPLIERS.cpu)();
 }
 
-module.exports = {
-  applyFlags,
-  applyModernFlags,
-  applyLegacyFlags,
-  applyCpuFlags,
-  UNIVERSAL_FLAGS,
-  CACHE_FLAGS
-};
+module.exports = { applyFlags };

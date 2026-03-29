@@ -1,64 +1,18 @@
 /**
- * Bloqueador de Trackers e Analytics com Trie
- * O(k) lookup onde k = partes do domínio
- * Cache usando hostname (não URL completa) para evitar memory leak
+ * Bloqueador de Trackers e Analytics
+ * Simples Set + endsWith para 18 domínios estáticos
  */
 
 'use strict';
 
 const logger = require('../utils/logger');
 
-/**
- * Trie para matching de sufixos de domínio
- * Permite O(k) lookup onde k é o número de partes do domínio
- */
-class DomainTrie {
-  constructor() {
-    this.root = {};
-  }
-
-  /**
-   * Adiciona domínio à trie
-   * @param {string} domain - ex: "google-analytics.com"
-   */
-  add(domain) {
-    const parts = domain.split('.').reverse();
-    let node = this.root;
-    
-    for (const part of parts) {
-      node[part] = node[part] || {};
-      node = node[part];
-    }
-    
-    node['$'] = true;
-  }
-
-  /**
-   * Verifica se hostname ou qualquer sufixo corresponde
-   * @param {string} hostname - ex: "www.google-analytics.com"
-   * @returns {boolean}
-   */
-  matches(hostname) {
-    const parts = hostname.split('.').reverse();
-    let node = this.root;
-    
-    for (const part of parts) {
-      if (node['$']) return true;
-      if (!node[part]) return false;
-      node = node[part];
-    }
-    
-    return !!node['$'];
-  }
-}
-
-// Lista de domínios bloqueados
-const BLOCKED_DOMAINS = [
+// Lista de domínios bloqueados (apenas domínios raiz)
+const BLOCKED_DOMAINS = new Set([
   // Analytics
   'google-analytics.com',
   'googletagmanager.com',
   'analytics.google.com',
-  'www.google-analytics.com',
   // Ads
   'doubleclick.net',
   'googlesyndication.com',
@@ -80,15 +34,21 @@ const BLOCKED_DOMAINS = [
   'hotjar.com',
   'clarity.ms',
   'cdn.mxpnl.com'
-];
+]);
 
-// Setup da Trie (único)
-const blockerTrie = new DomainTrie();
-BLOCKED_DOMAINS.forEach(d => blockerTrie.add(d));
-
-// Cache usando hostname (não URL completa) - LRU real
-const blockCache = new Map();
-const MAX_CACHE = 1000;
+/**
+ * Verifica se hostname termina com algum domínio bloqueado
+ * @param {string} hostname
+ * @returns {boolean}
+ */
+function isBlockedDomain(hostname) {
+  for (const domain of BLOCKED_DOMAINS) {
+    if (hostname === domain || hostname.endsWith('.' + domain)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * Verifica se URL deve ser bloqueada
@@ -97,36 +57,11 @@ const MAX_CACHE = 1000;
  */
 function shouldBlock(url) {
   try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname;
-    
-    // Cache hit - LRU: delete + re-insert para mover para frente
-    if (blockCache.has(hostname)) {
-      return blockCache.get(hostname);
-    }
-    
-    // Verifica na Trie
-    const result = blockerTrie.matches(hostname);
-    
-    // Cacheia resultado com LRU real
-    if (blockCache.size >= MAX_CACHE) {
-      // Deleta a chave mais antiga (primeira inserida)
-      const oldestKey = blockCache.keys().next().value;
-      blockCache.delete(oldestKey);
-    }
-    blockCache.set(hostname, result);
-    
-    return result;
+    const hostname = new URL(url).hostname;
+    return isBlockedDomain(hostname);
   } catch {
     return false;
   }
-}
-
-/**
- * Limpa o cache (para testes ou cleanup)
- */
-function clearCache() {
-  blockCache.clear();
 }
 
 /**
@@ -150,14 +85,12 @@ function setupBlocker(session) {
     callback({ cancel: false });
   });
   
-  logger.info('Blocker configurado (Trie + Cache hostname)');
+  logger.info('Blocker configurado');
 }
 
 module.exports = {
-  DomainTrie,
   BLOCKED_DOMAINS,
-  blockerTrie,
+  isBlockedDomain,
   shouldBlock,
-  setupBlocker,
-  clearCache
+  setupBlocker
 };

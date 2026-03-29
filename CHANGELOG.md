@@ -4,6 +4,53 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.3] - 2025-03-29
+
+### Fixed — Linux
+- **[L-01]** Flags incompatíveis com Chromium 87 no Linux causavam crash
+  - Adicionado `use-gl: desktop` no Linux (não `use-angle: gl`)
+  - Removido `use-angle` no Linux para evitar crash com Mesa/AMD
+  - VaapiVideoDecoder habilitado para aceleração de vídeo
+- **[L-02]** install.sh com VERSION="1.2.1" desatualizado
+
+### Changed
+- **[OE-07]** onHeadersReceived agora usa filtro de URL
+  - Só monitora domínios do jogo (oasgames.com, narutowebgame.com)
+  - Interceptador separado para tracking cookies
+
+## [1.9.2] - 2025-03-29
+
+### Changed
+- **Simplificação massiva de código** - ~167 linhas removidas
+- **Blocker:** DomainTrie → Set + endsWith() (18 domínios não precisam de Trie)
+- **Blocker:** LRU cache removido (jogo usa ~40 hostnames únicos)
+- **Cookies:** pendingRemovals Map → remoção direta (0-3 tracking cookies/sessão)
+- **Cookies:** onHeadersReceived só clona headers se set-cookie existe
+- **Flags:** switch → objeto declarativo PROFILE_APPLIERS
+- **Plugin:** readdirSync → path.join direto (nome do plugin é conhecido)
+- **Main:** PRIORITY_MAP → ternário simples
+- **Settings:** configCache mtime removido (loadConfig chamado 1x)
+
+### Removed
+- `logger.setLevel()` - API morta (não funcionava)
+- `TreeWalker DOM` no create.js - redundante com blocker no nível de rede
+- Skip de escrita em mms.cfg - 300 bytes 1x/boot não vale a complexidade
+
+### Tests
+- 54 testes passando (removidos testes de DomainTrie e setLevel)
+
+## [1.9.1] - 2025-03-29
+
+### Fixed
+- **BUG #9:** requestSingleInstanceLock antes do ready
+- **BUG #10:** shortcutsHandler removeAllListeners → cleanup específico
+- **BUG #11:** DevTools exposto em produção
+- **BUG #12:** Flags incompatíveis com Chromium 87
+- **BUG #13:** Tracking cookies não bloqueados nos headers
+- **BUG #14:** README-ptbr.md desatualizado
+- **BUG #15:** DOM traversal redundante
+- **BUG #16:** Lockfiles duplicados
+
 ## [1.9.0] - 2025-03-29
 
 ### Changed

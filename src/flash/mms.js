@@ -1,6 +1,5 @@
 /**
  * Gerenciamento do mms.cfg (Flash Config)
- * Com skip de escrita se conteúdo igual
  */
 
 'use strict';
@@ -9,9 +8,6 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('../utils/logger');
 
-/**
- * Retorna o caminho do mms.cfg
- */
 function getMmsCfgPath() {
   if (process.platform === 'win32') {
     const appData = process.env.APPDATA || path.join(process.env.USERPROFILE, 'AppData', 'Roaming');
@@ -22,9 +18,6 @@ function getMmsCfgPath() {
   }
 }
 
-/**
- * Gera o conteúdo do mms.cfg
- */
 function generateMmsContent(hardwareProfile) {
   const isCpuMode = hardwareProfile === 'cpu';
   
@@ -47,35 +40,17 @@ function generateMmsContent(hardwareProfile) {
   ].join('\n');
 }
 
-/**
- * Cria o mms.cfg se necessário
- * Skip se conteúdo já existe e é igual
- */
 function createMmsCfg(hardwareProfile = 'modern') {
   try {
     const cfgPath = getMmsCfgPath();
     const dir = path.dirname(cfgPath);
-    const newContent = generateMmsContent(hardwareProfile);
     
-    // Verifica se já existe e é igual
-    try {
-      const existingContent = fs.readFileSync(cfgPath, 'utf8');
-      if (existingContent === newContent) {
-        logger.debug('mms.cfg unchanged, skipping write');
-        return true;
-      }
-    } catch {
-      // Arquivo não existe, continua
-    }
-    
-    // Cria diretório se necessário
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
-      logger.debug(`Diret\u00F3rio criado: ${dir}`);
+      logger.debug(`Diretório criado: ${dir}`);
     }
     
-    // Escreve arquivo
-    fs.writeFileSync(cfgPath, newContent, 'utf8');
+    fs.writeFileSync(cfgPath, generateMmsContent(hardwareProfile), 'utf8');
     logger.info(`mms.cfg atualizado: ${cfgPath}`);
     return true;
   } catch (e) {

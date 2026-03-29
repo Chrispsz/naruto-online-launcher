@@ -1,6 +1,6 @@
 /**
- * Naruto Online Launcher v1.9.1
- * Bugs corrigidos: memory leaks, F7 save, will-navigate
+ * Naruto Online Launcher v1.9.3
+ * Linux fixes + simplificações
  * 
  * SINGLE WINDOW - Flash PPAPI
  */
@@ -44,15 +44,11 @@ if (flashPath) {
 // ============================================================
 // PROCESS PRIORITY
 // ============================================================
-const PRIORITY_MAP = {
-  'cpu': os.constants.priority.PRIORITY_BELOW_NORMAL,
-  'legacy': os.constants.priority.PRIORITY_NORMAL,
-  'modern': os.constants.priority.PRIORITY_NORMAL
-};
-
 function setProcessPriority(profile) {
   try {
-    const priority = PRIORITY_MAP[profile] ?? os.constants.priority.PRIORITY_NORMAL;
+    const priority = profile === 'cpu' 
+      ? os.constants.priority.PRIORITY_BELOW_NORMAL 
+      : os.constants.priority.PRIORITY_NORMAL;
     os.setPriority(process.pid, priority);
     logger.info(`Process priority: ${priority} (${profile})`);
   } catch (err) {

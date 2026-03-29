@@ -4,7 +4,7 @@
 
 set -e
 
-VERSION="1.2.1"
+VERSION="1.9.3"
 APP_NAME="Naruto Online Launcher"
 
 echo "========================================"

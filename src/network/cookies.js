@@ -1,6 +1,5 @@
 /**
- * Gerenciamento de Cookies Persistentes com Debounce
- * Com cleanup correto para evitar memory leaks
+ * Gerenciamento de Cookies Persistentes
  */
 
 'use strict';
@@ -8,14 +7,9 @@
 const logger = require('../utils/logger');
 
 const COOKIE_EXPIRY = 31536000; // 1 ano em segundos
-const DEBOUNCE_MS = 250; // Debounce para operações de cookie (aumentado para menos I/O)
-
-// Debounce timer e pending removals (module-level para cleanup)
-let debounceTimer = null;
-let pendingRemovals = new Map();
 
 /**
- * Configura cookies persistentes com debounce para performance
+ * Configura cookies persistentes
  * @param {Electron.Session} session 
  */
 function setupPersistentCookies(session) {
@@ -38,21 +32,6 @@ function setupPersistentCookies(session) {
     'narutowebgame.com',
     'oasgames.com'
   ];
-
-  const flushRemovals = () => {
-    const removals = [...pendingRemovals.values()];
-    pendingRemovals.clear();
-    
-    if (removals.length > 0) {
-      Promise.all(
-        removals.map(({ url, name }) =>
-          session.cookies.remove(url, name).catch(() => {})
-        )
-      ).then(() => {
-        logger.debug(`Removidos ${removals.length} tracking cookies`);
-      });
-    }
-  };
 
   session.cookies.on('changed', (event, cookie, cause, removed) => {
     if (removed) return;
@@ -85,44 +64,48 @@ function setupPersistentCookies(session) {
       return;
     }
     
-    // Remove cookies de tracking
+    // Remove cookies de tracking diretamente
     if (TRACKING_DOMAINS.some(d => cookie.domain?.includes(d))) {
       const url = buildCookieUrl(cookie);
-      const key = `${url}|${cookie.name}`;
-      pendingRemovals.set(key, { url, name: cookie.name });
-      
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(flushRemovals, DEBOUNCE_MS);
+      session.cookies.remove(url, cookie.name).catch(() => {});
     }
   });
   
-  // Intercepta headers para adicionar Max-Age E bloquear tracking
-  session.webRequest.onHeadersReceived((details, callback) => {
-    const responseHeaders = { ...details.responseHeaders };
-    
-    if (responseHeaders['set-cookie']) {
-      const isTracking = TRACKING_DOMAINS.some(d => 
-        details.url.toLowerCase().includes(d)
-      );
+  // Intercepta headers para bloquear tracking cookies na origem
+  // Só monitora domínios do jogo para não interferir em assets externos
+  session.webRequest.onHeadersReceived(
+    { urls: ['*://*.oasgames.com/*', '*://*.narutowebgame.com/*'] },
+    (details, callback) => {
+      const setCookie = details.responseHeaders?.['set-cookie'];
       
-      if (isTracking) {
-        // Bloqueia na origem - mais eficiente que remover depois
-        delete responseHeaders['set-cookie'];
-      } else {
-        // Estende cookies do jogo
-        responseHeaders['set-cookie'] = responseHeaders['set-cookie'].map(cookie => {
-          if (!cookie.toLowerCase().includes('expires=') && !cookie.toLowerCase().includes('max-age=')) {
-            return cookie + `; Max-Age=${COOKIE_EXPIRY}`;
-          }
-          return cookie;
-        });
+      if (!setCookie) {
+        return callback({});
       }
+      
+      // Estende cookies do jogo
+      const responseHeaders = { ...details.responseHeaders };
+      responseHeaders['set-cookie'] = setCookie.map(cookie => {
+        if (!cookie.toLowerCase().includes('expires=') && !cookie.toLowerCase().includes('max-age=')) {
+          return cookie + `; Max-Age=${COOKIE_EXPIRY}`;
+        }
+        return cookie;
+      });
+      
+      callback({ responseHeaders });
     }
-    
-    callback({ responseHeaders });
-  });
+  );
   
-  logger.info('Cookies persistentes configurados (com debounce)');
+  // Bloqueia tracking cookies em todos os domínios
+  session.webRequest.onHeadersReceived(
+    { urls: TRACKING_DOMAINS.map(d => `*://*.${d}/*`) },
+    (details, callback) => {
+      const responseHeaders = { ...details.responseHeaders };
+      delete responseHeaders['set-cookie'];
+      callback({ responseHeaders });
+    }
+  );
+  
+  logger.info('Cookies persistentes configurados');
 }
 
 /**
@@ -157,21 +140,8 @@ async function clearAllCookies(session) {
   }
 }
 
-/**
- * Cleanup para evitar memory leaks no shutdown
- * Deve ser chamado antes de app.exit()
- */
-function cleanup() {
-  if (debounceTimer) {
-    clearTimeout(debounceTimer);
-    debounceTimer = null;
-  }
-  pendingRemovals.clear();
-}
-
 module.exports = {
   setupPersistentCookies,
   clearAllCookies,
-  cleanup,
   COOKIE_EXPIRY
 };

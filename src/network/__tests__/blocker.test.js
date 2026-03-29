@@ -2,54 +2,52 @@
  * Testes para src/network/blocker.js
  */
 
-const { BLOCKED_DOMAINS, DomainTrie, shouldBlock, clearCache } = require('../blocker');
+const { BLOCKED_DOMAINS, isBlockedDomain, shouldBlock } = require('../blocker');
 
 describe('blocker.js', () => {
-  beforeEach(() => {
-    clearCache();
-  });
-
   describe('BLOCKED_DOMAINS', () => {
-    test('é um array', () => {
-      expect(Array.isArray(BLOCKED_DOMAINS)).toBe(true);
+    test('é um Set', () => {
+      expect(BLOCKED_DOMAINS instanceof Set).toBe(true);
     });
 
     test('contém domínios de analytics', () => {
-      expect(BLOCKED_DOMAINS).toContain('google-analytics.com');
-      expect(BLOCKED_DOMAINS).toContain('googletagmanager.com');
+      expect(BLOCKED_DOMAINS.has('google-analytics.com')).toBe(true);
+      expect(BLOCKED_DOMAINS.has('googletagmanager.com')).toBe(true);
     });
 
     test('contém domínios de ads', () => {
-      expect(BLOCKED_DOMAINS).toContain('doubleclick.net');
-      expect(BLOCKED_DOMAINS).toContain('googlesyndication.com');
+      expect(BLOCKED_DOMAINS.has('doubleclick.net')).toBe(true);
+      expect(BLOCKED_DOMAINS.has('googlesyndication.com')).toBe(true);
     });
 
     test('contém domínios de social tracking', () => {
-      expect(BLOCKED_DOMAINS).toContain('facebook.com');
-      expect(BLOCKED_DOMAINS).toContain('connect.facebook.net');
+      expect(BLOCKED_DOMAINS.has('facebook.com')).toBe(true);
+      expect(BLOCKED_DOMAINS.has('connect.facebook.net')).toBe(true);
     });
 
     test('contém domínios de telemetria', () => {
-      expect(BLOCKED_DOMAINS).toContain('sentry.io');
+      expect(BLOCKED_DOMAINS.has('sentry.io')).toBe(true);
     });
   });
 
-  describe('DomainTrie', () => {
-    test('matches hostname correto', () => {
-      const trie = new DomainTrie();
-      trie.add('google.com');
-      
-      expect(trie.matches('google.com')).toBe(true);
-      expect(trie.matches('www.google.com')).toBe(true);
-      expect(trie.matches('mail.google.com')).toBe(true);
+  describe('isBlockedDomain', () => {
+    test('match domínio exato', () => {
+      expect(isBlockedDomain('google-analytics.com')).toBe(true);
+    });
+
+    test('match subdomínio', () => {
+      expect(isBlockedDomain('www.google-analytics.com')).toBe(true);
+      expect(isBlockedDomain('collect.mdata.cool')).toBe(true);
     });
 
     test('não match hostname diferente', () => {
-      const trie = new DomainTrie();
-      trie.add('google.com');
-      
-      expect(trie.matches('yahoo.com')).toBe(false);
-      expect(trie.matches('google.org')).toBe(false);
+      expect(isBlockedDomain('yahoo.com')).toBe(false);
+      expect(isBlockedDomain('google.org')).toBe(false);
+    });
+
+    test('não match domínios do jogo', () => {
+      expect(isBlockedDomain('naruto.narutowebgame.com')).toBe(false);
+      expect(isBlockedDomain('naruto.oasgames.com')).toBe(false);
     });
   });
 
@@ -88,24 +86,6 @@ describe('blocker.js', () => {
 
     test('retorna false para URL vazia', () => {
       expect(shouldBlock('')).toBe(false);
-    });
-
-    test('usa hostname como chave do cache', () => {
-      // URL diferentes mas mesmo hostname = mesmo resultado do cache
-      const result1 = shouldBlock('https://google-analytics.com/script.js?v=1');
-      const result2 = shouldBlock('https://google-analytics.com/another.js?v=2');
-      
-      expect(result1).toBe(true);
-      expect(result2).toBe(true);
-    });
-  });
-
-  describe('clearCache', () => {
-    test('limpa o cache', () => {
-      shouldBlock('https://google-analytics.com/test');
-      clearCache();
-      // Cache foi limpo - não há como verificar diretamente, mas não deve erros
-      expect(() => clearCache()).not.toThrow();
     });
   });
 });

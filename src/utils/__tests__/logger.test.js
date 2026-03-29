@@ -65,10 +65,4 @@ describe('logger.js', () => {
       expect(console.log).not.toHaveBeenCalled();
     });
   });
-
-  describe('setLevel', () => {
-    test('existe como função', () => {
-      expect(typeof logger.setLevel).toBe('function');
-    });
-  });
 });
