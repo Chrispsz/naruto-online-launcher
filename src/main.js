@@ -1,5 +1,5 @@
 /**
- * Naruto Online Launcher v1.9.0
+ * Naruto Online Launcher v1.9.1
  * Bugs corrigidos: memory leaks, F7 save, will-navigate
  * 
  * SINGLE WINDOW - Flash PPAPI
@@ -8,6 +8,16 @@
 'use strict';
 
 const { app } = require('electron');
+
+// ============================================================
+// SINGLE INSTANCE LOCK - DEVE SER PRIMEIRO!
+// ============================================================
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+  process.exit(0);
+}
+
+// Agora importa o resto
 const os = require('os');
 const logger = require('./utils/logger');
 const { loadConfig, saveConfig } = require('./config/settings');
@@ -53,6 +63,14 @@ function setProcessPriority(profile) {
 // ============================================================
 // APP LIFECYCLE
 // ============================================================
+// Segunda instância - foca na primeira
+app.on('second-instance', () => {
+  const win = getMainWindow();
+  if (win && !win.isDestroyed()) {
+    win.focus();
+  }
+});
+
 // Carrega config antes de app.ready
 config = loadConfig();
 applyFlags(config.hardwareProfile);
@@ -67,20 +85,8 @@ app.on('ready', () => {
   // Preconnect em background
   setImmediate(() => preconnectServers());
   
-  logger.info('v1.9.0 Iniciado');
+  logger.info('v1.9.1 Iniciado');
 });
-
-// Single instance
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    const win = getMainWindow();
-    if (win && !win.isDestroyed()) {
-      win.focus();
-    }
-  });
-}
 
 // Cleanup no shutdown
 app.on('window-all-closed', () => {

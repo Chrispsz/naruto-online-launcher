@@ -143,28 +143,16 @@ function createWindow(config, saveConfig) {
       #oas-player { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
     `).catch(() => {});
     
-    // Substitui logintype=3 (TreeWalker para evitar reflow)
+    // Substitui logintype=3 - DOM traversal simplificado
     mainWindow.webContents.executeJavaScript(`
       (function() {
-        const walker = document.createTreeWalker(
-          document.body,
-          NodeFilter.SHOW_ELEMENT,
-          null,
-          false
-        );
-        const elementsToFix = [];
-        let node;
-        while (node = walker.nextNode()) {
-          const onclick = node.getAttribute('onclick');
-          if (onclick && onclick.includes('logintype=3')) {
-            elementsToFix.push(node);
-          }
-        }
-        elementsToFix.forEach(el => {
+        // Elementos com onclick
+        document.querySelectorAll('[onclick*="logintype=3"]').forEach(el => {
           el.setAttribute('onclick', el.getAttribute('onclick').replace(/logintype=3/g, 'logintype=4'));
         });
-        document.querySelectorAll('script').forEach(s => {
-          if (s.src && s.src.includes('logintype=3')) s.src = s.src.replace(/logintype=3/g, 'logintype=4');
+        // Scripts com src
+        document.querySelectorAll('script[src*="logintype=3"]').forEach(s => {
+          s.src = s.src.replace(/logintype=3/g, 'logintype=4');
         });
       })();
     `).catch(() => {});
@@ -175,9 +163,9 @@ function createWindow(config, saveConfig) {
     if (isClosing) return;
     isClosing = true;
     
-    // Remove listener de atalhos
-    if (shortcutsHandler) {
-      mainWindow.webContents?.removeAllListeners('before-input-event');
+    // Chama cleanup ESPECÍFICO do shortcuts (não removeAllListeners)
+    if (typeof shortcutsHandler === 'function') {
+      shortcutsHandler();
     }
     
     mainWindow.destroy();

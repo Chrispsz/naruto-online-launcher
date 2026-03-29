@@ -27,14 +27,16 @@ const CACHE_FLAGS = {
 /**
  * Aplica flags para perfil Moderno
  * GPUs: RX 6000+, RTX 3000+, GTX 1600+
+ * NOTA: Electron 11 usa Chromium 87, então removemos flags de Cr88+
  */
 function applyModernFlags() {
   const flags = [
     'ignore-gpu-blocklist',
     'enable-gpu-rasterization',
     'enable-zero-copy',
-    'enable-native-gpu-memory-buffers',
-    'canvas-oop-rasterization',
+    // REMOVIDAS - introduzidas após Chromium 87:
+    // 'enable-native-gpu-memory-buffers', // Cr89+
+    // 'canvas-oop-rasterization',         // Cr88+
     'enable-accelerated-video-decode'
   ];
   
@@ -48,7 +50,7 @@ function applyModernFlags() {
     : 'VaapiVideoDecoder';
   app.commandLine.appendSwitch('enable-features', features);
   
-  logger.info('Flags: D3D11/GL, GPU rasterization, zero-copy');
+  logger.info('Flags: D3D11/GL, GPU rasterization, zero-copy (Chromium 87 compat)');
 }
 
 /**

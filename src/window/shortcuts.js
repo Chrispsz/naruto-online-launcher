@@ -47,8 +47,11 @@ function setupShortcuts(win, handlers) {
           toggleFullscreen(win);
           break;
         case 'toggleDevTools':
-          win.webContents.toggleDevTools();
-          logger.debug('DevTools toggled');
+          // Só em desenvolvimento
+          if (process.env.NODE_ENV === 'development' || process.env.DEVTOOLS === '1') {
+            win.webContents.toggleDevTools();
+            logger.debug('DevTools toggled');
+          }
           break;
         case 'exitFullscreen':
           if (win.isFullScreen()) {

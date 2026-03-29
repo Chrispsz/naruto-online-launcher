@@ -113,11 +113,12 @@ Delete a pasta.
 
 | Item | Detalhes |
 |------|----------|
-| Framework | Electron 9.4.4 |
+| Framework | Electron 11.5.0 |
+| Chromium | 87 |
 | Flash (Windows) | PPAPI 34.0.0.376 (baixado no build) |
 | Flash (Linux) | PPAPI 34.0.0.137 **incluído** |
 | Fonte | [darktohka/clean-flash-builds](https://github.com/darktohka/clean-flash-builds) |
-| Backend GPU | Vulkan (AMD/NVIDIA) / D3D11 fallback |
+| Backend GPU | D3D11 (Windows) / OpenGL (Linux) |
 
 ## 🎨 Mídia / Branding
 

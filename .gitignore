@@ -27,3 +27,7 @@ Thumbs.db
 # Flash PPAPI - baixar no CI
 flash/*.so
 flash/*.dll
+
+# Package manager - usar npm
+bun.lock
+bun.lockb

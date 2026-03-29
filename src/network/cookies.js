@@ -26,7 +26,11 @@ function setupPersistentCookies(session) {
     'facebook.com',
     'google.com',
     'doubleclick.net',
-    'google-analytics.com'
+    'google-analytics.com',
+    'sentry.io',
+    'track.oasgames.com',
+    'track.narutowebgame.com',
+    'mdata.cool'
   ];
   
   // Domínios permitidos (nunca remover)
@@ -92,17 +96,27 @@ function setupPersistentCookies(session) {
     }
   });
   
-  // Intercepta headers para adicionar Max-Age
+  // Intercepta headers para adicionar Max-Age E bloquear tracking
   session.webRequest.onHeadersReceived((details, callback) => {
     const responseHeaders = { ...details.responseHeaders };
     
     if (responseHeaders['set-cookie']) {
-      responseHeaders['set-cookie'] = responseHeaders['set-cookie'].map(cookie => {
-        if (!cookie.toLowerCase().includes('expires=') && !cookie.toLowerCase().includes('max-age=')) {
-          return cookie + `; Max-Age=${COOKIE_EXPIRY}`;
-        }
-        return cookie;
-      });
+      const isTracking = TRACKING_DOMAINS.some(d => 
+        details.url.toLowerCase().includes(d)
+      );
+      
+      if (isTracking) {
+        // Bloqueia na origem - mais eficiente que remover depois
+        delete responseHeaders['set-cookie'];
+      } else {
+        // Estende cookies do jogo
+        responseHeaders['set-cookie'] = responseHeaders['set-cookie'].map(cookie => {
+          if (!cookie.toLowerCase().includes('expires=') && !cookie.toLowerCase().includes('max-age=')) {
+            return cookie + `; Max-Age=${COOKIE_EXPIRY}`;
+          }
+          return cookie;
+        });
+      }
     }
     
     callback({ responseHeaders });
