@@ -4,17 +4,20 @@
 
 'use strict';
 
-const { BrowserWindow, dialog, shell } = require('electron');
+const { BrowserWindow, shell } = require('electron');
 const logger = require('../utils/logger');
-const { REGIONS, REGION_CODES } = require('../config/regions');
-const { HARDWARE_PROFILES, PROFILE_CODES } = require('../config/hardware');
 const { setupBlocker } = require('../network/blocker');
-const { setupPersistentCookies, clearAllCookies } = require('../network/cookies');
+const { setupPersistentCookies } = require('../network/cookies');
 const { setupShortcuts } = require('./shortcuts');
+const { 
+  getGameUrl, 
+  handleClearLogin, 
+  showRegionSelector, 
+  showHardwareSelector,
+  LAUNCHER_PARAMS 
+} = require('./dialogs');
 
-const BASE_URL = 'https://naruto.narutowebgame.com';
 const WINDOW_TITLE = 'Naruto Online';
-const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes';
 
 // Servidores para preconnect
 const GAME_SERVERS = [
@@ -25,6 +28,7 @@ const GAME_SERVERS = [
 ];
 
 let mainWindow = null;
+let isClosing = false;
 
 /**
  * Preconnect para servidores do jogo (reduz latência)
@@ -40,7 +44,7 @@ function preconnectServers() {
         url: server,
         numSockets: 2
       });
-    } catch (e) {
+    } catch {
       // Ignora erros de preconnect
     }
   });
@@ -48,15 +52,13 @@ function preconnectServers() {
   logger.debug('Preconnect realizado');
 }
 
-function getGameUrl(region) {
-  return `${BASE_URL}/${region}/serverlist?${LAUNCHER_PARAMS}`;
-}
-
-function createWindow(config) {
+function createWindow(config, saveConfig) {
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.focus();
     return mainWindow;
   }
+  
+  isClosing = false;
   
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -91,18 +93,29 @@ function createWindow(config) {
     mainWindow.setTitle(WINDOW_TITLE);
   });
   
-  // Configura atalhos
-  setupShortcuts(mainWindow, {
-    clearLogin: () => handleClearLogin(config),
-    regionSelector: () => showRegionSelector(config),
-    hardwareSelector: () => showHardwareSelector(config)
+  // Configura atalhos (passa saveConfig!)
+  const shortcutsHandler = setupShortcuts(mainWindow, {
+    clearLogin: () => handleClearLogin(mainWindow, config),
+    regionSelector: () => showRegionSelector(mainWindow, config),
+    hardwareSelector: () => showHardwareSelector(mainWindow, config, saveConfig)
   });
   
-  // Navegação
+  // Navegação - só intercepta páginas HTML, não assets
   mainWindow.webContents.on('will-navigate', (e, url) => {
-    if (url.includes('naruto') && !url.includes('logintype')) {
-      e.preventDefault();
-      mainWindow.loadURL(`${url}${url.includes('?') ? '&' : '?'}${LAUNCHER_PARAMS}`);
+    try {
+      const parsed = new URL(url);
+      
+      // Verifica se é página (não asset)
+      const isPage = !parsed.pathname.match(/\.(js|css|png|jpg|gif|swf|json|xml|ico|svg|woff2?)$/i);
+      const isGameHost = parsed.hostname.includes('naruto') || parsed.hostname.includes('oasgames');
+      
+      if (isGameHost && isPage && !parsed.search.includes('logintype')) {
+        e.preventDefault();
+        const sep = url.includes('?') ? '&' : '?';
+        mainWindow.loadURL(url + sep + LAUNCHER_PARAMS);
+      }
+    } catch {
+      // URL inválida, ignora
     }
   });
   
@@ -130,27 +143,48 @@ function createWindow(config) {
       #oas-player { position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; }
     `).catch(() => {});
     
-    // Substitui logintype=3
+    // Substitui logintype=3 (TreeWalker para evitar reflow)
     mainWindow.webContents.executeJavaScript(`
       (function() {
+        const walker = document.createTreeWalker(
+          document.body,
+          NodeFilter.SHOW_ELEMENT,
+          null,
+          false
+        );
+        const elementsToFix = [];
+        let node;
+        while (node = walker.nextNode()) {
+          const onclick = node.getAttribute('onclick');
+          if (onclick && onclick.includes('logintype=3')) {
+            elementsToFix.push(node);
+          }
+        }
+        elementsToFix.forEach(el => {
+          el.setAttribute('onclick', el.getAttribute('onclick').replace(/logintype=3/g, 'logintype=4'));
+        });
         document.querySelectorAll('script').forEach(s => {
           if (s.src && s.src.includes('logintype=3')) s.src = s.src.replace(/logintype=3/g, 'logintype=4');
-          if (s.textContent && s.textContent.includes('logintype=3')) s.textContent = s.textContent.replace(/logintype=3/g, 'logintype=4');
         });
-        document.body.innerHTML = document.body.innerHTML.replace(/logintype=3/g, 'logintype=4');
       })();
     `).catch(() => {});
   });
   
-  // Fecha aplicação
-  mainWindow.on('close', (e) => {
-    e.preventDefault();
+  // Fecha aplicação - sem preventDefault para evitar double-close
+  mainWindow.on('close', () => {
+    if (isClosing) return;
+    isClosing = true;
+    
+    // Remove listener de atalhos
+    if (shortcutsHandler) {
+      mainWindow.webContents?.removeAllListeners('before-input-event');
+    }
+    
     mainWindow.destroy();
   });
   
   mainWindow.on('closed', () => {
     mainWindow = null;
-    require('electron').app.exit(0);
   });
   
   // Carrega o jogo
@@ -160,87 +194,6 @@ function createWindow(config) {
   return mainWindow;
 }
 
-async function handleClearLogin(config) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: 'warning',
-    buttons: ['Sim, limpar', 'Cancelar'],
-    defaultId: 1,
-    cancelId: 1,
-    title: 'Limpar Login',
-    message: 'Limpar dados de login?',
-    detail: 'Voc\u00EA precisar\u00E1 fazer login novamente.'
-  });
-  
-  if (result.response === 0) {
-    const session = mainWindow.webContents.session;
-    await clearAllCookies(session);
-    mainWindow.loadURL(getGameUrl(config.region));
-  }
-}
-
-async function showRegionSelector(config) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  
-  const buttons = REGION_CODES.map(c => 
-    `${REGIONS[c].flag} ${REGIONS[c].name}${c === config.region ? ' (Atual)' : ''}`
-  );
-  
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons,
-    defaultId: REGION_CODES.indexOf(config.region),
-    cancelId: -1,
-    title: 'Selecionar Regi\u00E3o',
-    message: 'Escolha sua regi\u00E3o:'
-  });
-  
-  if (result.response >= 0 && result.response < REGION_CODES.length) {
-    const newRegion = REGION_CODES[result.response];
-    
-    if (newRegion !== config.region) {
-      config.region = newRegion;
-      mainWindow.loadURL(getGameUrl(config.region));
-    }
-  }
-}
-
-async function showHardwareSelector(config, saveConfig) {
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  
-  const buttons = PROFILE_CODES.map(p => {
-    const profile = HARDWARE_PROFILES[p];
-    return `${profile.icon} ${profile.name}${p === config.hardwareProfile ? ' (Atual)' : ''}`;
-  });
-  
-  const result = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: [...buttons, 'Cancelar'],
-    defaultId: PROFILE_CODES.indexOf(config.hardwareProfile),
-    cancelId: buttons.length,
-    title: 'Perfil de Hardware',
-    message: 'Escolha seu perfil de hardware:',
-    detail: PROFILE_CODES.map(p => 
-      `${HARDWARE_PROFILES[p].icon} ${HARDWARE_PROFILES[p].name}: ${HARDWARE_PROFILES[p].description}`
-    ).join('\n')
-  });
-  
-  if (result.response >= 0 && result.response < PROFILE_CODES.length) {
-    const newProfile = PROFILE_CODES[result.response];
-    
-    if (newProfile !== config.hardwareProfile) {
-      config.hardwareProfile = newProfile;
-      saveConfig(config);
-      
-      await dialog.showMessageBox(mainWindow, {
-        type: 'info',
-        message: 'Reinicie o launcher para aplicar as otimiza\u00E7\u00F5es.'
-      });
-    }
-  }
-}
-
 function getMainWindow() {
   return mainWindow;
 }
@@ -248,12 +201,6 @@ function getMainWindow() {
 module.exports = {
   createWindow,
   getMainWindow,
-  getGameUrl,
-  showRegionSelector,
-  showHardwareSelector,
-  handleClearLogin,
   preconnectServers,
-  WINDOW_TITLE,
-  BASE_URL,
-  LAUNCHER_PARAMS
+  WINDOW_TITLE
 };

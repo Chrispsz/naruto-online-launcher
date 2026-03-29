@@ -1,5 +1,6 @@
 /**
  * Atalhos de Teclado
+ * Com cleanup para evitar memory leaks
  */
 
 'use strict';
@@ -15,10 +16,16 @@ const SHORTCUTS = {
   Escape: 'exitFullscreen'
 };
 
+/**
+ * Configura atalhos de teclado
+ * @param {BrowserWindow} win 
+ * @param {Object} handlers 
+ * @returns {Function} cleanup function
+ */
 function setupShortcuts(win, handlers) {
-  if (!win || win.isDestroyed()) return;
+  if (!win || win.isDestroyed()) return null;
   
-  win.webContents.on('before-input-event', (event, input) => {
+  const handler = (event, input) => {
     if (input.type !== 'keyDown') return;
     
     const action = SHORTCUTS[input.key];
@@ -50,9 +57,18 @@ function setupShortcuts(win, handlers) {
           break;
       }
     }
-  });
+  };
+  
+  win.webContents.on('before-input-event', handler);
   
   logger.info('Atalhos configurados');
+  
+  // Retorna função de cleanup
+  return () => {
+    if (win && !win.isDestroyed() && win.webContents) {
+      win.webContents.removeListener('before-input-event', handler);
+    }
+  };
 }
 
 function toggleFullscreen(win) {

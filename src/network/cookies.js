@@ -1,5 +1,6 @@
 /**
  * Gerenciamento de Cookies Persistentes com Debounce
+ * Com cleanup correto para evitar memory leaks
  */
 
 'use strict';
@@ -7,7 +8,11 @@
 const logger = require('../utils/logger');
 
 const COOKIE_EXPIRY = 31536000; // 1 ano em segundos
-const DEBOUNCE_MS = 100; // Debounce para operações de cookie
+const DEBOUNCE_MS = 250; // Debounce para operações de cookie (aumentado para menos I/O)
+
+// Debounce timer e pending removals (module-level para cleanup)
+let debounceTimer = null;
+let pendingRemovals = new Map();
 
 /**
  * Configura cookies persistentes com debounce para performance
@@ -16,9 +21,19 @@ const DEBOUNCE_MS = 100; // Debounce para operações de cookie
 function setupPersistentCookies(session) {
   const convertingCookies = new Set();
   
-  // Debounce para remoção de cookies de tracking
-  let pendingRemovals = new Map();
-  let debounceTimer = null;
+  // Domínios de tracking para remover cookies
+  const TRACKING_DOMAINS = [
+    'facebook.com',
+    'google.com',
+    'doubleclick.net',
+    'google-analytics.com'
+  ];
+  
+  // Domínios permitidos (nunca remover)
+  const ALLOWED_DOMAINS = [
+    'narutowebgame.com',
+    'oasgames.com'
+  ];
 
   const flushRemovals = () => {
     const removals = [...pendingRemovals.values()];
@@ -35,16 +50,36 @@ function setupPersistentCookies(session) {
     }
   };
 
-  // Domínios de tracking para remover cookies
-  const TRACKING_DOMAINS = [
-    'facebook.com',
-    'google.com',
-    'doubleclick.net',
-    'google-analytics.com'
-  ];
-
   session.cookies.on('changed', (event, cookie, cause, removed) => {
     if (removed) return;
+    
+    // Não remove cookies de domínios permitidos
+    if (ALLOWED_DOMAINS.some(d => cookie.domain?.includes(d))) {
+      // Estende cookies do jogo para 1 ano
+      const key = `${cookie.domain}|${cookie.name}`;
+      if (convertingCookies.has(key)) return;
+      
+      if (!cookie.expirationDate || cookie.expirationDate < Date.now() / 1000 + 86400) {
+        convertingCookies.add(key);
+        
+        const url = buildCookieUrl(cookie);
+        
+        session.cookies.set({
+          url,
+          name: cookie.name,
+          value: cookie.value,
+          domain: cookie.domain,
+          path: cookie.path,
+          secure: cookie.secure,
+          httpOnly: cookie.httpOnly,
+          expirationDate: Math.floor(Date.now() / 1000) + COOKIE_EXPIRY,
+          sameSite: 'no_restriction'
+        })
+          .catch(err => logger.debug('Cookie set failed', err.message))
+          .finally(() => convertingCookies.delete(key));
+      }
+      return;
+    }
     
     // Remove cookies de tracking
     if (TRACKING_DOMAINS.some(d => cookie.domain?.includes(d))) {
@@ -54,29 +89,6 @@ function setupPersistentCookies(session) {
       
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(flushRemovals, DEBOUNCE_MS);
-      return;
-    }
-    
-    // Estende cookies do jogo para 1 ano
-    const key = `${cookie.domain}|${cookie.name}`;
-    if (convertingCookies.has(key)) return;
-    
-    if (!cookie.expirationDate || cookie.expirationDate < Date.now() / 1000 + 86400) {
-      convertingCookies.add(key);
-      
-      const url = buildCookieUrl(cookie);
-      
-      session.cookies.set({
-        url,
-        name: cookie.name,
-        value: cookie.value,
-        domain: cookie.domain,
-        path: cookie.path,
-        secure: cookie.secure,
-        httpOnly: cookie.httpOnly,
-        expirationDate: Math.floor(Date.now() / 1000) + COOKIE_EXPIRY,
-        sameSite: 'no_restriction'
-      }).finally(() => convertingCookies.delete(key));
     }
   });
   
@@ -131,8 +143,21 @@ async function clearAllCookies(session) {
   }
 }
 
+/**
+ * Cleanup para evitar memory leaks no shutdown
+ * Deve ser chamado antes de app.exit()
+ */
+function cleanup() {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+    debounceTimer = null;
+  }
+  pendingRemovals.clear();
+}
+
 module.exports = {
   setupPersistentCookies,
   clearAllCookies,
+  cleanup,
   COOKIE_EXPIRY
 };

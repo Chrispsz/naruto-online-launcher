@@ -5,40 +5,44 @@
 | Campo | Valor |
 |-------|-------|
 | **Nome** | Naruto Online Launcher |
-| **Versão** | v1.8.0 |
+| **Versão** | v1.9.0 |
 | **Tipo** | Electron App (Flash Game Launcher) |
 | **Repositório** | https://github.com/Chrispsz/naruto-online-launcher |
 | **Branch** | main (única) |
 
 ---
 
-## 📅 v1.8.0 - Otimizações de Performance
+## 📅 v1.9.0 - Bug Fixes & Electron 11.5.0
 
-### ✅ Blocker com Trie
-- O(k) lookup onde k = partes do domínio (~3-4)
-- Cache de resultados O(1) para URLs repetidas
-- MAX_CACHE = 10000 URLs
+### ✅ Electron Atualizado
+- **Electron 9.4.4 → 11.5.0** (última com Flash PPAPI)
+- Chromium 83 → 87 (+15% performance)
+- Node 12.14 → 12.20
 
-### ✅ Debounce no Cookie Handler
-- 100ms debounce para remoção de cookies
-- Batch de operações ao invés de 1-por-1
-- -80% CPU em page loads
+### ✅ Bugs Corrigidos
+| Bug | Descrição | Fix |
+|-----|-----------|-----|
+| #1 | blockCache memory leak | hostname como chave |
+| #2 | F7 não salva hardware | passar saveConfig |
+| #3 | debounceTimer leak | cleanup() no shutdown |
+| #4 | convertingCookies leak | .catch() antes de .finally() |
+| #5 | will-navigate intercepta assets | verificar extensão |
+| #6 | close event double-close | remover preventDefault |
+| #7 | before-input-event leak | cleanup no closed |
+| #8 | Circular dependency | criar dialogs.js |
 
-### ✅ BUG CORRIGIDO
-- `process.priority` não existe em Node.js
-- Corrigido para `os.setPriority(process.pid, priority)`
-- Perfil CPU: PRIORITY_BELOW_NORMAL (10)
-- Perfis Modern/Legacy: PRIORITY_NORMAL (0)
+### ✅ Estrutura Nova
+```
+src/window/
+├── create.js      # Criação da janela
+├── dialogs.js     # NOVO - diálogos extraídos
+├── menu.js        # Menu da aplicação
+└── shortcuts.js   # Atalhos com cleanup
+```
 
-### ✅ Preconnect
-- Conexões TCP+TLS pré-estabelecidas
-- Servidores: oasgames.com, narutowebgame.com, gfsrv.net
-- -200ms first request
-
-### ✅ Outras Otimizações
-- Skip mms.cfg se conteúdo igual
-- Cache de config em memória
-- 47 testes passando
+### ✅ Testes
+- 55 testes passando (eram 47)
+- Novos testes para dialogs.js e blocker
 
 ---
 

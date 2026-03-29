@@ -1,14 +1,15 @@
 /**
  * Menu da Aplicação
+ * Usa dialogs.js para evitar dependência circular
  */
 
 'use strict';
 
 const { dialog, Menu } = require('electron');
 const logger = require('../utils/logger');
-const { showRegionSelector, showHardwareSelector } = require('./create');
+const { showRegionSelector, showHardwareSelector } = require('./dialogs');
 
-function setupMenu(config, saveConfig) {
+function setupMenu(config, saveConfig, mainWindowGetter) {
   const template = [
     {
       label: 'Arquivo',
@@ -17,10 +18,10 @@ function setupMenu(config, saveConfig) {
       ]
     },
     {
-      label: 'Op\u00E7\u00F5es',
+      label: 'Opções',
       submenu: [
         { 
-          label: '\u{1F680} Hardware Moderno', 
+          label: '🚀 Hardware Moderno', 
           type: 'radio', 
           checked: config.hardwareProfile === 'modern',
           click: () => {
@@ -30,7 +31,7 @@ function setupMenu(config, saveConfig) {
           }
         },
         { 
-          label: '\u{1F527} Hardware Antigo', 
+          label: '🔧 Hardware Antigo', 
           type: 'radio', 
           checked: config.hardwareProfile === 'legacy',
           click: () => {
@@ -40,7 +41,7 @@ function setupMenu(config, saveConfig) {
           }
         },
         { 
-          label: '\u{1F4BB} CPU Only', 
+          label: '💻 CPU Only', 
           type: 'radio', 
           checked: config.hardwareProfile === 'cpu',
           click: () => {
@@ -50,8 +51,20 @@ function setupMenu(config, saveConfig) {
           }
         },
         { type: 'separator' },
-        { label: 'Trocar Regi\u00E3o (F6)', click: () => showRegionSelector(config) },
-        { label: 'Trocar Hardware (F7)', click: () => showHardwareSelector(config, saveConfig) }
+        { 
+          label: 'Trocar Região (F6)', 
+          click: () => {
+            const win = mainWindowGetter?.();
+            if (win) showRegionSelector(win, config);
+          }
+        },
+        { 
+          label: 'Trocar Hardware (F7)', 
+          click: () => {
+            const win = mainWindowGetter?.();
+            if (win) showHardwareSelector(win, config, saveConfig);
+          }
+        }
       ]
     },
     {
@@ -62,7 +75,7 @@ function setupMenu(config, saveConfig) {
           click: () => dialog.showMessageBox({
             type: 'info',
             title: 'Atalhos',
-            message: 'F5 = Limpar Login\nF6 = Trocar Regi\u00E3o\nF7 = Trocar Hardware\nF11 = Tela Cheia\nF12 = DevTools'
+            message: 'F5 = Limpar Login\nF6 = Trocar Região\nF7 = Trocar Hardware\nF11 = Tela Cheia\nF12 = DevTools'
           })
         }
       ]

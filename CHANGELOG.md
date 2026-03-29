@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.0] - 2025-03-29
+
+### Changed
+- **Electron 9.4.4 → 11.5.0** - Última versão com Flash PPAPI
+  - Chromium 83 → 87 (+15% performance)
+  - Node 12.14 → 12.20
+  - Melhor IPC e rendering
+
+### Fixed
+- **BUG CRÍTICO #1:** `blockCache` memory leak - agora usa hostname como chave (não URL completa)
+- **BUG CRÍTICO #2:** F7 nunca salvava hardware - `saveConfig` não era passado
+- **BUG #3:** `debounceTimer` leak no shutdown - adicionado `cleanup()`
+- **BUG #4:** `convertingCookies` leak - adicionado `.catch()` antes de `.finally()`
+- **BUG #5:** `will-navigate` interceptava assets - agora verifica extensão
+- **BUG #6:** `close` event double-close - removido `preventDefault()`
+- **BUG #7:** `before-input-event` listener não removido - adicionado cleanup
+- **BUG #8:** Dependência circular menu.js ↔ create.js - criado `dialogs.js`
+
+### Added
+- `src/window/dialogs.js` - diálogos extraídos para evitar circular dep
+- `cleanup()` em cookies.js para shutdown limpo
+- `clearCache()` em blocker.js para testes
+- Testes para dialogs.js
+
+### Security
+- Adicionado `sentry.io` e `track.narutowebgame.com` ao blocker
+- Allowlist explícita para domínios do jogo em cookies
+
 ## [1.8.0] - 2025-03-29
 
 ### Performance

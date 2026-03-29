@@ -1,6 +1,6 @@
 /**
- * Naruto Online Launcher v1.8.0
- * Otimizações: Trie blocker, debounce cookies, preconnect
+ * Naruto Online Launcher v1.9.0
+ * Bugs corrigidos: memory leaks, F7 save, will-navigate
  * 
  * SINGLE WINDOW - Flash PPAPI
  */
@@ -16,6 +16,7 @@ const { createMmsCfg } = require('./flash/mms');
 const { applyFlags } = require('./chromium/flags');
 const { createWindow, getMainWindow, preconnectServers } = require('./window/create');
 const { setupMenu } = require('./window/menu');
+const { cleanup: cleanupCookies } = require('./network/cookies');
 
 // Estado global
 let config = null;
@@ -34,9 +35,9 @@ if (flashPath) {
 // PROCESS PRIORITY
 // ============================================================
 const PRIORITY_MAP = {
-  'cpu': os.constants.priority.PRIORITY_BELOW_NORMAL,  // 10
-  'legacy': os.constants.priority.PRIORITY_NORMAL,     // 0
-  'modern': os.constants.priority.PRIORITY_NORMAL      // 0
+  'cpu': os.constants.priority.PRIORITY_BELOW_NORMAL,
+  'legacy': os.constants.priority.PRIORITY_NORMAL,
+  'modern': os.constants.priority.PRIORITY_NORMAL
 };
 
 function setProcessPriority(profile) {
@@ -60,13 +61,13 @@ app.on('ready', () => {
   setProcessPriority(config.hardwareProfile);
   
   createMmsCfg(config.hardwareProfile);
-  setupMenu(config, saveConfig);
-  createWindow(config);
+  setupMenu(config, saveConfig, getMainWindow);
+  createWindow(config, saveConfig);
   
   // Preconnect em background
   setImmediate(() => preconnectServers());
   
-  logger.info('v1.8.0 Iniciado');
+  logger.info('v1.9.0 Iniciado');
 });
 
 // Single instance
@@ -81,9 +82,19 @@ if (!app.requestSingleInstanceLock()) {
   });
 }
 
-app.on('window-all-closed', () => app.exit(0));
+// Cleanup no shutdown
+app.on('window-all-closed', () => {
+  cleanupCookies();
+  app.exit(0);
+});
 
 // Erros não tratados
-process.on('uncaughtException', (e) => logger.error('Exce\u00E7\u00E3o n\u00E3o tratada', e.message));
-process.on('SIGTERM', () => app.exit(0));
-process.on('SIGINT', () => app.exit(0));
+process.on('uncaughtException', (e) => logger.error('Exceção não tratada', e.message));
+process.on('SIGTERM', () => {
+  cleanupCookies();
+  app.exit(0);
+});
+process.on('SIGINT', () => {
+  cleanupCookies();
+  app.exit(0);
+});

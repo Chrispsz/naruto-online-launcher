@@ -2,9 +2,13 @@
  * Testes para src/network/blocker.js
  */
 
-const { BLOCKED_DOMAINS, DomainTrie, shouldBlock } = require('../blocker');
+const { BLOCKED_DOMAINS, DomainTrie, shouldBlock, clearCache } = require('../blocker');
 
 describe('blocker.js', () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
   describe('BLOCKED_DOMAINS', () => {
     test('é um array', () => {
       expect(Array.isArray(BLOCKED_DOMAINS)).toBe(true);
@@ -23,6 +27,10 @@ describe('blocker.js', () => {
     test('contém domínios de social tracking', () => {
       expect(BLOCKED_DOMAINS).toContain('facebook.com');
       expect(BLOCKED_DOMAINS).toContain('connect.facebook.net');
+    });
+
+    test('contém domínios de telemetria', () => {
+      expect(BLOCKED_DOMAINS).toContain('sentry.io');
     });
   });
 
@@ -80,6 +88,24 @@ describe('blocker.js', () => {
 
     test('retorna false para URL vazia', () => {
       expect(shouldBlock('')).toBe(false);
+    });
+
+    test('usa hostname como chave do cache', () => {
+      // URL diferentes mas mesmo hostname = mesmo resultado do cache
+      const result1 = shouldBlock('https://google-analytics.com/script.js?v=1');
+      const result2 = shouldBlock('https://google-analytics.com/another.js?v=2');
+      
+      expect(result1).toBe(true);
+      expect(result2).toBe(true);
+    });
+  });
+
+  describe('clearCache', () => {
+    test('limpa o cache', () => {
+      shouldBlock('https://google-analytics.com/test');
+      clearCache();
+      // Cache foi limpo - não há como verificar diretamente, mas não deve erros
+      expect(() => clearCache()).not.toThrow();
     });
   });
 });

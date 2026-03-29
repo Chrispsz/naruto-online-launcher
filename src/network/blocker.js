@@ -1,6 +1,7 @@
 /**
  * Bloqueador de Trackers e Analytics com Trie
  * O(k) lookup onde k = partes do domínio
+ * Cache usando hostname (não URL completa) para evitar memory leak
  */
 
 'use strict';
@@ -21,7 +22,7 @@ class DomainTrie {
    * @param {string} domain - ex: "google-analytics.com"
    */
   add(domain) {
-    const parts = domain.split('.').reverse(); // ["com", "google-analytics"]
+    const parts = domain.split('.').reverse();
     let node = this.root;
     
     for (const part of parts) {
@@ -29,7 +30,7 @@ class DomainTrie {
       node = node[part];
     }
     
-    node['$'] = true; // Marcador de fim
+    node['$'] = true;
   }
 
   /**
@@ -42,9 +43,7 @@ class DomainTrie {
     let node = this.root;
     
     for (const part of parts) {
-      // Match parcial encontrado
       if (node['$']) return true;
-      
       if (!node[part]) return false;
       node = node[part];
     }
@@ -74,6 +73,9 @@ const BLOCKED_DOMAINS = [
   'mdata.cool',
   'track.oasgames.com',
   'log.oasgames.com',
+  'track.narutowebgame.com',
+  // Telemetry
+  'sentry.io',
   // General
   'hotjar.com',
   'clarity.ms',
@@ -84,9 +86,9 @@ const BLOCKED_DOMAINS = [
 const blockerTrie = new DomainTrie();
 BLOCKED_DOMAINS.forEach(d => blockerTrie.add(d));
 
-// Cache de resultados (LRU simples)
+// Cache usando hostname (não URL completa) - LRU real
 const blockCache = new Map();
-const MAX_CACHE = 10000;
+const MAX_CACHE = 1000;
 
 /**
  * Verifica se URL deve ser bloqueada
@@ -94,29 +96,37 @@ const MAX_CACHE = 10000;
  * @returns {boolean}
  */
 function shouldBlock(url) {
-  // Cache hit?
-  if (blockCache.has(url)) {
-    return blockCache.get(url);
-  }
-
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname;
     
+    // Cache hit - LRU: delete + re-insert para mover para frente
+    if (blockCache.has(hostname)) {
+      return blockCache.get(hostname);
+    }
+    
     // Verifica na Trie
     const result = blockerTrie.matches(hostname);
     
-    // Cacheia resultado (LRU simples)
+    // Cacheia resultado com LRU real
     if (blockCache.size >= MAX_CACHE) {
-      const keys = [...blockCache.keys()].slice(0, MAX_CACHE / 2);
-      keys.forEach(k => blockCache.delete(k));
+      // Deleta a chave mais antiga (primeira inserida)
+      const oldestKey = blockCache.keys().next().value;
+      blockCache.delete(oldestKey);
     }
-    blockCache.set(url, result);
+    blockCache.set(hostname, result);
     
     return result;
   } catch {
     return false;
   }
+}
+
+/**
+ * Limpa o cache (para testes ou cleanup)
+ */
+function clearCache() {
+  blockCache.clear();
 }
 
 /**
@@ -140,7 +150,7 @@ function setupBlocker(session) {
     callback({ cancel: false });
   });
   
-  logger.info('Blocker configurado (Trie + Cache)');
+  logger.info('Blocker configurado (Trie + Cache hostname)');
 }
 
 module.exports = {
@@ -148,5 +158,6 @@ module.exports = {
   BLOCKED_DOMAINS,
   blockerTrie,
   shouldBlock,
-  setupBlocker
+  setupBlocker,
+  clearCache
 };
