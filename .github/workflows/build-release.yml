@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 14  # Electron 9 precisa de Node <= 14
+          node-version: 20  # Node 20 LTS
 
       - name: System deps (Linux)
         if: runner.os == 'Linux'

@@ -5,10 +5,61 @@
 | Campo | Valor |
 |-------|-------|
 | **Nome** | Naruto Online Launcher |
-| **Versão** | v1.6.0 |
+| **Versão** | v1.7.0 |
 | **Tipo** | Electron App (Flash Game Launcher) |
 | **Repositório** | https://github.com/Chrispsz/naruto-online-launcher |
 | **Branch** | main (única) |
+
+---
+
+## 📅 v1.7.0 - Refatoração Modular
+
+### ✅ Código Modularizado
+
+```
+src/
+├── main.js              # Entry point (114 linhas, era 597)
+├── config/
+│   ├── regions.js       # Configurações de região
+│   ├── hardware.js      # Perfis de hardware
+│   └── settings.js      # Load/save com validação
+├── flash/
+│   ├── plugin.js        # Detecção Flash PPAPI
+│   └── mms.js           # Configuração mms.cfg
+├── network/
+│   ├── blocker.js       # Bloqueio de trackers
+│   └── cookies.js       # Cookies persistentes
+├── window/
+│   ├── create.js        # Criação da janela
+│   ├── shortcuts.js     # Atalhos de teclado
+│   └── menu.js          # Menu da aplicação
+├── chromium/
+│   └── flags.js         # Chromium flags (placeholder)
+└── utils/
+    └── logger.js        # Logger estruturado
+```
+
+### ✅ Logger Estruturado
+- Níveis: debug, info, warn, error
+- Configurável via `LOG_LEVEL` env var
+- Timestamp e ícones por nível
+
+### ✅ Validação de Configuração
+- Schema de validação para region e hardwareProfile
+- Sanitização automática de valores inválidos
+- Fallback para padrões em caso de erro
+
+### ✅ CI Atualizado
+- Node.js 14 EOL → Node.js 20 LTS
+
+### ✅ Code Quality
+- ESLint + Prettier configurados
+- `.eslintrc.json` e `.prettierrc`
+- Scripts: `npm run lint`, `npm run format`
+
+### ✅ CHANGELOG.md
+- Formato Keep a Changelog
+- Histórico de versões
 
 ---
 
