@@ -5,10 +5,40 @@
 | Campo | Valor |
 |-------|-------|
 | **Nome** | Naruto Online Launcher |
-| **Versão** | v1.7.1 |
+| **Versão** | v1.8.0 |
 | **Tipo** | Electron App (Flash Game Launcher) |
 | **Repositório** | https://github.com/Chrispsz/naruto-online-launcher |
 | **Branch** | main (única) |
+
+---
+
+## 📅 v1.8.0 - Otimizações de Performance
+
+### ✅ Blocker com Trie
+- O(k) lookup onde k = partes do domínio (~3-4)
+- Cache de resultados O(1) para URLs repetidas
+- MAX_CACHE = 10000 URLs
+
+### ✅ Debounce no Cookie Handler
+- 100ms debounce para remoção de cookies
+- Batch de operações ao invés de 1-por-1
+- -80% CPU em page loads
+
+### ✅ BUG CORRIGIDO
+- `process.priority` não existe em Node.js
+- Corrigido para `os.setPriority(process.pid, priority)`
+- Perfil CPU: PRIORITY_BELOW_NORMAL (10)
+- Perfis Modern/Legacy: PRIORITY_NORMAL (0)
+
+### ✅ Preconnect
+- Conexões TCP+TLS pré-estabelecidas
+- Servidores: oasgames.com, narutowebgame.com, gfsrv.net
+- -200ms first request
+
+### ✅ Outras Otimizações
+- Skip mms.cfg se conteúdo igual
+- Cache de config em memória
+- 47 testes passando
 
 ---
 

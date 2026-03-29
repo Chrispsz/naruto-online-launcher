@@ -16,7 +16,37 @@ const BASE_URL = 'https://naruto.narutowebgame.com';
 const WINDOW_TITLE = 'Naruto Online';
 const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes';
 
+// Servidores para preconnect
+const GAME_SERVERS = [
+  'https://naruto.oasgames.com',
+  'https://naruto.narutowebgame.com',
+  'https://gf1.geo.gfsrv.net',
+  'https://cdn.oasgames.com'
+];
+
 let mainWindow = null;
+
+/**
+ * Preconnect para servidores do jogo (reduz latência)
+ */
+function preconnectServers() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  
+  const session = mainWindow.webContents.session;
+  
+  GAME_SERVERS.forEach(server => {
+    try {
+      session.preconnect({
+        url: server,
+        numSockets: 2
+      });
+    } catch (e) {
+      // Ignora erros de preconnect
+    }
+  });
+  
+  logger.debug('Preconnect realizado');
+}
 
 function getGameUrl(region) {
   return `${BASE_URL}/${region}/serverlist?${LAUNCHER_PARAMS}`;
@@ -222,6 +252,7 @@ module.exports = {
   showRegionSelector,
   showHardwareSelector,
   handleClearLogin,
+  preconnectServers,
   WINDOW_TITLE,
   BASE_URL,
   LAUNCHER_PARAMS

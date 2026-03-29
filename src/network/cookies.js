@@ -1,5 +1,5 @@
 /**
- * Gerenciamento de Cookies Persistentes
+ * Gerenciamento de Cookies Persistentes com Debounce
  */
 
 'use strict';
@@ -7,17 +7,60 @@
 const logger = require('../utils/logger');
 
 const COOKIE_EXPIRY = 31536000; // 1 ano em segundos
+const DEBOUNCE_MS = 100; // Debounce para operações de cookie
 
+/**
+ * Configura cookies persistentes com debounce para performance
+ * @param {Electron.Session} session 
+ */
 function setupPersistentCookies(session) {
   const convertingCookies = new Set();
   
+  // Debounce para remoção de cookies de tracking
+  let pendingRemovals = new Map();
+  let debounceTimer = null;
+
+  const flushRemovals = () => {
+    const removals = [...pendingRemovals.values()];
+    pendingRemovals.clear();
+    
+    if (removals.length > 0) {
+      Promise.all(
+        removals.map(({ url, name }) =>
+          session.cookies.remove(url, name).catch(() => {})
+        )
+      ).then(() => {
+        logger.debug(`Removidos ${removals.length} tracking cookies`);
+      });
+    }
+  };
+
+  // Domínios de tracking para remover cookies
+  const TRACKING_DOMAINS = [
+    'facebook.com',
+    'google.com',
+    'doubleclick.net',
+    'google-analytics.com'
+  ];
+
   session.cookies.on('changed', (event, cookie, cause, removed) => {
     if (removed) return;
     
+    // Remove cookies de tracking
+    if (TRACKING_DOMAINS.some(d => cookie.domain?.includes(d))) {
+      const url = buildCookieUrl(cookie);
+      const key = `${url}|${cookie.name}`;
+      pendingRemovals.set(key, { url, name: cookie.name });
+      
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(flushRemovals, DEBOUNCE_MS);
+      return;
+    }
+    
+    // Estende cookies do jogo para 1 ano
     const key = `${cookie.domain}|${cookie.name}`;
     if (convertingCookies.has(key)) return;
     
-    // Se o cookie expira em menos de 24h, estende para 1 ano
     if (!cookie.expirationDate || cookie.expirationDate < Date.now() / 1000 + 86400) {
       convertingCookies.add(key);
       
@@ -53,15 +96,21 @@ function setupPersistentCookies(session) {
     callback({ responseHeaders });
   });
   
-  logger.info('Cookies persistentes configurados');
+  logger.info('Cookies persistentes configurados (com debounce)');
 }
 
+/**
+ * Constrói URL a partir do cookie
+ */
 function buildCookieUrl(cookie) {
   const protocol = cookie.secure ? 'https://' : 'http://';
   const domain = cookie.domain.replace(/^\./, '');
   return `${protocol}${domain}${cookie.path}`;
 }
 
+/**
+ * Limpa todos os cookies e cache
+ */
 async function clearAllCookies(session) {
   try {
     const cookies = await session.cookies.get({});

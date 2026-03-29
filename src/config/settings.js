@@ -1,5 +1,6 @@
 /**
  * Carregamento e Salvamento de Configuração
+ * Com cache em memória para evitar I/O desnecessário
  */
 
 'use strict';
@@ -22,6 +23,10 @@ const CONFIG_SCHEMA = {
     getDefault: getDefaultProfile
   }
 };
+
+// Cache em memória
+let configCache = null;
+let configMtime = 0;
 
 function getConfigPath() {
   return path.join(app.getPath('userData'), 'config.json');
@@ -46,13 +51,31 @@ function validateConfig(rawConfig) {
   return validated;
 }
 
-function loadConfig() {
+/**
+ * Carrega configuração com cache
+ * @param {boolean} forceRefresh - Força recarga do disco
+ */
+function loadConfig(forceRefresh = false) {
+  const configPath = getConfigPath();
+  
+  // Verifica se precisa recarregar
+  if (!forceRefresh && configCache) {
+    try {
+      const stat = fs.statSync(configPath);
+      if (stat.mtimeMs === configMtime) {
+        return configCache; // Retorna cache
+      }
+    } catch {
+      // Arquivo não existe ou erro, usa cache
+      return configCache;
+    }
+  }
+  
   try {
-    const configPath = getConfigPath();
-    
     if (!fs.existsSync(configPath)) {
       logger.info('Usando configura\u00E7\u00F5es padr\u00E3o (primeiro uso)');
-      return validateConfig({});
+      configCache = validateConfig({});
+      return configCache;
     }
     
     const rawContent = fs.readFileSync(configPath, 'utf8');
@@ -62,16 +85,20 @@ function loadConfig() {
       rawConfig = JSON.parse(rawContent);
     } catch (parseError) {
       logger.error('JSON inv\u00E1lido no config, usando padr\u00E3o', parseError.message);
-      return validateConfig({});
+      configCache = validateConfig({});
+      return configCache;
     }
     
-    const validated = validateConfig(rawConfig);
-    logger.info(`Config carregada: regi\u00E3o=${validated.region}, perfil=${validated.hardwareProfile}`);
+    configCache = validateConfig(rawConfig);
+    configMtime = fs.statSync(configPath).mtimeMs;
     
-    return validated;
+    logger.info(`Config carregada: regi\u00E3o=${configCache.region}, perfil=${configCache.hardwareProfile}`);
+    
+    return configCache;
   } catch (e) {
     logger.error('Erro ao carregar config, usando padr\u00E3o', e.message);
-    return validateConfig({});
+    configCache = validateConfig({});
+    return configCache;
   }
 }
 
@@ -84,6 +111,14 @@ function saveConfig(config) {
     }, null, 2);
     
     fs.writeFileSync(configPath, content, 'utf8');
+    
+    // Atualiza cache
+    configCache = {
+      region: config.region,
+      hardwareProfile: config.hardwareProfile
+    };
+    configMtime = fs.statSync(configPath).mtimeMs;
+    
     logger.info('Config salva');
     return true;
   } catch (e) {

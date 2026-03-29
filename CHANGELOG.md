@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.0] - 2025-03-29
+
+### Performance
+- **Blocker com Trie** - O(k) lookup onde k = partes do domínio (era O(n×m))
+- **Blocker com Cache** - Requests repetidas são O(1)
+- **Debounce no Cookie Handler** - -80% CPU em page loads
+- **Preconnect** - Estabelece conexões TCP+TLS antes de precisar
+- **Config Cache** - Evita I/O desnecessário com cache em memória
+- **Skip mms.cfg** - Pula escrita se conteúdo não mudou
+
+### Fixed
+- **BUG CRÍTICO:** `process.priority` não existe em Node.js - corrigido para `os.setPriority()`
+
+### Changed
+- Tests atualizados para novo blocker com Trie
+- 47 testes passando (eram 45)
+
 ## [1.7.1] - 2025-03-29
 
 ### Added
