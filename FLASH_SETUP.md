@@ -58,7 +58,7 @@ The Flash plugin loader is `src/flash/plugin.js`. Its main entry point is `findF
    | 3 | `app.getAppPath()` (with `.asar` stripped) `/flash/<plugin>` | ASAR-packaged dev / prod |
    | 4 | `process.cwd()/flash/<plugin>` | Run from project root |
    | 5 | `__dirname/../../flash/<plugin>` | Dev mode (`src/flash/` → repo root `flash/`) |
-   | 6 | `userData/flash-cache/<plugin>` | On-demand download cache (written by `FlashUpdater`) |
+   | 6 | `userData/flash-cache/<plugin>` | User-supplied manual drop (no auto-download — see note below) |
 
 4. Deduplicates the paths (some resolve to the same absolute location).
 5. Returns the first path where the file exists **and** is larger than 1 MB. Logs each attempt.
@@ -75,19 +75,17 @@ The other Chromium flags (sandbox off, `--always-authorize-plugins`, JS heap siz
 
 ---
 
-## Fallback download (FlashUpdater)
+## No automatic fallback (since v1.0.1)
 
-If `findFlashPlugin()` returns `null` (rare — only happens if both committed binaries were deleted or corrupted), `main.js` triggers the **`FlashUpdater`** (`src/app/FlashUpdater.js`). It:
+Previous versions shipped a `FlashUpdater` module that auto-downloaded Clean Flash from `darktohka/clean-flash-builds` if all six search paths missed. **That module was removed** — Flash is EOL, the pinned binaries are committed to the repo, and an auto-download adds attack surface (a compromised GitHub release would silently replace the plugin).
 
-1. Opens a small loading window (`src/ui/loading/loading.html`) telling the user a download is in progress.
-2. Calls the GitHub API on `darktohka/clean-flash-builds` for the **pinned** release tag:
-   - Linux: `v1.7` (the last release with a Linux PPAPI asset — `flash_player_patched_ppapi_linux.x86_64.tar.gz`)
-   - Windows: `v1.54` (the most recent Windows PPAPI asset — `ChineseFlash-Patched-Win-<ver>.7z`)
-3. Streams the asset to `userData/flash-cache/` with a 2-minute timeout.
-4. Extracts it (uses `tar` on Linux, `7z` on Windows) and writes a `cache-manifest.json` so future boots skip the download if the cache is less than 7 days old.
-5. Relaunches the launcher (`app.relaunch()` + `app.exit(0)`).
+**If the loader returns `null`**, the launcher does NOT try to recover on its own. The game tab will show a Flash-missing prompt. Manual recovery:
 
-The launcher never silently replaces a working committed binary. The cache is only consulted as the **6th** search path — items 1-5 (the committed `flash/` directory) always win.
+1. Re-clone the repo (or copy `flash/pepflashplayer.dll` / `flash/libpepflashplayer.so` from a known-good checkout).
+2. Drop the binary at `userData/flash-cache/<plugin>` (search path #6) if you want to keep it user-local.
+3. Restart the launcher.
+
+The committed `flash/` directory (paths 1-5) always wins. The 6th path is a user-supplied escape hatch, never auto-populated.
 
 ---
 
@@ -113,7 +111,7 @@ You do **not** need to rebuild the AppImage or portable EXE to swap a binary in 
 **Cause:** the PPAPI plugin was not loaded. Check `userData/logs/main.log` for the line `Flash PPAPI NÃO encontrado!`.
 **Fix:**
 - Verify that `flash/pepflashplayer.dll` (Windows) or `flash/libpepflashplayer.so` (Linux) exists at one of the six search paths and is larger than 1 MB.
-- If you deleted it, either restore from the repo or let `FlashUpdater` re-download it (delete `userData/flash-cache/` too if it has a stale cache).
+- If you deleted it, restore from the repo or drop a known-good binary into `userData/flash-cache/<plugin>` (search path #6). There is **no automatic download** anymore — see "No automatic fallback" above.
 - Confirm the manifest version matches the binary if you replaced it manually.
 
 ### Symptom: launcher runs without Flash and the game never launches
@@ -123,13 +121,7 @@ This is the expected fallback behavior — the launcher itself does not require 
 The binary loaded but PPAPI initialization failed inside Chromium. Common causes:
 - Running on Wayland without `--ozone-platform=wayland` (the launcher auto-detects Wayland and applies `use-gl=desktop` on X11 only). Try `GDK_BACKEND=x11 ./ShinobiLauncher-*.AppImage`.
 - GPU driver blocklist. Toggle **Settings → Force CPU rendering** (requires restart) to fall back to SwiftShader.
-- Corrupt binary. Re-download via the FlashUpdater fallback.
-
-### Symptom: `FlashUpdater` download fails
-`FlashUpdater` only runs when the committed binaries are missing. If it fails:
-- Check network connectivity to `api.github.com` and `github.com/darktohka/clean-flash-builds/releases`.
-- The Linux pinned tag is `v1.7` (intentionally — the `latest` tag has no Linux asset). Do not "fix" this by switching to `latest`.
-- Manually download the asset and place it at `userData/flash-cache/libpepflashplayer.so` (Linux) or `userData/flash-cache/pepflashplayer.dll` (Windows), then restart.
+- Corrupt binary. Replace it from a known-good repo checkout, or drop a fresh one into `userData/flash-cache/<plugin>` (search path #6).
 
 ### Symptom: game launches but shows "Flash version too old"
 Update `flash/manifest.json` so its `version` (Windows) or `linux_version` (Linux) field matches the actual binary version. The launcher reports this string to Oasgames via `--ppapi-flash-version`.
@@ -142,9 +134,8 @@ Update `flash/manifest.json` so its `version` (Windows) or `linux_version` (Linu
 |------|---------|
 | `src/flash/plugin.js` | `findFlashPlugin()`, `configureFlash()`, `getFlashVersion()` — the loader |
 | `src/flash/mms.js` | Generates `mms.cfg` for Modo Batata (Low-PC mode) |
-| `src/app/FlashUpdater.js` | Fallback downloader (only runs if all six search paths miss) |
 | `src/main/flags.js` | Applies all other Chromium flags (`--no-sandbox`, `--always-authorize-plugins`, JS heap, etc.) |
-| `src/main.js` | Boot orchestration: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (or `FlashUpdater` if Flash is missing) |
+| `src/main.js` | Boot orchestration: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (or shows a Flash-missing prompt — no auto-download) |
 | `flash/manifest*.json` | Version metadata read by `getFlashVersion()` |
 
 ---
@@ -203,7 +194,7 @@ O loader do plugin Flash é `src/flash/plugin.js`. Seu ponto de entrada principa
    | 3 | `app.getAppPath()` (com `.asar` removido) `/flash/<plugin>` | Dev / prod empacotado em ASAR |
    | 4 | `process.cwd()/flash/<plugin>` | Rodando da raiz do projeto |
    | 5 | `__dirname/../../flash/<plugin>` | Dev mode (`src/flash/` → `flash/` na raiz do repo) |
-   | 6 | `userData/flash-cache/<plugin>` | Cache de download on-demand (escrito pelo `FlashUpdater`) |
+   | 6 | `userData/flash-cache/<plugin>` | Drop manual do usuário (sem auto-download — veja nota abaixo) |
 
 4. Deduplica os caminhos (alguns resolvem para o mesmo absoluto).
 5. Retorna o primeiro caminho onde o arquivo existe **e** é maior que 1 MB. Loga cada tentativa.
@@ -220,19 +211,17 @@ Os demais switches do Chromium (sandbox off, `--always-authorize-plugins`, heap 
 
 ---
 
-## Download fallback (FlashUpdater)
+## Sem fallback automático (desde v1.0.1)
 
-Se `findFlashPlugin()` retorna `null` (raro — só acontece se ambos os binários committed forem deletados ou corrompidos), o `main.js` aciona o **`FlashUpdater`** (`src/app/FlashUpdater.js`). Ele:
+Versões anteriores embarcavam um módulo `FlashUpdater` que auto-baixava Clean Flash de `darktohka/clean-flash-builds` se todos os seis caminhos falhassem. **Esse módulo foi removido** — Flash é EOL, os binários pinned já estão committed no repo, e um auto-download adiciona superfície de ataque (uma release do GitHub comprometida substituiria silenciosamente o plugin).
 
-1. Abre uma janela pequena de loading (`src/ui/loading/loading.html`) avisando que um download está em andamento.
-2. Chama a API do GitHub em `darktohka/clean-flash-builds` para a release **pinned**:
-   - Linux: `v1.7` (a última release com asset Linux PPAPI — `flash_player_patched_ppapi_linux.x86_64.tar.gz`)
-   - Windows: `v1.54` (a release mais recente com asset Windows PPAPI — `ChineseFlash-Patched-Win-<ver>.7z`)
-3. Faz stream do asset para `userData/flash-cache/` com timeout de 2 minutos.
-4. Extrai (usa `tar` no Linux, `7z` no Windows) e escreve um `cache-manifest.json` para que boots futuros pulem o download se o cache tiver menos de 7 dias.
-5. Relança o launcher (`app.relaunch()` + `app.exit(0)`).
+**Se o loader retorna `null`**, o launcher NÃO tenta se recuperar sozinho. A aba do jogo vai mostrar um prompt de Flash faltando. Recuperação manual:
 
-O launcher nunca substitui silenciosamente um binário committed funcionando. O cache só é consultado como o **6º** caminho de busca — itens 1-5 (o diretório `flash/` committed) sempre vencem.
+1. Re-clone o repo (ou copie `flash/pepflashplayer.dll` / `flash/libpepflashplayer.so` de um checkout conhecido-bom).
+2. Solte o binário em `userData/flash-cache/<plugin>` (caminho de busca #6) se quiser mantê-lo user-local.
+3. Reinicie o launcher.
+
+O diretório `flash/` committed (caminhos 1-5) sempre vence. O 6º caminho é uma válvula de escape user-supplied, nunca auto-populado.
 
 ---
 
@@ -258,7 +247,7 @@ Você **não** precisa rebuildar o AppImage ou portable EXE para trocar um biná
 **Causa:** o plugin PPAPI não foi carregado. Cheque `userData/logs/main.log` pela linha `Flash PPAPI NÃO encontrado!`.
 **Fix:**
 - Verifique que `flash/pepflashplayer.dll` (Windows) ou `flash/libpepflashplayer.so` (Linux) existe em um dos seis caminhos de busca e é maior que 1 MB.
-- Se você deletou, restaure do repo ou deixe o `FlashUpdater` re-baixar (delete `userData/flash-cache/` também se tiver um cache stale).
+- Se você deletou, restaure do repo ou solte um binário conhecido-bom em `userData/flash-cache/<plugin>` (caminho #6). **Não há mais auto-download** — veja "Sem fallback automático" acima.
 - Confirme que a versão do manifest bate com o binário se você substituiu manualmente.
 
 ### Sintoma: o launcher roda sem Flash e o jogo nunca abre
@@ -268,13 +257,7 @@ Este é o comportamento fallback esperado — o launcher em si não requer Flash
 O binário carregou mas a inicialização do PPAPI falhou dentro do Chromium. Causas comuns:
 - Wayland sem `--ozone-platform=wayland` (o launcher auto-detecta Wayland e aplica `use-gl=desktop` só em X11). Tente `GDK_BACKEND=x11 ./ShinobiLauncher-*.AppImage`.
 - Blocklist de driver de GPU. Alterne **Configurações → Forçar renderização por CPU** (requer restart) para cair no SwiftShader.
-- Binário corrompido. Re-baixe via fallback do FlashUpdater.
-
-### Sintoma: download do `FlashUpdater` falha
-`FlashUpdater` só roda quando os binários committed estão em falta. Se falhar:
-- Cheque conectividade com `api.github.com` e `github.com/darktohka/clean-flash-builds/releases`.
-- A tag pinned Linux é `v1.7` (intencional — a tag `latest` não tem asset Linux). Não "conserte" isso trocando para `latest`.
-- Baixe o asset manualmente e coloque em `userData/flash-cache/libpepflashplayer.so` (Linux) ou `userData/flash-cache/pepflashplayer.dll` (Windows), depois reinicie.
+- Binário corrompido. Substitua por um checkout conhecido-bom do repo, ou solte um binário novo em `userData/flash-cache/<plugin>` (caminho #6).
 
 ### Sintoma: o jogo abre mas mostra "Flash version too old"
 Atualize `flash/manifest.json` para que o campo `version` (Windows) ou `linux_version` (Linux) match a versão real do binário. O launcher reporta essa string para a Oasgames via `--ppapi-flash-version`.
@@ -287,7 +270,6 @@ Atualize `flash/manifest.json` para que o campo `version` (Windows) ou `linux_ve
 |---------|-----------|
 | `src/flash/plugin.js` | `findFlashPlugin()`, `configureFlash()`, `getFlashVersion()` — o loader |
 | `src/flash/mms.js` | Gera `mms.cfg` para o Modo Batata (Low-PC mode) |
-| `src/app/FlashUpdater.js` | Downloader fallback (só roda se todos os seis caminhos falharem) |
 | `src/main/flags.js` | Aplica todos os outros flags Chromium (`--no-sandbox`, `--always-authorize-plugins`, heap JS, etc.) |
-| `src/main.js` | Orquestração de boot: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (ou `FlashUpdater` se Flash faltar) |
+| `src/main.js` | Orquestração de boot: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (ou mostra prompt de Flash faltando — sem auto-download) |
 | `flash/manifest*.json` | Metadata de versão lida por `getFlashVersion()` |

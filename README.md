@@ -113,7 +113,7 @@ shinobi-launcher/
 │   └── manifest-linux.json
 ```
 
-The auto-loader (`src/flash/plugin.js` → `findFlashPlugin()`) searches six paths in order (packaged resources, exe directory, app path, cwd, dev `flash/`, and `userData/flash-cache/` for on-demand downloads) and picks the first binary larger than 1 MB. If all paths miss, `FlashUpdater` opens a loading window, downloads the pinned Clean Flash release from `github.com/darktohka/clean-flash-builds` (tag `v1.54` Windows / `v1.7` Linux), extracts it to `userData/flash-cache/`, and relaunches.
+The auto-loader (`src/flash/plugin.js` → `findFlashPlugin()`) searches six paths in order (packaged resources, exe directory, app path, cwd, dev `flash/`, and `userData/flash-cache/` for a user-supplied manual drop) and picks the first binary larger than 1 MB. If all paths miss, the launcher does **not** auto-download — it shows a Flash-missing prompt and the user must restore the binary manually. (The old `FlashUpdater` auto-download fallback was removed in v1.0.1: Flash is EOL, the pinned binaries ship committed in the repo, and an auto-download adds attack surface.)
 
 To replace the binaries (e.g. with a different Clean Flash build), just drop the new file into `flash/` at the project root — same filename, same platform suffix. See **[FLASH_SETUP.md](FLASH_SETUP.md)** for the full guide.
 
@@ -183,7 +183,7 @@ Shinobi Launcher is split into **13 source modules** under `src/`, each with a s
 |---|--------|------|----------------|
 | 1 | UI (renderer) | `src/ui/` | `index.html`, `styles.css`, `variables.css`, `app.js` — vanilla JS, zero framework. AMOLED black + shinobi gold theme. |
 | 2 | UI Manager | `src/ui/manager/` | `ManagerWindow` (lifecycle), `IpcRouter` (IPC handlers), `StateBroadcaster` (push state to renderer), `KeyboardShortcuts` (F5/F8/F12/Alt+F4). |
-| 3 | App | `src/app/` | `Launcher` (window+profile lifecycle), `SessionLifecycle` (load/fail/crash hooks + auto-login), `CpuOptimizer` (affinity/nice/oom_score), `GpuDetector` (NVIDIA/AMD/Intel), `StallDetector` (SWF failure watchdog), `FlashUpdater` (PPAPI download fallback). |
+| 3 | App | `src/app/` | `Launcher` (window+profile lifecycle), `SessionLifecycle` (load/fail/crash hooks + auto-login), `CpuOptimizer` (affinity/nice/oom_score), `GpuDetector` (NVIDIA/AMD/Intel), `StallDetector` (SWF failure watchdog). |
 | 4 | Profiles | `src/profiles/` | `store` (CRUD), `ProfileVault` (encrypted credential CRUD + auto-login script builder), `CryptoService` (pure AES-256-GCM + PBKDF2), `PasswordManager` (machine-bound key derivation), `partition` (session partition names), `manager` (orchestrator). |
 | 5 | Network | `src/network/` | `blocker` (tracker/ad filter), `inspector` (per-profile devtools panel), `cookies` (persistent session cookies), `tempmail` (mail.tm alt-account registration), `api-login` (pre-auth via Oasgames passport API). |
 | 6 | Memory | `src/memory/` | `MemoryGuard` (RSS monitor + active-webview registry), `GcDaemon` (layered GC: idle clearCache + process.gc + Windows EmptyWorkingSet). |
@@ -192,7 +192,7 @@ Shinobi Launcher is split into **13 source modules** under `src/`, each with a s
 | 9 | Flash | `src/flash/` | `plugin` (findFlashPlugin + configureFlash), `mms` (mms.cfg generator for Low-PC mode). |
 | 10 | Main | `src/main/` | `flags` (single source of truth for Chromium command-line switches), `debug` (debug-mode helpers). |
 | 11 | Entry | `src/main.js` + `src/preload.js` | Electron bootstrap: app.whenReady → applyAll flags → findFlashPlugin → createManagerWindow → start daemons. |
-| 12 | UI sub-views | `src/ui/loading/`, `src/ui/setup/` | `loading.html` (shown during FlashUpdater download), `setup.html` (first-boot wizard, currently skipped — defaults are sensible). |
+| 12 | UI sub-views | `src/ui/loading/`, `src/ui/setup/` | `loading.html` (boot splash, currently unused post-FlashUpdater removal), `setup.html` (first-boot wizard, currently skipped — defaults are sensible). |
 | 13 | UI controller | `src/ui/controller.js` + `src/ui/server-selector.js` + `src/ui/game-launcher.js` | Facades re-exporting the manager module trio + server picker dropdown logic + Launcher facade. |
 
 See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the deep dive (process model, IPC flow, vault crypto flow, launch sequence, memory management, event timers, and a text diagram).
@@ -235,7 +235,7 @@ See **[SECURITY.md](SECURITY.md)** for the full policy and supported versions.
 <a name="testing"></a>
 
 - **1235 tests across 38 suites**, all passing.
-- Covers: crypto (AES-256-GCM + PBKDF2), vault CRUD, profile store, session lifecycle, event timers + TZ math, i18n, optimization flags, network blocker, cookies, tempmail rate-limiting, memory guard, GC daemon, plugin loader, FlashUpdater path resolution.
+- Covers: crypto (AES-256-GCM + PBKDF2), vault CRUD, profile store, session lifecycle, event timers + TZ math, i18n, optimization flags, network blocker, cookies, tempmail rate-limiting, memory guard, GC daemon, plugin loader path resolution.
 - Run with `npm test` (or `npm run test:coverage` for a coverage report).
 - Jest setup is in `tests/setup.js` — mocks `electron` and `electron-log` so the full test suite runs without an Electron binary.
 
@@ -364,7 +364,7 @@ shinobi-launcher/
 │   └── manifest-linux.json
 ```
 
-O auto-loader (`src/flash/plugin.js` → `findFlashPlugin()`) procura em seis caminhos em ordem (resources empacotados, diretório do exe, app path, cwd, `flash/` dev, e `userData/flash-cache/` para downloads on-demand) e pega o primeiro binário maior que 1 MB. Se todos falharem, o `FlashUpdater` abre uma janela de loading, baixa a release pinned do Clean Flash de `github.com/darktohka/clean-flash-builds` (tag `v1.54` Windows / `v1.7` Linux), extrai para `userData/flash-cache/`, e relança.
+O auto-loader (`src/flash/plugin.js` → `findFlashPlugin()`) procura em seis caminhos em ordem (resources empacotados, diretório do exe, app path, cwd, `flash/` dev, e `userData/flash-cache/` para drop manual do usuário) e pega o primeiro binário maior que 1 MB. Se todos falharem, o launcher **não** auto-baixa — ele mostra um prompt de Flash faltando e o usuário precisa restaurar o binário manualmente. (O antigo `FlashUpdater` com auto-download foi removido na v1.0.1: Flash é EOL, os binários pinned já vêm committed no repo, e um auto-download adiciona superfície de ataque.)
 
 Para substituir os binários (ex.: com um build diferente do Clean Flash), basta colocar o novo arquivo em `flash/` na raiz do projeto — mesmo nome, mesmo sufixo de plataforma. Veja **[FLASH_SETUP.md](FLASH_SETUP.md)** para o guia completo.
 
@@ -434,7 +434,7 @@ O Shinobi Launcher é dividido em **13 módulos fonte** sob `src/`, cada um com 
 |---|--------|---------|------------------|
 | 1 | UI (renderer) | `src/ui/` | `index.html`, `styles.css`, `variables.css`, `app.js` — vanilla JS, zero framework. Tema AMOLED preto + dourado shinobi. |
 | 2 | UI Manager | `src/ui/manager/` | `ManagerWindow` (lifecycle), `IpcRouter` (handlers IPC), `StateBroadcaster` (push de estado para o renderer), `KeyboardShortcuts` (F5/F8/F12/Alt+F4). |
-| 3 | App | `src/app/` | `Launcher` (lifecycle de janela+perfil), `SessionLifecycle` (hooks load/fail/crash + auto-login), `CpuOptimizer` (affinity/nice/oom_score), `GpuDetector` (NVIDIA/AMD/Intel), `StallDetector` (watchdog de falha SWF), `FlashUpdater` (download PPAPI fallback). |
+| 3 | App | `src/app/` | `Launcher` (lifecycle de janela+perfil), `SessionLifecycle` (hooks load/fail/crash + auto-login), `CpuOptimizer` (affinity/nice/oom_score), `GpuDetector` (NVIDIA/AMD/Intel), `StallDetector` (watchdog de falha SWF). |
 | 4 | Profiles | `src/profiles/` | `store` (CRUD), `ProfileVault` (CRUD de credenciais criptografadas + builder do script de auto-login), `CryptoService` (AES-256-GCM + PBKDF2 puros), `PasswordManager` (derivação de chave de máquina), `partition` (nomes de partição), `manager` (orchestrator). |
 | 5 | Network | `src/network/` | `blocker` (filtro de tracker/anúncio), `inspector` (painel devtools por perfil), `cookies` (cookies de sessão persistente), `tempmail` (registro de conta alt via mail.tm), `api-login` (pré-auth via API passport Oasgames). |
 | 6 | Memory | `src/memory/` | `MemoryGuard` (monitor RSS + registry de webviews ativas), `GcDaemon` (GC em camadas: clearCache ocioso + process.gc + EmptyWorkingSet Windows). |
@@ -443,7 +443,7 @@ O Shinobi Launcher é dividido em **13 módulos fonte** sob `src/`, cada um com 
 | 9 | Flash | `src/flash/` | `plugin` (findFlashPlugin + configureFlash), `mms` (gerador de mms.cfg para Modo Batata). |
 | 10 | Main | `src/main/` | `flags` (single source of truth dos switches de linha de comando Chromium), `debug` (helpers de debug mode). |
 | 11 | Entry | `src/main.js` + `src/preload.js` | Bootstrap Electron: app.whenReady → applyAll flags → findFlashPlugin → createManagerWindow → start daemons. |
-| 12 | Sub-views UI | `src/ui/loading/`, `src/ui/setup/` | `loading.html` (exibido durante download do FlashUpdater), `setup.html` (wizard de primeiro boot, atualmente pulado — defaults são sensatos). |
+| 12 | Sub-views UI | `src/ui/loading/`, `src/ui/setup/` | `loading.html` (splash de boot, atualmente não usado pós-remoção do FlashUpdater), `setup.html` (wizard de primeiro boot, atualmente pulado — defaults são sensatos). |
 | 13 | Controller UI | `src/ui/controller.js` + `src/ui/server-selector.js` + `src/ui/game-launcher.js` | Facades re-exportando o trio manager + lógica do dropdown de servidor + facade do Launcher. |
 
 Veja **[ARCHITECTURE.md](ARCHITECTURE.md)** para o mergulho profundo (modelo de processos, fluxo IPC, fluxo de criptografia do vault, sequência de launch, gerenciamento de memória, event timers, e um diagrama em texto).
@@ -486,7 +486,7 @@ Veja **[SECURITY.md](SECURITY.md)** para a política completa e versões suporta
 <a name="testes"></a>
 
 - **1235 testes em 38 suítes**, todos passando.
-- Cobertura: crypto (AES-256-GCM + PBKDF2), CRUD do vault, profile store, session lifecycle, event timers + math de TZ, i18n, flags de otimização, network blocker, cookies, rate-limit do tempmail, memory guard, GC daemon, plugin loader, resolução de caminhos do FlashUpdater.
+- Cobertura: crypto (AES-256-GCM + PBKDF2), CRUD do vault, profile store, session lifecycle, event timers + math de TZ, i18n, flags de otimização, network blocker, cookies, rate-limit do tempmail, memory guard, GC daemon, plugin loader, resolução de caminhos.
 - Rode com `npm test` (ou `npm run test:coverage` para relatório de cobertura).
 - Setup do Jest em `tests/setup.js` — mocka `electron` e `electron-log` para a suíte completa rodar sem binário Electron.
 

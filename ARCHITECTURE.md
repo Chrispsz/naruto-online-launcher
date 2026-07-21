@@ -33,7 +33,7 @@ app.whenReady()
    │     └─ searches 6 paths (see FLASH_SETUP.md); returns null if all miss
    │
    3. if (flashPath) flash.configureFlash(flashPath)
-      else FlashUpdater.ensureLatest() → app.relaunch() + app.exit(0)
+      else show Flash-missing prompt (no auto-download since v1.0.1)
    │
    4. ManagerWindow.createManagerWindow({ onReady: ... })
    │     └─ loads src/ui/index.html into a 1000x760 BrowserWindow
@@ -218,7 +218,7 @@ Clean exits (reason `clean-exit`) and user kills (reason `killed`) are skipped.
 
 `StallDetector` runs in parallel: it watches `webRequest.onCompleted` + `onErrorOccurred` on the partition's session, tracking SWF failures. If 2+ SWFs fail within 60s **or** 45s pass with zero network activity while the loading screen is still up, it calls `onStall()` which delegates to `SessionLifecycle.reloadWithPreAuth` — same flow as F5: clear cookies + storage, pre-auth via API, then `win.loadURL`. After 120s of stable activity the watchdog stops (game is up, no more babysitting).
 
-`FlashUpdater` is **not** part of the per-launch flow — it only runs at boot, before the manager window opens, when `findFlashPlugin()` returns `null`. See [FLASH_SETUP.md](FLASH_SETUP.md) for the full fallback sequence.
+`FlashUpdater` (the old auto-download fallback) was **removed in v1.0.1**. If `findFlashPlugin()` returns `null`, the launcher shows a Flash-missing prompt and the user must restore the binary manually. See [FLASH_SETUP.md](FLASH_SETUP.md) for the rationale and recovery steps.
 
 ---
 
@@ -367,7 +367,7 @@ The StateBroadcaster's 30s push timer calls `EventTimers.getUpcoming(region)` to
 │  │   flash/     │           │  ├─ EventTimers  │  │  ├─ CpuOptimizer         │     │
 │  │  ├─ plugin   │           │  └─ jwt          │  │  ├─ GpuDetector          │     │
 │  │  └─ mms      │           └──────────────────┘  │  ├─ StallDetector        │     │
-│  └──────────────┘                                 │  └─ FlashUpdater         │     │
+│  └──────────────┘                                 │  └─ (FlashUpdater removed) │     │
 │                                                   └────────────┬─────────────┘     │
 │                                                                │                   │
 │  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────────┘                   │
@@ -423,7 +423,7 @@ app.whenReady()
    │     └─ procura em 6 caminhos (veja FLASH_SETUP.md); retorna null se todos falharem
    │
    3. if (flashPath) flash.configureFlash(flashPath)
-      else FlashUpdater.ensureLatest() → app.relaunch() + app.exit(0)
+      else mostrar prompt de Flash faltando (sem auto-download desde v1.0.1)
    │
    4. ManagerWindow.createManagerWindow({ onReady: ... })
    │     └─ carrega src/ui/index.html em uma BrowserWindow 1000x760
@@ -608,7 +608,7 @@ Saídas limpas (reason `clean-exit`) e kills do usuário (reason `killed`) são 
 
 `StallDetector` roda em paralelo: observa `webRequest.onCompleted` + `onErrorOccurred` na session da partição, rastreando falhas de SWF. Se 2+ SWFs falham em 60s **ou** 45s passam sem atividade de rede enquanto a tela de loading ainda está up, ele chama `onStall()` que delega para `SessionLifecycle.reloadWithPreAuth` — mesmo fluxo do F5: limpa cookies + storage, pré-auth via API, então `win.loadURL`. Após 120s de atividade estável o watchdog para (o jogo está no ar, sem mais babysitting).
 
-`FlashUpdater` **não** faz parte do fluxo por-launch — ele só roda no boot, antes da janela do manager abrir, quando `findFlashPlugin()` retorna `null`. Veja [FLASH_SETUP.md](FLASH_SETUP.md) para a sequência completa de fallback.
+`FlashUpdater` (o antigo fallback de auto-download) foi **removido na v1.0.1**. Se `findFlashPlugin()` retorna `null`, o launcher mostra um prompt de Flash faltando e o usuário precisa restaurar o binário manualmente. Veja [FLASH_SETUP.md](FLASH_SETUP.md) para o rationale e os passos de recuperação.
 
 ---
 
@@ -757,7 +757,7 @@ O timer de push de 30s do StateBroadcaster chama `EventTimers.getUpcoming(region
 │  │   flash/     │           │  ├─ EventTimers  │  │  ├─ CpuOptimizer         │     │
 │  │  ├─ plugin   │           │  └─ jwt          │  │  ├─ GpuDetector          │     │
 │  │  └─ mms      │           └──────────────────┘  │  ├─ StallDetector        │     │
-│  └──────────────┘                                 │  └─ FlashUpdater         │     │
+│  └──────────────┘                                 │  └─ (FlashUpdater removed) │     │
 │                                                   └────────────┬─────────────┘     │
 │                                                                │                   │
 │  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────────┘                   │
