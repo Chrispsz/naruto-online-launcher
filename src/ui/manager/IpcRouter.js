@@ -329,17 +329,6 @@ function registerIpcHandlers(handlers) {
     }
   });
 
-  // ── Flash Cache Info (v5.0) ──
-  const flashUpdater = require('../../app/FlashUpdater');
-  ipcMain.handle('flash:cache-info', function () {
-    try {
-      const info = flashUpdater.getCacheInfo();
-      return info || { version: null, downloadDate: null };
-    } catch (e) {
-      return { version: null, downloadDate: null };
-    }
-  });
-
   // ── Tempmail + API Login + Inspector ──
   const tempmail = require('../../network/tempmail');
   const apiLogin = require('../../network/api-login');

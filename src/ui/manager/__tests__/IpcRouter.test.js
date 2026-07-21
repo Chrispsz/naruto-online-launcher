@@ -109,10 +109,6 @@ jest.mock('../../../network/inspector', () => ({
   }))
 }));
 
-jest.mock('../../../app/FlashUpdater', () => ({
-  getCacheInfo: jest.fn(() => ({ version: '32.0.0.371', downloadDate: '2024-01-01' }))
-}));
-
 jest.mock('../../server-selector', () => ({
   fetchServers: jest.fn(() => []),
   clearCache: jest.fn()
@@ -917,37 +913,6 @@ describe('IpcRouter.js', () => {
         'profile:toast',
         expect.objectContaining({ type: 'error' })
       );
-    });
-  });
-
-  describe('flash:cache-info handler', () => {
-    test('retorna info do cache do Flash', async () => {
-      const flashUpdater = require('../../../app/FlashUpdater');
-      flashUpdater.getCacheInfo.mockReturnValue({
-        version: '32.0.0.371',
-        downloadDate: '2024-01-01'
-      });
-      const handler = handleHandlers['flash:cache-info'];
-      const result = await handler();
-      expect(result).toEqual({ version: '32.0.0.371', downloadDate: '2024-01-01' });
-    });
-
-    test('retorna null version quando getCacheInfo retorna null', async () => {
-      const flashUpdater = require('../../../app/FlashUpdater');
-      flashUpdater.getCacheInfo.mockReturnValue(null);
-      const handler = handleHandlers['flash:cache-info'];
-      const result = await handler();
-      expect(result).toEqual({ version: null, downloadDate: null });
-    });
-
-    test('retorna null version quando getCacheInfo lança erro', async () => {
-      const flashUpdater = require('../../../app/FlashUpdater');
-      flashUpdater.getCacheInfo.mockImplementation(function () {
-        throw new Error('boom');
-      });
-      const handler = handleHandlers['flash:cache-info'];
-      const result = await handler();
-      expect(result).toEqual({ version: null, downloadDate: null });
     });
   });
 

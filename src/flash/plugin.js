@@ -7,9 +7,9 @@
  * configureFlash() sobrescrevia o js-flags setado pelo main.js, perdendo
  * --expose-gc e quebrando o MemoryGuard. Bug crítico corrigido.
  *
- * v4.9.3 (Fase 2): findFlashPlugin() agora procura TAMBÉM no cache on-demand
- * (userData/flash-cache/). Se não achar nenhum binário, main.js aciona o
- * FlashUpdater (download + relaunch). Veja src/app/FlashUpdater.js.
+ * v4.9.3 (Fase 2): findFlashPlugin() procura TAMBÉM no cache on-demand
+ * (userData/flash-cache/) para backward-compat com installs antigas.
+ * O binário principal é committed no repo em flash/.
  */
 
 'use strict';
@@ -71,14 +71,13 @@ function findFlashPlugin() {
   const pluginName = FLASH_PLUGIN_NAMES[platform];
 
   // Robust search paths for ASAR, portable, dev modes, AND on-demand cache.
-  // v4.9.3: userData/flash-cache/ é onde o FlashUpdater baixa o Clean Flash.
+  // v4.9.3: userData/flash-cache/ mantido para backward-compat (installs antigas).
   const searchPaths = [
     path.join(process.resourcesPath, 'flash', pluginName),
     path.join(path.dirname(app.getPath('exe')), 'flash', pluginName),
     path.join(app.getAppPath().replace(/\.asar$/, ''), 'flash', pluginName),
     path.join(process.cwd(), 'flash', pluginName),
     path.join(__dirname, '..', '..', 'flash', pluginName),
-    // v4.9.3 (Fase 2): cache on-demand (FlashUpdater)
     path.join(app.getPath('userData'), 'flash-cache', pluginName)
   ];
 

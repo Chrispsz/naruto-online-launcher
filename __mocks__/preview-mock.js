@@ -110,7 +110,6 @@
                 e.name = lang === 'pt' ? e.name_pt : e.name_en;
               });
               return Promise.resolve(regionEvents);
-            case 'flash:cache-info': return Promise.resolve({ version: '34.0.0.376', downloadDate: '2024-12-15', path: '/preview/flash' });
             case 'launcher:get-version': return Promise.resolve('v1.0.0');
             case 'i18n:get-lang': return Promise.resolve(mockLang);
             case 'i18n:get-all':
