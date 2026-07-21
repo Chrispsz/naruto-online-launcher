@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
+    />
+    <title>Shinobi Launcher</title>
+    <link rel="stylesheet" href="variables.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <!-- ═══ SIDEBAR NAV ═══ -->
+      <nav class="sidebar">
+        <div class="sidebar-logo">
+          <div class="mark">
+            <img src="logo.png" alt="Shinobi Launcher" />
+          </div>
+          <div class="brand">
+            <h1>Shinobi</h1>
+            <span class="version" id="version">v1.0.0</span>
+          </div>
+        </div>
+
+        <div class="nav">
+          <div class="nav-item active" data-view="accounts">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            <span data-i18n="nav.accounts">Accounts</span>
+          </div>
+          <div class="nav-item" data-view="events">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span data-i18n="nav.events">Events</span>
+            <span class="nav-badge" id="eventBadge"></span>
+          </div>
+          <div class="nav-item" data-view="settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              />
+            </svg>
+            <span data-i18n="nav.settings">Settings</span>
+          </div>
+        </div>
+
+      </nav>
+
+      <!-- ═══ MAIN ═══ -->
+      <div class="main">
+        <div class="topbar">
+          <h2 id="viewTitle">Accounts</h2>
+          <div class="actions">
+            <button class="btn primary" id="newBtn">
+              <span data-i18n="topbar.new">New account</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="content">
+          <!-- ── View: Accounts ── -->
+          <div class="view active" id="view-accounts">
+            <div class="grid" id="profileGrid"></div>
+          </div>
+
+          <!-- ── View: Events ── -->
+          <div class="view" id="view-events">
+            <div class="events-header">
+              <div class="tabs" id="regionTabs"></div>
+              <button
+                class="btn-icon mute-toggle"
+                id="muteBtn"
+                data-tip="Mute notifications"
+                aria-label="Mute notifications"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+              </button>
+            </div>
+            <div class="events-meta" id="eventsMeta">
+              <span class="events-meta-text" id="eventsMetaText">Próximo evento em —</span>
+            </div>
+            <div id="eventList"></div>
+          </div>
+
+          <!-- ── View: Settings ── -->
+          <div class="view" id="view-settings">
+            <!-- ═══ General ═══ -->
+            <div class="settings-section">
+              <div class="settings-header">
+                <span data-i18n="settings.general">General</span>
+              </div>
+              <div class="settings-row with-icon">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="2" y1="12" x2="22" y2="12" />
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.language">Language</div>
+                  <div class="desc" data-i18n="settings.language.desc">Launcher interface language</div>
+                </div>
+                <select id="setLang" class="settings-select">
+                  <option value="en">English</option>
+                  <option value="pt">Português</option>
+                </select>
+              </div>
+              <div class="settings-row with-icon">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.notifications">Notifications</div>
+                  <div class="desc" data-i18n="settings.notifications.desc">Desktop alerts before events start</div>
+                </div>
+                <div class="toggle on" id="setNotifications"></div>
+              </div>
+              <div class="settings-row with-icon">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.remind">Reminder time</div>
+                  <div class="desc" data-i18n="settings.remind.desc">How many minutes before an event to notify</div>
+                </div>
+                <select id="setRemind" class="settings-select">
+                  <option value="0">0 min (at start)</option>
+                  <option value="5" selected>5 min</option>
+                  <option value="10">10 min</option>
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ═══ Optimization ═══ -->
+            <div class="settings-section" id="optimizationSection">
+              <div class="settings-header">
+                <span data-i18n="settings.optimization">Optimization</span>
+                <span class="settings-header-hint" data-i18n="settings.optimization.hint">Automatic</span>
+              </div>
+              <div class="settings-row with-icon" id="cpuRenderRow">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="4" y="4" width="16" height="16" rx="2" />
+                    <rect x="9" y="9" width="6" height="6" />
+                    <line x1="9" y1="1" x2="9" y2="4" />
+                    <line x1="15" y1="1" x2="15" y2="4" />
+                    <line x1="9" y1="20" x2="9" y2="23" />
+                    <line x1="15" y1="20" x2="15" y2="23" />
+                    <line x1="20" y1="9" x2="23" y2="9" />
+                    <line x1="20" y1="14" x2="23" y2="14" />
+                    <line x1="1" y1="9" x2="4" y2="9" />
+                    <line x1="1" y1="14" x2="4" y2="14" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.cpu_render">Force CPU rendering</div>
+                  <div class="desc" data-i18n="settings.cpu_render.desc">For GPUs with issues. Uses the processor — slower, but more stable.</div>
+                </div>
+                <div class="toggle" id="setCpuRender"></div>
+              </div>
+              <div class="settings-row with-icon" id="lowpcRow">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.lowpc">Low-end PC mode</div>
+                  <div class="desc" data-i18n="settings.lowpc.desc">For old PCs or under 4GB RAM. Frees up memory and rests the GPU.</div>
+                </div>
+                <div class="toggle" id="setLowpc"></div>
+              </div>
+              <div class="settings-row with-icon" id="presetRestartHint" style="display: none">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.restart">Restart required</div>
+                  <div class="desc" data-i18n="settings.restart.desc">Restart the launcher to apply this change.</div>
+                </div>
+                <div class="settings-row-actions">
+                  <button class="btn sm" id="btnRestartForPreset" data-i18n="settings.restart.btn">Restart now</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ Advanced ═══ -->
+            <div class="settings-section">
+              <div class="settings-header">
+                <span data-i18n="settings.advanced">Advanced</span>
+              </div>
+              <div class="settings-row with-icon">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.backup">Encrypted backup</div>
+                  <div class="desc" data-i18n="settings.backup.desc">Save your accounts and passwords to a secure file</div>
+                </div>
+                <div class="settings-row-actions">
+                  <button class="btn sm" id="advBackupExport" data-i18n="common.export">Export</button>
+                  <button class="btn sm" id="advBackupImport" data-i18n="common.import">Import</button>
+                </div>
+              </div>
+              <div class="settings-row with-icon">
+                <div class="settings-row-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <div class="settings-row-text">
+                  <div class="label" data-i18n="settings.diag">Export diagnostics</div>
+                  <div class="desc" data-i18n="settings.diag.desc">System info file for support (no passwords included)</div>
+                </div>
+                <div class="settings-row-actions">
+                  <button class="btn sm" id="advExportDiag" data-i18n="settings.diag.btn">Export .zip</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section" id="devToolsSection" style="display: none">
+              <div class="settings-header">
+                Dev Tools
+                <span
+                  class="settings-header-tag"
+                  >SHINOBI_DEBUG · tempmail + API login + inspector + JWT</span
+                >
+              </div>
+              <!-- Tempmail -->
+              <div class="dev-subsection">
+                <div class="dev-subsection-header" data-dev-toggle>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  <span>Create tempmail account</span>
+                  <span class="dev-subsection-hint">mail.tm + Naruto API</span>
+                </div>
+                <div class="dev-subsection-body">
+                  <div
+                    class="settings-row"
+                    style="
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.5rem;
+                      padding: 0;
+                      border: 0;
+                    "
+                  >
+                    <div class="desc">
+                      Creates a temporary email (mail.tm) + registers on Naruto Online via API.
+                      Returns a 2h JWT — no Flash, no CAPTCHA, no email verification.
+                    </div>
+                    <button class="btn sm" id="devTempmailCreate" style="align-self: flex-start">
+                      Create tempmail account
+                    </button>
+                    <div id="devTempmailResult" class="dev-result-box" style="display: none"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- API Login -->
+              <div class="dev-subsection">
+                <div class="dev-subsection-header" data-dev-toggle>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  <span>Login via API</span>
+                  <span class="dev-subsection-hint">passport.oasgames.com</span>
+                </div>
+                <div class="dev-subsection-body">
+                  <div
+                    class="settings-row"
+                    style="
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.5rem;
+                      padding: 0;
+                      border: 0;
+                    "
+                  >
+                    <div class="desc">
+                      Authenticates via passport.oasgames.com and injects the oas_user cookie into
+                      the selected profile's session.
+                    </div>
+                    <div class="dev-btn-group">
+                      <select
+                        id="devApiLoginProfile"
+                        class="settings-select"
+                        style="min-width: 160px"
+                      ></select>
+                      <input
+                        id="devApiLoginEmail"
+                        type="email"
+                        placeholder="email"
+                        style="
+                          flex: 1;
+                          min-width: 140px;
+                          background: var(--bg);
+                          border: 1px solid var(--border);
+                          border-radius: var(--radius);
+                          padding: 0.4rem 0.6rem;
+                          color: var(--text);
+                          font-size: var(--font-sm);
+                        "
+                      />
+                      <input
+                        id="devApiLoginPass"
+                        type="password"
+                        placeholder="password"
+                        style="
+                          flex: 1;
+                          min-width: 100px;
+                          background: var(--bg);
+                          border: 1px solid var(--border);
+                          border-radius: var(--radius);
+                          padding: 0.4rem 0.6rem;
+                          color: var(--text);
+                          font-size: var(--font-sm);
+                        "
+                      />
+                      <button class="btn sm" id="devApiLoginBtn">Login API</button>
+                    </div>
+                    <div class="dev-btn-group">
+                      <button class="btn sm" id="devSessionCheck">Check JWT session</button>
+                    </div>
+                    <div id="devApiLoginResult" class="dev-result-box" style="display: none"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- JWT Decoder -->
+              <div class="dev-subsection">
+                <div class="dev-subsection-header" data-dev-toggle>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  <span>JWT Decoder</span>
+                  <span class="dev-subsection-hint">header + payload</span>
+                </div>
+                <div class="dev-subsection-body">
+                  <div
+                    class="settings-row"
+                    style="
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.5rem;
+                      padding: 0;
+                      border: 0;
+                    "
+                  >
+                    <div class="desc">
+                      Paste a JWT token to view the decoded header and payload with syntax
+                      highlighting.
+                    </div>
+                    <div class="jwt-decoder">
+                      <div class="jwt-input-wrap">
+                        <textarea
+                          id="jwtInput"
+                          placeholder="Paste the JWT token here (eyJhbGciOiJIUzI1NiIs...)"
+                          rows="2"
+                        ></textarea>
+                        <button
+                          class="btn sm primary"
+                          id="jwtDecodeBtn"
+                          style="align-self: flex-end"
+                        >
+                          Decode
+                        </button>
+                      </div>
+                      <div class="jwt-output" id="jwtOutput"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Inspector -->
+              <div class="dev-subsection">
+                <div class="dev-subsection-header" data-dev-toggle>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  <span>Network Inspector</span>
+                  <span class="dev-subsection-hint">webRequest capture</span>
+                </div>
+                <div class="dev-subsection-body">
+                  <div
+                    class="settings-row"
+                    style="
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.5rem;
+                      padding: 0;
+                      border: 0;
+                    "
+                  >
+                    <div class="desc">
+                      Captures HTTP requests from the game via webRequest. Shows URLs, captured
+                      oas_user cookies (decoded JWT) and stats.
+                    </div>
+                    <div class="dev-btn-group">
+                      <select
+                        id="devInspectorProfile"
+                        class="settings-select"
+                        style="min-width: 160px"
+                      ></select>
+                      <button class="btn sm" id="devInspectorEnable">Enable capture</button>
+                      <button class="btn sm" id="devInspectorDisable" disabled>Disable</button>
+                      <button class="btn sm" id="devInspectorRefresh">Refresh</button>
+                      <button class="btn sm" id="devInspectorClear">Clear</button>
+                    </div>
+                    <div
+                      id="devInspectorStats"
+                      class="dev-result-box"
+                      style="display: none; margin-bottom: 0.3rem"
+                    ></div>
+                    <div
+                      id="devInspectorEntries"
+                      class="dev-result-box"
+                      style="display: none; max-height: 280px"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <!-- Source Extractor -->
+              <div class="dev-subsection">
+                <div class="dev-subsection-header" data-dev-toggle>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                  <span>Source Extractor + DevTools</span>
+                  <span class="dev-subsection-hint">HTML + cookies + F5 + F12</span>
+                </div>
+                <div class="dev-subsection-body">
+                  <div
+                    class="settings-row"
+                    style="
+                      flex-direction: column;
+                      align-items: stretch;
+                      gap: 0.5rem;
+                      padding: 0;
+                      border: 0;
+                    "
+                  >
+                    <div class="desc">
+                      Extracts the HTML from the Flash page, lists cookies, reloads the session (F5)
+                      and opens DevTools (F12).
+                    </div>
+                    <div class="dev-btn-group">
+                      <select
+                        id="devSourceProfile"
+                        class="settings-select"
+                        style="min-width: 160px"
+                      ></select>
+                      <button class="btn sm" id="devExtractSource">Extract source</button>
+                      <button class="btn sm" id="devListCookies">List cookies</button>
+                      <button class="btn sm" id="devReloadGame">Clear login (F5)</button>
+                      <button class="btn sm" id="devToggleDt">DevTools (F12)</button>
+                    </div>
+                    <div
+                      id="devSourceResult"
+                      class="dev-result-box"
+                      style="display: none; max-height: 320px"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══ About ═══ -->
+            <section class="about-card" id="aboutCard" aria-label="About">
+              <div class="about-head">
+                <div class="about-mark">
+                  <img src="logo.png" alt="Shinobi Launcher" />
+                </div>
+                <div class="about-titles">
+                  <div class="about-name">
+                    Shinobi Launcher
+                    <span class="about-ver" id="advAboutVersion">v1.0.0</span>
+                  </div>
+                  <div class="about-tagline" data-i18n="about.tagline">
+                    Multi-account Flash launcher for Naruto Online
+                  </div>
+                </div>
+              </div>
+
+              <dl class="about-meta">
+                <div class="about-meta-item">
+                  <dt data-i18n="about.author">Author</dt>
+                  <dd>Chrispsz</dd>
+                </div>
+                <div class="about-meta-item">
+                  <dt data-i18n="about.license">License</dt>
+                  <dd>MIT</dd>
+                </div>
+                <div class="about-meta-item">
+                  <dt data-i18n="about.platform">Platform</dt>
+                  <dd>Linux · Windows</dd>
+                </div>
+                <div class="about-meta-item">
+                  <dt data-i18n="about.runtime">Runtime</dt>
+                  <dd>Electron · PPAPI</dd>
+                </div>
+              </dl>
+
+              <div class="about-actions">
+                <a class="about-link" id="advAboutRepo" href="#" title="GitHub repository">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+                <a class="about-link" id="advAboutIssues" href="#" title="Report an issue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span data-i18n="about.report">Report issue</span>
+                </a>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MODAL: Create/Edit Profile ═══ -->
+    <div class="overlay" id="profileModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <h3 id="modalTitle">New account</h3>
+          </div>
+          <button class="modal-close" id="closeProfileModal" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label data-i18n="profile.name">Name</label>
+            <input id="fName" placeholder="Account identifier" maxlength="40" />
+          </div>
+          <div class="field">
+            <label data-i18n="profile.region">Region</label>
+            <select id="fRegion">
+              <option value="br">Brasil (PT)</option>
+              <option value="na">North America (EN)</option>
+              <option value="eu">Europe (EN)</option>
+              <option value="hk">Hong Kong (ZH)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-i18n="profile.server">Server</label>
+            <div class="field-row">
+              <input id="fServer" placeholder="S1" maxlength="20" style="flex: 1" />
+              <button class="btn sm" id="btnPickServer" style="white-space: nowrap" data-i18n="modal.search">Search</button>
+            </div>
+            <div class="hint" id="serverHint" data-i18n="modal.server_hint">
+              Type the server number or click Search.
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button
+            class="btn sm"
+            id="autoCreateBtn"
+            title="Creates an account with a temporary email and auto-login"
+          >
+            <span data-i18n="modal.auto_create">Create automatically</span>
+          </button>
+          <div style="flex: 1"></div>
+          <button class="btn sm" id="cancelProfile" data-i18n="common.cancel">Cancel</button>
+          <button class="btn primary sm" id="saveProfile" data-i18n="common.save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MODAL: Vault Credentials ═══ -->
+    <div class="overlay" id="vaultModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <h3 data-i18n="modal.vault_title">Credentials</h3>
+            <p class="modal-header-sub" id="vaultProfileName" data-i18n="modal.vault_subtitle">
+              Saved securely — auto-filled when login expires
+            </p>
+          </div>
+          <button class="modal-close" id="closeVaultModal" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label data-i18n="modal.vault_user">Username</label>
+            <input id="fVaultUser" placeholder="Account login" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label data-i18n="modal.vault_pass">Password</label>
+            <div class="field-with-toggle">
+              <input id="fVaultPass" type="password" placeholder="Password" autocomplete="off" />
+              <button class="toggle-pass" id="togglePass" tabindex="-1" title="Show password">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  id="eyeIcon"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="hint" data-i18n="modal.vault_hint">
+            Encrypted with AES-256-GCM. Auto-login injects into the form when cookies expire.
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn sm btn-danger" id="removeVault" data-i18n="modal.vault_remove">Remove</button>
+          <div style="flex: 1"></div>
+          <button class="btn sm" id="cancelVault" data-i18n="common.cancel">Cancel</button>
+          <button class="btn primary sm" id="saveVault" data-i18n="common.save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

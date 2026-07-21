@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Electron
+*.asar
+
+# Flash PPAPI binaries — COMMITTED to repo (Flash EOL, no updates needed).
+# Linux: flash/libpepflashplayer.so (Clean Flash v1.7, 34.0.0.137)
+# Windows: flash/pepflashplayer.dll (Clean Flash v1.54, 34.0.0.376)
+# Source: https://github.com/darktohka/clean-flash-builds
+flash/flash-cache/
+
+# Other package managers (npm only)
+bun.lock
+bun.lockb
+yarn.lock
+pnpm-lock.yaml
+
+# Test coverage
+coverage/
+
+# Playwright E2E artifacts
+playwright-report/
+test-results/
+/tests/e2e/.cache/
+
+# Backup files
+*.bak
+*.tmp

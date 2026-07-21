@@ -1,0 +1,522 @@
+/**
+ * app/CpuOptimizer.js — Otimizações de CPU para Flash Player (v1.0.0)
+ *
+ * Responsabilidade ÚNICA: aplicar otimizações de CPU/Scheduler no processo
+ * renderer do Electron onde o Flash PPAPI roda.
+ *
+ * CONTEXTO CRÍTICO — Flash é SINGLE-THREADED:
+ *   O ActionScript (lógica do jogo Naruto Online) roda em UM thread só dentro
+ *   do processo renderer do Electron. Mesmo que a CPU tenha 16 núcleos, o Flash
+ *   só usa 1 para a lógica principal. O scheduler do Linux/Windows move esse
+ *   thread entre núcleos (cache thrashing) — fixar em um núcleo P (performance)
+ *   reduz cache misses e dá ganho real de FPS (5-15% em CPUs híbridas).
+ *
+ * Otimizações aplicadas:
+ *   LINUX:
+ *     1. CPU affinity via `taskset -cp <cores> <pid>` (fixa renderer em P-cores).
+ *     2. Nice priority via `renice -n <priority> -p <pid>` (-5 performance).
+ *     3. oom_score_adj=-500 via /proc/<pid>/oom_score_adj (kernel não mata em OOM).
+ *
+ *   WINDOWS (Win10/11):
+ *     1. CPU affinity via PowerShell `Set-Process -ProcessorAffinity <mask>`.
+ *     2. Process priority via Node.js `os.setPriority()` (cross-platform, REAL).
+ *     3. Sem oom_score_adj equivalente (Windows não tem OOM killer como Linux).
+ *
+ *   macOS: no-op (Mac não roda Flash PPAPI — sem suporte ao plugin).
+ *
+ * Como Electron não expõe setAffinity direto, usamos processos externos.
+ * Em AppImage sem taskset / Windows sem PowerShell, falha silenciosamente.
+ */
+
+'use strict';
+
+const fs = require('fs');
+const os = require('os');
+const { execFile } = require('child_process');
+const logger = require('../utils/logger');
+
+// Windows priority constants — resolved lazily dentro de _applyWindowsPriority
+// (os mock nos testes não tem constants.priority, então não pode ser top-level).
+let _winPrioCache = null;
+function _winPrioConstants() {
+  if (_winPrioCache) return _winPrioCache;
+  _winPrioCache = {
+    aboveNormal: os.constants.priority.PRIORITY_ABOVE_NORMAL,
+    normal: os.constants.priority.PRIORITY_NORMAL,
+    belowNormal: os.constants.priority.PRIORITY_BELOW_NORMAL
+  };
+  return _winPrioCache;
+}
+
+let _appliedPids = new Set(); // pids já otimizados (evita reapply)
+
+/**
+ * Tenta executar um comando via PowerShell (Windows).
+ * Win11 24H2+ e Windows Server Core podem não ter powershell.exe (v5.1).
+ * Fallback: pwsh.exe (PowerShell 7+), que pode estar instalado separadamente.
+ * Se nenhum estiver disponível, falha silenciosamente.
+ * @param {string} script - comando PowerShell (sem -Command wrapper)
+ * @param {number} timeout - timeout em ms
+ * @returns {Promise<{ok: boolean, stdout?: string, error?: string}>}
+ */
+function _execPowershell(script, timeout) {
+  return new Promise(function (resolve) {
+    _tryPwsh('powershell', script, timeout, function (result) {
+      if (result.ok) return resolve(result);
+      // Fallback: pwsh.exe (PowerShell 7+)
+      _tryPwsh('pwsh', script, timeout, function (result2) {
+        resolve(result2);
+      });
+    });
+  });
+}
+
+function _tryPwsh(bin, script, timeout, callback) {
+  execFile(
+    bin,
+    ['-NoProfile', '-NonInteractive', '-Command', script],
+    { timeout: timeout, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true },
+    function (err, stdout) {
+      if (err) {
+        return callback({ ok: false, error: bin + ': ' + err.message });
+      }
+      callback({ ok: true, stdout: stdout });
+    }
+  );
+}
+
+/**
+ * Detecta o layout de núcleos P (performance) vs E (efficiency) em CPUs híbridas.
+ *
+ * Em Intel Alder Lake+ (12a gen+), o kernel Linux expõe em
+ * /sys/devices/cpu_atom/cpus (E-cores) e /sys/devices/cpu_core/cpus (P-cores).
+ *
+ * @returns {Object} { pCores: [0,1,2,3], eCores: [4,5,6,7], isHybrid: bool }
+ */
+function detectCoreTopology() {
+  const totalCores = os.cpus().length;
+  const pCores = [];
+  const eCores = [];
+
+  if (process.platform === 'linux') {
+    try {
+      // P-cores (cpu_core): high-performance
+      if (fs.existsSync('/sys/devices/cpu_core/cpus')) {
+        const raw = fs.readFileSync('/sys/devices/cpu_core/cpus', 'utf8').trim();
+        // Formato: "0-7" ou "0 1 2 3" ou "0,2,4,6"
+        _parseCpuList(raw).forEach(function (n) {
+          pCores.push(n);
+        });
+      }
+      // E-cores (cpu_atom): efficient
+      if (fs.existsSync('/sys/devices/cpu_atom/cpus')) {
+        const raw = fs.readFileSync('/sys/devices/cpu_atom/cpus', 'utf8').trim();
+        _parseCpuList(raw).forEach(function (n) {
+          eCores.push(n);
+        });
+      }
+      // NixOS fallback: /sys/devices/system/cpu/cpu*/topology/core_type
+      // NixOS expõe topology diferente de distros padrão. Se cpu_core/cpu_atom
+      // não existem, tenta detectar via core_type (disponível no kernel 5.17+).
+      if (pCores.length === 0 && eCores.length === 0) {
+        var cpuDir = '/sys/devices/system/cpu';
+        try {
+          var cpuEntries = fs.readdirSync(cpuDir).filter(function (n) {
+            return /^cpu\d+$/.test(n);
+          });
+          for (var i = 0; i < cpuEntries.length; i++) {
+            try {
+              var coreTypePath = cpuDir + '/' + cpuEntries[i] + '/topology/core_type';
+              if (fs.existsSync(coreTypePath)) {
+                var coreType = fs.readFileSync(coreTypePath, 'utf8').trim();
+                var cpuNum = parseInt(cpuEntries[i].replace('cpu', ''), 10);
+                if (coreType === 'efficiency') {
+                  eCores.push(cpuNum);
+                } else {
+                  // 'performance' ou desconhecido → assume P-core
+                  pCores.push(cpuNum);
+                }
+              }
+            } catch (_) {
+              /* skip individual CPU */
+            }
+          }
+        } catch (_) {
+          /* cpuDir não existe — muito improvável */
+        }
+      }
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  // Fallback: se não achou P/E separados, todos os núcleos são P (CPU uniforme).
+  // Em CPUs AMD ou Intel non-hybrid, o scheduler já faz bom work distribution.
+  if (pCores.length === 0 && eCores.length === 0) {
+    for (let i = 0; i < totalCores; i++) pCores.push(i);
+  }
+
+  return {
+    pCores: pCores,
+    eCores: eCores,
+    isHybrid: pCores.length > 0 && eCores.length > 0,
+    totalCores: totalCores
+  };
+}
+
+/**
+ * Parser de listas de CPU do kernel (/sys/devices/.../cpus).
+ * Formatos suportados: "0-7", "0,2,4-6", "0 1 2", "0-3,8-11".
+ * @param {string} raw
+ * @returns {number[]}
+ */
+function _parseCpuList(raw) {
+  if (!raw || raw === '\n') return [];
+  const out = [];
+  // Pode ter vírgula ou espaço como separador
+  const parts = raw.split(/[,\s]+/).filter(Boolean);
+  for (const part of parts) {
+    const m = part.match(/^(\d+)-(\d+)$/);
+    if (m) {
+      const start = parseInt(m[1], 10);
+      const end = parseInt(m[2], 10);
+      for (let i = start; i <= end; i++) out.push(i);
+    } else if (/^\d+$/.test(part)) {
+      out.push(parseInt(part, 10));
+    }
+  }
+  return out;
+}
+
+/**
+ * Aplica CPU affinity no PID via `taskset -cp <cores> <pid>`.
+ * @param {number} pid - Process ID
+ * @param {number[]} cores - Lista de núcleos (ex: [0,1,2,3])
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+function _applyTaskset(pid, cores) {
+  return new Promise(function (resolve) {
+    if (process.platform !== 'linux') {
+      return resolve({ ok: false, error: 'not-linux' });
+    }
+    if (!pid || cores.length === 0) {
+      return resolve({ ok: false, error: 'invalid-args' });
+    }
+    const coresArg = cores.join(',');
+    execFile(
+      'taskset',
+      ['-cp', coresArg, String(pid)],
+      {
+        timeout: 2000,
+        stdio: ['ignore', 'pipe', 'pipe']
+      },
+      function (err) {
+        if (err) {
+          // taskset não disponível (AppImage minimal) ou sem permissão
+          logger.debug(
+            'CpuOptimizer: taskset falhou pid=' + pid + ' cores=' + coresArg + ' — ' + err.message
+          );
+          return resolve({ ok: false, error: err.message });
+        }
+        logger.info('CpuOptimizer: affinity aplicada pid=' + pid + ' cores=[' + coresArg + ']');
+        resolve({ ok: true });
+      }
+    );
+  });
+}
+
+/**
+ * Aplica nice priority via `renice -n <priority> -p <pid>`.
+ * Usuário semum pode setar nice de 0 a 19 (menor prioridade). Para nice negativo
+ * (-5, mais prioridade), precisa de CAP_SYS_NICE. Tentamos -5, se falha cai pra 0.
+ * @param {number} pid
+ * @param {number} priority - valor nice (-20 a 19)
+ * @returns {Promise<{ok: boolean, priority?: number, error?: string}>}
+ */
+function _applyRenice(pid, priority) {
+  return new Promise(function (resolve) {
+    if (process.platform !== 'linux') {
+      return resolve({ ok: false, error: 'not-linux' });
+    }
+    execFile(
+      'renice',
+      ['-n', String(priority), '-p', String(pid)],
+      {
+        timeout: 2000,
+        stdio: ['ignore', 'pipe', 'pipe']
+      },
+      function (err) {
+        if (err) {
+          logger.debug(
+            'CpuOptimizer: renice falhou pid=' + pid + ' n=' + priority + ' — ' + err.message
+          );
+          return resolve({ ok: false, error: err.message });
+        }
+        logger.info('CpuOptimizer: nice=' + priority + ' aplicado pid=' + pid);
+        resolve({ ok: true, priority: priority });
+      }
+    );
+  });
+}
+
+/**
+ * Ajusta oom_score_adj para -500 (kernel prefere matar outros processos em OOM).
+ * Escreve diretamente em /proc/<pid>/oom_score_adj (não precisa de root se for
+ * o próprio processo ou filho). Em AppImage, o renderer é filho → permitido.
+ * @param {number} pid
+ * @param {number} score - valor de -1000 (nunca matar) a 1000 (sempre matar)
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+function _applyOomScoreAdj(pid, score) {
+  return new Promise(function (resolve) {
+    if (process.platform !== 'linux') {
+      return resolve({ ok: false, error: 'not-linux' });
+    }
+    const path = '/proc/' + pid + '/oom_score_adj';
+    fs.writeFile(path, String(score), function (err) {
+      if (err) {
+        logger.debug('CpuOptimizer: oom_score_adj falhou pid=' + pid + ' — ' + err.message);
+        return resolve({ ok: false, error: err.message });
+      }
+      logger.info('CpuOptimizer: oom_score_adj=' + score + ' aplicado pid=' + pid);
+      resolve({ ok: true });
+    });
+  });
+}
+
+/**
+ * Aplica CPU affinity no Windows via PowerShell `Set-Process -ProcessorAffinity`.
+ * Windows usa bitmask: bit N = core N. cores [0,1,2,3] → 0b1111 = 15.
+ * PowerShell é o método mais confiável no Win10/11 (wmic está deprecated).
+ * @param {number} pid
+ * @param {number[]} cores
+ * @returns {Promise<{ok: boolean, mask?: number, error?: string}>}
+ */
+function _applyWindowsAffinity(pid, cores) {
+  return new Promise(function (resolve) {
+    if (process.platform !== 'win32') {
+      return resolve({ ok: false, error: 'not-windows' });
+    }
+    if (!pid || cores.length === 0) {
+      return resolve({ ok: false, error: 'invalid-args' });
+    }
+    // Bitmask: bit N = core N (máx 64 cores suportadas pelo Windows)
+    let mask = 0;
+    cores.forEach(function (c) {
+      if (c >= 0 && c < 64) mask |= 1 << c;
+    });
+    if (mask === 0) {
+      return resolve({ ok: false, error: 'empty-mask' });
+    }
+    var script = '(Get-Process -Id ' + pid + ').ProcessorAffinity = ' + mask;
+    _execPowershell(script, 3000).then(function (result) {
+      if (result.ok) {
+        logger.info(
+          'CpuOptimizer: win affinity aplicada pid=' +
+            pid +
+            ' mask=' +
+            mask +
+            ' cores=[' +
+            cores.join(',') +
+            ']'
+        );
+        resolve({ ok: true, mask: mask });
+      } else {
+        logger.debug(
+          'CpuOptimizer: win affinity falhou pid=' + pid + ' mask=' + mask + ' — ' + result.error
+        );
+        resolve({ ok: false, error: result.error });
+      }
+    });
+  });
+}
+
+/**
+ * Aplica prioridade de processo no Windows via Node.js os.setPriority (cross-platform).
+ * Mapeia nice-like targets (-5/0/+5) para Windows priority classes:
+ *   -5 → ABOVE_NORMAL (performance preset)
+ *    0 → NORMAL (balanced preset)
+ *   +5 → BELOW_NORMAL (quality preset)
+ * Não usa HIGH/REALTIME (causa instabilidade no sistema — mouse/teclado travam).
+ * @param {number} pid
+ * @param {number} niceTarget - valor nice-like (-5 a +5)
+ * @returns {Promise<{ok: boolean, priority?: number, error?: string}>}
+ */
+function _applyWindowsPriority(pid, niceTarget) {
+  return new Promise(function (resolve) {
+    if (process.platform !== 'win32') {
+      return resolve({ ok: false, error: 'not-windows' });
+    }
+    let prio;
+    const c = _winPrioConstants();
+    if (niceTarget < 0) prio = c.aboveNormal;
+    else if (niceTarget > 0) prio = c.belowNormal;
+    else prio = c.normal;
+    try {
+      os.setPriority(pid, prio);
+      logger.info('CpuOptimizer: win priority aplicada pid=' + pid + ' prio=' + prio);
+      resolve({ ok: true, priority: prio });
+    } catch (e) {
+      // EPERM se pid pertence a outro user, ou EINVAL se pid não existe mais
+      logger.debug('CpuOptimizer: win priority falhou pid=' + pid + ' — ' + e.message);
+      resolve({ ok: false, error: e.message });
+    }
+  });
+}
+
+/**
+ * Aplica todas as otimizações de CPU em um renderer PID (cross-platform).
+ *
+ * LINUX: taskset (affinity) + renice (priority) + oom_score_adj (OOM protection).
+ * WINDOWS: PowerShell (affinity) + os.setPriority (priority). Sem OOM protection.
+ * macOS: no-op.
+ *
+ * @param {number} pid - PID do processo renderer do Electron
+ * @param {Object} opts - { preset: 'performance'|'balanced'|'quality',
+ *                          topology: detectCoreTopology() result (optional) }
+ * @returns {Promise<{affinity, nice, oom}>}
+ */
+async function optimizeRenderer(pid, opts) {
+  opts = opts || {};
+  const preset = opts.preset || 'balanced';
+
+  if (!pid || pid <= 0) {
+    return {
+      affinity: { ok: false, error: 'invalid-pid' },
+      nice: { ok: false, error: 'invalid-pid' },
+      oom: { ok: false, error: 'invalid-pid' }
+    };
+  }
+
+  // Idempotente: se já aplicamos pro mesmo PID, pula (mas re-aplica em reload).
+  // Em reload, o PID pode ser reutilizado — checamos o Set antes de pular.
+  // Removido: o renderer PID muda em cada reload (novo processo), então o Set
+  // cresce indefinidamente. Limpar a cada 50 entradas (antes de adicionar a 51ª).
+  if (_appliedPids.has(pid)) {
+    return {
+      affinity: { ok: true, skipped: true },
+      nice: { ok: true, skipped: true },
+      oom: { ok: true, skipped: true }
+    };
+  }
+  if (_appliedPids.size >= 50) _appliedPids.clear();
+  _appliedPids.add(pid);
+
+  const topology = opts.topology || detectCoreTopology();
+
+  // Performance: fixa em P-cores + 1 E-core reserva (para GC do V8 não competir
+  // com o thread principal do Flash).
+  // Balanced: fixa em P-cores apenas (deixa E-cores livres pra outras apps).
+  // Quality: NÃO aplica affinity (deixa scheduler decidir — melhor pra multi-task).
+  let cores = [];
+  if (preset === 'quality') {
+    // Sem affinity
+  } else if (preset === 'performance') {
+    // P-cores + 1 E-core (se híbrido) pra GC não competir com Flash thread
+    if (topology.isHybrid && topology.pCores.length > 0) {
+      cores = topology.pCores.slice();
+      if (topology.eCores.length > 0) cores.push(topology.eCores[0]);
+    } else {
+      // CPU uniforme: primeiros min(4, total) núcleos
+      cores = topology.pCores.slice(0, Math.min(4, topology.pCores.length));
+    }
+  } else {
+    // Balanced: só P-cores (ou primeiros 2 se uniforme)
+    if (topology.isHybrid) {
+      cores = topology.pCores.slice(0, Math.max(1, Math.min(topology.pCores.length, 4)));
+    } else {
+      cores = topology.pCores.slice(0, Math.min(2, topology.pCores.length));
+    }
+  }
+
+  // Nice-like target: -5 performance / 0 balanced / +5 quality
+  // (mapeado para Windows priority class em _applyWindowsPriority)
+  let niceTarget = preset === 'performance' ? -5 : preset === 'balanced' ? 0 : 5;
+
+  // OOM protection: -500 em performance/balanced, 0 em quality (Linux only)
+  const oomScore = preset === 'quality' ? 0 : -500;
+
+  let affinityPromise, nicePromise, oomPromise;
+
+  if (process.platform === 'win32') {
+    // ── WINDOWS: PowerShell affinity + os.setPriority. Sem oom_score_adj. ──
+    affinityPromise =
+      cores.length > 0
+        ? _applyWindowsAffinity(pid, cores)
+        : Promise.resolve({ ok: true, skipped: 'quality-preset' });
+    nicePromise = _applyWindowsPriority(pid, niceTarget);
+    oomPromise = Promise.resolve({ ok: true, skipped: 'no-windows-equivalent' });
+  } else if (process.platform === 'linux') {
+    // ── LINUX: taskset + renice + oom_score_adj ──
+    affinityPromise =
+      cores.length > 0
+        ? _applyTaskset(pid, cores)
+        : Promise.resolve({ ok: true, skipped: 'quality-preset' });
+    nicePromise = _applyRenice(pid, niceTarget).then(function (res) {
+      if (!res.ok && niceTarget < 0) {
+        // Retry com 0 (sem necessidade de CAP_SYS_NICE)
+        return _applyRenice(pid, 0);
+      }
+      return res;
+    });
+    oomPromise = _applyOomScoreAdj(pid, oomScore);
+  } else {
+    // ── macOS/other: no-op ──
+    affinityPromise = Promise.resolve({ ok: true, skipped: 'platform-' + process.platform });
+    nicePromise = Promise.resolve({ ok: true, skipped: 'platform-' + process.platform });
+    oomPromise = Promise.resolve({ ok: true, skipped: 'platform-' + process.platform });
+  }
+
+  const [affinity, nice, oom] = await Promise.all([affinityPromise, nicePromise, oomPromise]);
+
+  logger.info(
+    'CpuOptimizer: pid=' +
+      pid +
+      ' preset=' +
+      preset +
+      ' affinity=' +
+      (affinity.ok ? '✓' : '✗') +
+      ' nice=' +
+      (nice.ok ? (nice.priority !== undefined ? nice.priority : '✓') : '✗') +
+      ' oom=' +
+      (oom.ok ? '✓' : '✗')
+  );
+
+  return { affinity: affinity, nice: nice, oom: oom, cores: cores };
+}
+
+/**
+ * Snapshot do estado atual (para UI mostrar ao user).
+ * @returns {Object}
+ */
+function getStats() {
+  const topo = detectCoreTopology();
+  return {
+    topology: topo,
+    appliedPids: _appliedPids.size,
+    platform: process.platform
+  };
+}
+
+/**
+ * Reseta estado interno (para testes).
+ */
+function _reset() {
+  _appliedPids.clear();
+  _winPrioCache = null; // limpa cache de constants Windows
+}
+
+module.exports = {
+  detectCoreTopology: detectCoreTopology,
+  optimizeRenderer: optimizeRenderer,
+  getStats: getStats,
+  // expostos p/ testes
+  _reset: _reset,
+  _parseCpuList: _parseCpuList,
+  _applyTaskset: _applyTaskset,
+  _applyRenice: _applyRenice,
+  _applyOomScoreAdj: _applyOomScoreAdj,
+  _applyWindowsAffinity: _applyWindowsAffinity,
+  _applyWindowsPriority: _applyWindowsPriority,
+  _winPrioConstants: _winPrioConstants
+};

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.1
+Type=Application
+Name=Naruto Online
+Comment=Play Naruto Online with Flash PPAPI — Native Linux Launcher
+GenericName=Game Launcher
+Exec=naruto-online %U
+Icon=naruto-online
+Terminal=false
+StartupNotify=true
+StartupWMClass=Naruto Online
+Categories=Game;RolePlaying;
+Keywords=game;naruto;flash;browser;mmo;anime;rpg;

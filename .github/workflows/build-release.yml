@@ -1,0 +1,223 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  # ── Quality gate: lint + prettier + test (fail-fast before spending build minutes) ──
+  quality:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16.20.2
+          cache: npm
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Lint (ESLint)
+        run: npm run lint
+        env:
+          ESLINT_USE_FLAT_CONFIG: 'false'
+
+      - name: Prettier check
+        run: npx prettier --check "src/**/*.{js,html,css,json}" "tests/**/*.js"
+
+      - name: Test (Jest)
+        run: npm test
+
+  # ── Build matrix: Linux AppImage + Windows portable ──
+  build:
+    needs: quality
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux
+          - os: windows-2022
+            platform: win
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16.20.2
+          cache: npm
+
+      - name: System deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 \
+            xdg-utils libatspi2.0-0 libuuid1 libappindicator3-1
+
+      - run: npm install --no-audit --no-fund
+
+      - name: Run tests
+        run: npm test
+
+      - name: Verify Flash binaries + Build + Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          if [ ! -f flash/libpepflashplayer.so ]; then
+            echo "::error::flash/libpepflashplayer.so not found! Linux Flash PPAPI binary must be committed to repo."
+            exit 1
+          fi
+          if [ ! -f flash/pepflashplayer.dll ]; then
+            echo "::error::flash/pepflashplayer.dll not found! Windows Flash PPAPI binary must be committed to repo."
+            exit 1
+          fi
+          echo "✓ Flash binaries committed (Linux $(du -h flash/libpepflashplayer.so | cut -f1), Windows $(du -h flash/pepflashplayer.dll | cut -f1))"
+          npx electron-builder --linux AppImage --publish never
+          mkdir -p release
+          cp dist/*.AppImage release/
+          cp linux/install.sh release/
+          cp linux/uninstall.sh release/
+          cp assets/icon.png release/
+          cd release && zip -r ../naruto-online-linux.zip .
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ESLINT_USE_FLAT_CONFIG: 'false'
+
+      - name: Verify Flash binaries + Build + Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "flash/pepflashplayer.dll")) {
+            Write-Error "flash/pepflashplayer.dll not found!"
+            exit 1
+          }
+          if (-not (Test-Path "flash/libpepflashplayer.so")) {
+            Write-Error "flash/libpepflashplayer.so not found!"
+            exit 1
+          }
+          Write-Host "✓ Flash binaries committed (Linux + Windows)"
+          npx electron-builder --win portable --publish never
+          mkdir release
+          Copy-Item dist/*.exe release/
+          Compress-Archive -Path release/* -DestinationPath naruto-online-win.zip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: naruto-online-${{ matrix.platform }}.zip
+          retention-days: 7
+
+  # ── Release: only on tags v* ──
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          generate_release_notes: true
+          files: artifacts/**/*
+          body: |
+            ## Naruto Online Launcher
+
+            Flash game launcher for Naruto Online — zero tracking, zero dependencies, FUSE-free.
+
+            ### Downloads
+
+            | Platform | File |
+            |----------|------|
+            | Linux | `naruto-online-linux.zip` (AppImage + installer) |
+            | Windows | `naruto-online-win.zip` (Portable EXE) |
+
+            ### Installation
+
+            **Linux:**
+            ```bash
+            unzip naruto-online-linux.zip
+            chmod +x install.sh
+            ./install.sh
+            ```
+
+            **Windows:**
+            Extract and run `NarutoOnline.exe`
+
+            ### Shortcuts
+
+            | Key | Action |
+            |-----|--------|
+            | F5 | Clear Login |
+            | F6 | Switch Region |
+            | F7 | Switch Hardware Profile |
+            | F11 | Fullscreen |
+            | Ctrl+Shift+S | Screenshot |
+            | Ctrl+Shift+T | Always on Top |
+            | Ctrl+N | New Account |
+            | F8 | Force Memory GC |
+            | Alt+1..9 | Quick Launch Profile (v5.8) |
+            | Alt+P | Toggle Always-on-Top (v5.8) |
+
+            ### Regions
+            🇧🇷 PT · 🇺🇸 EN · 🇫🇷 FR · 🇩🇪 DE · 🇪🇸 ES · 🇵🇱 PL
+
+            ### Flash PPAPI
+            Flash PPAPI binaries (Linux `.so` + Windows `.dll`) are committed to the repo so the build is fully reproducible offline. Linux shows an actionable error if Flash cannot be provisioned at runtime.
+
+  # ── Auto-update README with latest download links ──
+  update-readme:
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch latest release assets
+        id: latest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data } = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const linux = data.assets.find(a => a.name.includes('linux'));
+            const win   = data.assets.find(a => a.name.includes('win'));
+            core.setOutput('version',  data.tag_name);
+            core.setOutput('linux_url', linux?.browser_download_url || '');
+            core.setOutput('win_url',   win?.browser_download_url   || '');
+
+      - name: Patch README download markers
+        run: |
+          sed -i -E "s|<!--VERSION:.*-->|<!--VERSION:${{ steps.latest.outputs.version }}-->|" README.md
+          sed -i -E "s|<!--LINUX_URL:.*-->|<!--LINUX_URL:${{ steps.latest.outputs.linux_url }}-->|" README.md
+          sed -i -E "s|<!--WIN_URL:.*-->|<!--WIN_URL:${{ steps.latest.outputs.win_url }}-->|" README.md
+
+      - name: Commit updated README
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: bump download links to ${{ steps.latest.outputs.version }} [skip ci]" || echo "nothing to commit"
+          git push origin main
