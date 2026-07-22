@@ -5,10 +5,9 @@
  * Fluxo:
  *   1. GET  https://api.mail.tm/domains            → pega domínio disponível
  *   2. POST https://api.mail.tm/accounts           → cria conta {address, password}
- *   3. POST https://api.mail.tm/token              → pega JWT do mail.tm (pra ler inbox)
+ *   3. POST https://api.mail.tm/token              → pega JWT do mail.tm
  *   4. POST https://passport.oasgames.com/?m=register&email=&pwd=
  *      → registra no Naruto Online, recebe loginKey (JWT HS256, 2h)
- *   5. (opcional) GET https://api.mail.tm/messages → lê inbox (se Naruto pedir verificação)
  *
  * Verificado ao vivo em 2026-07-14: conta criada, registrada, JWT capturado,
  * login funcionando, servidor recomendado retornado. Sem Flash, sem CAPTCHA,
@@ -27,7 +26,6 @@ const MAIL_TM_BASE = 'https://api.mail.tm';
 const MAIL_TM_DOMAINS = MAIL_TM_BASE + '/domains';
 const MAIL_TM_ACCOUNTS = MAIL_TM_BASE + '/accounts';
 const MAIL_TM_TOKEN = MAIL_TM_BASE + '/token';
-const MAIL_TM_MESSAGES = MAIL_TM_BASE + '/messages';
 
 // v4.9.1: Rate limiting pra não sobrecarregar mail.tm + passport.oasgames.com
 // mail.tm tem ~8 contas/hora por IP; passport tem rate-limit desconhecido.
@@ -63,25 +61,6 @@ function _checkRateLimit() {
     }
   }
   _rateLimit.history.push(now);
-}
-
-/**
- * Retorna status do rate limit (pra UI mostrar).
- */
-function getRateLimitStatus() {
-  const now = Date.now();
-  _rateLimit.history = _rateLimit.history.filter(function (t) {
-    return now - t < 3600000;
-  });
-  return {
-    used: _rateLimit.history.length,
-    max: _rateLimit.MAX_PER_HOUR,
-    remaining: _rateLimit.MAX_PER_HOUR - _rateLimit.history.length,
-    lastAttempt: _rateLimit.history.length
-      ? _rateLimit.history[_rateLimit.history.length - 1]
-      : null,
-    minIntervalMs: _rateLimit.MIN_INTERVAL_MS
-  };
 }
 
 /**
@@ -225,25 +204,6 @@ async function getRecommendedServers(playerId, gamecode) {
       server_name: s.server_name,
       fullname: s.fullname,
       url: (s.url || '').replace(/^\/\//, 'https://')
-    };
-  });
-}
-
-/**
- * Lê a inbox do mail.tm (pro caso de verificação de email no futuro).
- * @param {string} mailtmToken
- * @returns {Promise<Array<{from:string, subject:string, intro:string, seen:boolean, createdAt:string}>>}
- */
-async function readInbox(mailtmToken) {
-  const resp = await _httpGetJson(MAIL_TM_MESSAGES, { Authorization: 'Bearer ' + mailtmToken });
-  if (!resp || !Array.isArray(resp['hydra:member'])) return [];
-  return resp['hydra:member'].map(function (m) {
-    return {
-      from: m.from ? m.from.address : '',
-      subject: m.subject,
-      intro: m.intro,
-      seen: m.seen,
-      createdAt: m.createdAt
     };
   });
 }
@@ -392,8 +352,6 @@ module.exports = {
   createNarutoAccount: createNarutoAccount,
   login: login,
   getRecommendedServers: getRecommendedServers,
-  readInbox: readInbox,
-  getRateLimitStatus: getRateLimitStatus,
   // expostos pra testes
   _generatePassword: _generatePassword,
   _decode: jwt.decode

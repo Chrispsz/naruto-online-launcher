@@ -53,14 +53,9 @@ let selectedRegion = 'br';
 let editingId = null;
 let vaultId = null;
 let notificationsMuted = false;
-// v5.13.0: searchQuery removed — search bar deleted from UI.
-// (Variable kept as empty string for backwards compat with applySorting's signature,
-// but no code reads it anymore. Will be cleaned up in a future refactor.)
-// v4.5: Track open game windows and auto-login status per profile (real-time)
+// Track open game windows and auto-login status per profile (real-time)
 let openWindows = {}; // { profileId: true }
 let autoLoginStatus = {}; // { profileId: 'idle'|'loading'|'success'|'error' }
-// v5.20.0: sortMode variable removed — applySorting() sorts by name only
-// (favorites feature was deleted in v5.17.0, so the stored mode was a no-op).
 // v4.6: i18n strings (loaded from main process on init)
 let i18nStrings = {};
 let currentLang = 'pt';
@@ -163,38 +158,34 @@ document.querySelectorAll('.nav-item').forEach(item => {
     // v5.22.0: "Nova conta" button only makes sense on Accounts view — hide elsewhere.
     var newBtn = document.getElementById('newBtn');
     if (newBtn) newBtn.style.display = view === 'accounts' ? '' : 'none';
-    // v5.20.0: topbar subtitle removed — the title alone is enough.
     if (view === 'settings') loadSettings();
   });
 });
 
-// v5.13.0: Search bar and complex filters removed — 10 accounts is fine without them.
-// Sort dropdown also removed. Favorites still float to top by default (in applySorting).
 // The account-count chip in the toolbar shows the total count.
 
 // ── Render: Profiles ──
 function renderProfiles() {
   const grid = document.getElementById('profileGrid');
   grid.className = 'grid';
-  // v5.13.0: No search/filter — show all profiles, sorted by favorites then name.
   let filtered = applySorting(profiles.slice());
   var countEl = document.getElementById('accountCount');
   if (countEl) {
     var total = profiles.length;
-    // v5.20.0: plain text count — no chip border, no num/sep/label split.
     var label = currentLang === 'pt' ? (total === 1 ? 'conta' : 'contas') : (total === 1 ? 'account' : 'accounts');
     countEl.textContent = total + ' ' + label;
   }
   if (!profiles.length) {
-    var emptyTitle = currentLang === 'pt' ? 'Nenhuma conta' : 'No accounts';
+    var emptyTitle = currentLang === 'pt' ? 'Nenhuma conta ainda' : 'No accounts yet';
     var emptyBody =
       currentLang === 'pt'
-        ? 'Crie sua primeira conta para começar a jogar.'
-        : 'Create your first account to start playing.';
-    var emptyBtnText = currentLang === 'pt' ? 'Nova conta' : 'New account';
-    // v5.20.0: empty-shuriken SVG decoration removed — just title + body + button.
+        ? 'Crie sua primeira conta para começar sua jornada shinobi.'
+        : 'Create your first account to start your shinobi journey.';
+    var emptyBtnText = currentLang === 'pt' ? '+ Nova conta' : '+ New account';
+    // v1.0.1: VLM-flagged empty state — added shuriken SVG mark + glow CTA.
     grid.innerHTML =
       '<div class="empty">' +
+      '<svg class="empty-mark" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>' +
       '<h3>' + emptyTitle + '</h3>' +
       '<p>' + emptyBody + '</p>' +
       '<button class="btn primary" id="emptyNewBtn">' + emptyBtnText + '</button>' +
@@ -206,8 +197,6 @@ function renderProfiles() {
       });
     return;
   }
-  // v5.13.0: filtered is always non-empty here (no search to filter out everything).
-  // If profiles exist but filtered is somehow empty, fall through to render nothing.
   if (!filtered.length) {
     grid.innerHTML = '';
     return;
@@ -216,23 +205,14 @@ function renderProfiles() {
   filtered.forEach(function (p) {
     const card = document.createElement('div');
     card.tabIndex = 0;
-    // v5.22.0: animationDelay removed — no stagger entrance, cards appear instantly.
-    // v5.17.0: fav-card class removed — favorite feature deleted from card UI.
     card.className = 'card' + (p.hasVault ? ' has-vault' : '');
     card.setAttribute('data-card-id', p.id);
-    // v5.22.0: Total minimalist pass — only essential info on the card.
-    // Removed: redundant "auto-login" badge (lock icon already signals vault),
-    // autologin status badge (loading/success states are transient — show as
-    // dot in the meta line if needed), card-meta-line empty placeholder.
-    // Kept: name + lock icon, region · server, Jogar + 3 icon buttons.
     var editLabel = currentLang === 'pt' ? 'Editar' : 'Edit';
     var vaultLabel = currentLang === 'pt' ? 'Credenciais' : 'Credentials';
     var delLabel = currentLang === 'pt' ? 'Excluir' : 'Delete';
     var openLabel = currentLang === 'pt' ? 'aberta' : 'open';
     var playLabel = currentLang === 'pt' ? 'Jogar' : 'Play';
-    // v5.20.0: Server shown as plain static text (was a <select> dropdown).
     var serverText = p.server ? esc(p.server.toUpperCase()) : (currentLang === 'pt' ? 'sem servidor' : 'no server');
-    // v5.22.0: status dot shown inline next to meta — only when meaningful.
     var statusDotHtml = '';
     if (openWindows[p.id]) {
       // Window open → green dot + "aberta" label inline.
@@ -264,7 +244,7 @@ function renderProfiles() {
         <div class="secondary-actions">
           <button class="btn sm btn-icon-only" data-act="edit" data-tip="${editLabel}" title="${editLabel}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           <button class="btn sm btn-icon-only" data-act="vault" data-tip="${vaultLabel}" title="${vaultLabel}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
-          <button class="btn sm btn-icon-only" data-act="del" data-tip="${delLabel}" title="${delLabel}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+          <button class="btn sm btn-icon-only btn-danger-ghost" data-act="del" data-tip="${delLabel}" title="${delLabel}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
         </div>
       </div>`;
     card.addEventListener('click', () => launch(p.id));
@@ -282,10 +262,7 @@ function renderProfiles() {
   });
 }
 
-// v5.17.0: Sort simplified — favorites feature removed, sort by name only.
-// (Dead sort modes lastUsed/launchCount/totalPlayMs/region/createdAt removed —
-// play stats were removed in v5.16.0, so those modes were all no-ops anyway.)
-// v5.20.0: sortMode variable removed — no longer read or persisted.
+// Sort profiles alphabetically by name.
 function applySorting(list) {
   var sorted = list.slice();
   sorted.sort(function (a, b) {
@@ -294,11 +271,7 @@ function applySorting(list) {
   return sorted;
 }
 
-// v5.17.0: toggleFavorite() removed — favorite button deleted from card UI.
-// v5.17.0: duplicateProfile() removed — duplicate button deleted from card UI.
-// v5.17.0: formatPlayTime() removed — play-time stats deleted from cards in v5.16.0.
-
-// v4.5: Helper — get human label for auto-login status (used by card-status inline indicator)
+// Helper — human label for auto-login card-status indicator
 function getStatusLabel(status) {
   switch (status) {
     case 'loading':
@@ -312,14 +285,6 @@ function getStatusLabel(status) {
       return currentLang === 'pt' ? 'pronto' : 'ready';
   }
 }
-
-// v5.22.0: updateStatusBadge() removed — autologin-badge status-badge elements
-// were deleted from cards. Card status now uses inline .card-status spans in
-// the meta-row, rendered by renderProfiles() on each status update.
-
-// v5.20.0: buildServerOptions() removed — the server quick-switcher dropdown
-// was deleted from account cards. Server is now static text on the card and
-// editable only via the profile modal's fServer input + "Search" button.
 
 // ── Render: Events ──
 function renderRegionTabs() {
@@ -383,8 +348,7 @@ function edit(id) {
   document.getElementById('fName').value = p.name;
   document.getElementById('fServer').value = p.server;
   document.getElementById('fRegion').value = p.region;
-  // v5.20.0: notes field removed from the modal — no longer loaded.
-  // v5.9.3: hide auto-create button in edit mode
+  // hide auto-create button in edit mode
   document.getElementById('autoCreateBtn').style.display = 'none';
   document.getElementById('profileModal').classList.add('show');
 }
@@ -422,14 +386,13 @@ document.getElementById('newBtn').onclick = () => {
   document.getElementById('fName').value = '';
   document.getElementById('fServer').value = '';
   document.getElementById('fRegion').value = 'br';
-  // v5.20.0: notes field removed from the modal — no longer cleared.
-  // v5.9.3: show auto-create button in create mode
+  // show auto-create button in create mode
   document.getElementById('autoCreateBtn').style.display = '';
   document.getElementById('profileModal').classList.add('show');
 };
 document.getElementById('cancelProfile').onclick = () =>
   document.getElementById('profileModal').classList.remove('show');
-// v5.18.0: modal close button (X) — same behavior as Cancel
+// modal close button (X) — same behavior as Cancel
 (function () {
   var closeBtn = document.getElementById('closeProfileModal');
   if (closeBtn) {
@@ -455,7 +418,7 @@ document.getElementById('saveProfile').onclick = () => {
   document.getElementById('profileModal').classList.remove('show');
 };
 
-// v5.9.3: Auto-create account — tempmail + register + vault + auto-login
+// Auto-create account — tempmail + register + vault + auto-login
 document.getElementById('autoCreateBtn').onclick = async function () {
   var name = document.getElementById('fName').value.trim();
   var server = document.getElementById('fServer').value.trim();
@@ -494,15 +457,10 @@ document.getElementById('autoCreateBtn').onclick = async function () {
   }
 };
 
-// v5.20.0: Notes feature removed entirely. updateNotesCounter() + fNotes
-// oninput handler deleted — the notes textarea, char counter and label are
-// gone from the modal. Profiles can still store a notes field (backwards
-// compat with existing config.json) but the UI no longer exposes it.
-
 // ── Modal: Vault ──
 document.getElementById('cancelVault').onclick = () =>
   document.getElementById('vaultModal').classList.remove('show');
-// v5.18.0: modal close button (X) for vault — same behavior as Cancel
+// modal close button (X) for vault — same behavior as Cancel
 (function () {
   var closeBtn = document.getElementById('closeVaultModal');
   if (closeBtn) {
@@ -758,11 +716,9 @@ document.getElementById('setNotifications').onclick = toggleNotificationsMute;
   mb.addEventListener('click', toggleNotificationsMute);
 })();
 
-// v5.13.0: setMode dropdown removed — consolidated into Optimization section.
-// The Optimization preset cards (performance/balanced/quality) replace the old
-// 'default' vs 'lowpc' toggle. Cleaner UX, single source of truth.
+// Optimization preset cards (performance/balanced/quality) — single source of truth.
 
-// v5.13.0: Reminder time selector — fires notifications N minutes before event start.
+// Reminder time selector — fires notifications N minutes before event start.
 // Stored in config via IPC, defaults to 5 min.
 document.getElementById('setRemind').onchange = async function () {
   var min = parseInt(this.value, 10);
@@ -811,8 +767,7 @@ document.getElementById('btnPickServer').onclick = async () => {
   btn.textContent = 'Buscar';
 };
 
-// ── Keyboard: replaced by v5.1 extended shortcuts handler (see below) ──
-// Old v4.8 Esc-only handler removed — all shortcuts now in the unified handler.
+// ── Keyboard ──
 
 // ── Utils ──
 function esc(s) {
@@ -847,11 +802,7 @@ function toast(msg, type) {
   }, 2800);
 }
 
-// v5.13.0: Sort dropdown removed — favorites always float to top (then alphabetical by name).
-// `sortMode` variable is preserved for backwards compat with applySorting().
-// It just stays 'favorite' forever now.
-
-// ── v4.6: i18n initialization (load strings from main process) ──
+// ── i18n ──
 // v5.13.0: defaults to 'en' (more global) when no preference is set.
 async function initI18n() {
   try {
@@ -1763,12 +1714,8 @@ updateEventBadge();
 setTimeout(function () {
   initCopyButtons();
 }, 1000);
-// Refresh relative times + active-7d every minute
-var _relTimeTimer = setInterval(function () {
-  if (profiles.length) {
-    renderProfiles();
-  }
-}, 60000);
+// Card state changes (openWindows, autoLoginStatus) are pushed via IPC
+// and already trigger renderProfiles() — no polling needed.
 // Refresh event badge + active event countdowns every 30s
 var _eventBadgeTimer = setInterval(function () {
   updateEventBadge();
@@ -1776,16 +1723,10 @@ var _eventBadgeTimer = setInterval(function () {
 
 // Cleanup lifetime-bound intervals on unload
 window.addEventListener('beforeunload', function () {
-  clearInterval(_relTimeTimer);
   clearInterval(_eventBadgeTimer);
 });
 
-// v5.13.0: v5.7 Advanced Profile Search Filters REMOVED.
-// Region/vault filter dropdowns were overkill for ~10 accounts. The search bar
-// is also gone. If profiles grow past ~50 we can reconsider, but for now the
-// grid + favorites-first sort is enough.
-
-// ── v5.7: Loading Skeleton ──
+// ── Loading Skeleton ──
 function showSkeletonLoader() {
   var grid = document.getElementById('profileGrid');
   if (!grid) return;

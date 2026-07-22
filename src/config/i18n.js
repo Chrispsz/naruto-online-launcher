@@ -59,9 +59,6 @@ const DICTIONARY = {
     'settings.restart.desc':
       'Restart the launcher to apply this change.',
     'settings.restart.btn': 'Restart now',
-    'settings.smart_mode': 'Smart optimization',
-    'settings.smart_mode.desc':
-      'Already tuned — nothing to configure.',
     'settings.lowpc': 'Low-end PC mode',
     'settings.lowpc.desc':
       'For old PCs or under 4GB RAM. Frees up memory and rests the GPU.',
@@ -133,11 +130,8 @@ const DICTIONARY = {
     'settings.remind.desc': 'Quantos minutos antes avisar',
     'settings.restart': 'Reinício necessário',
     'settings.restart.desc':
-      'Reinicie o launcher para aplicar.',
+      'Reinicie o launcher para aplicar esta alteração.',
     'settings.restart.btn': 'Reiniciar agora',
-    'settings.smart_mode': 'Otimização inteligente',
-    'settings.smart_mode.desc':
-      'Já vem otimizado — nada para configurar.',
     'settings.lowpc': 'Modo PC Fraco',
     'settings.lowpc.desc':
       'Para PCs antigos ou com menos de 4GB de RAM. Libera memória e descansa a placa de vídeo.',

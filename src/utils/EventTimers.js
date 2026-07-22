@@ -429,10 +429,22 @@ function start(activeRegions) {
         });
       });
     });
-    // Cleanup old states — keeps map <500 entries
-    if (fired.size > 500) {
+    // Cleanup old states — keeps map bounded.
+    // (1) Delete entries for events that have already ended.
+    // (2) Delete entries whose occurrence was >3h ago (missed end window).
+    if (fired.size > 200) {
+      var cutoff = now - 3 * 60 * 60 * 1000;
       for (const [k, s] of fired.entries()) {
-        if (s.endFired && !s.reminded) fired.delete(k);
+        if (s.endFired) {
+          fired.delete(k);
+        } else {
+          // key ends with ':' + occ timestamp — extract and compare
+          var lastColon = k.lastIndexOf(':');
+          if (lastColon > 0) {
+            var occTs = Number(k.slice(lastColon + 1));
+            if (!isNaN(occTs) && occTs < cutoff) fired.delete(k);
+          }
+        }
       }
     }
   }, 30000);

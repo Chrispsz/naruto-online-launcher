@@ -622,7 +622,6 @@ function _logBanner() {
       'MB)'
   );
   logger.info('Modo Leve Avançado: ' + (config.advancedMode ? 'ON (Flash low quality)' : 'OFF'));
-  // v4.9.1: Telemetria removida (crash reporter deletado a pedido do usuário)
   logger.info('═══════════════════════════════════════════');
 }
 
