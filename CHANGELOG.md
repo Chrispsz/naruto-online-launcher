@@ -19,10 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `src/network/request-logger.js` — per-profile JSONL request/response logger with size-based rotation (5 MB) and 3-day retention. Privacy-first: default OFF, sensitive headers (Cookie/Authorization) redacted, non-blocking I/O. Companion to `inspector.js` (which keeps aggregate stats only).
+- `src/app/Auditor.js` — Phase 1 of per-profile session metadata collection (playtime, session count, event triggers, stalls, network errors, crashes, auto-reloads). In-memory + throttled persistence to `userData/audit/<profileId>.json` (atomic write, 90-day retention). Not yet wired into `SessionLifecycle` — Phase 2 will add hooks + UI panel.
+- `tools/ai-eval.js` — OpenRouter-powered AI code review pipeline. Uses free-tier models (`nvidia/nemotron-3-ultra-550b:free`, `google/gemma-4-31b:free`, `poolside/laguna-m.1:free`) with focus modes (security / refactor / all). Two eval runs already produced: `.launcher-research-backup/eval-2026-07-22T13-07-27-security.md` (4/10) and `eval-2026-07-22T13-09-18-refactor.md` (6.5/10).
+- `.launcher-research-backup/ai-apis-research.md` — full survey of free AI API providers (OpenRouter `:free`, Google AI Studio, Groq, Hugging Face, Cloudflare Workers AI, GitHub Models) with rate limits, context windows, and recommended stack for the launcher.
 - `RESEARCH.md` — competitive analysis of the Naruto Online launcher ecosystem (5 direct competitors, 6 community tools, 9 player pain points mapped to feature opportunities).
 - `HOW_THEY_MODIFY_FLASH.md` — technical breakdown of the 4 techniques used by modded launchers (network interception, renderer JS injection, direct API querying, OS-level memory manipulation). Documents which are safe to replicate and which cross the ToS line.
 - `STRATEGY.md` — strategic positioning document. Maps the competitive landscape into a 2×2 (open/closed × free/paid), identifies Naruto Online Nexus as the most advanced competitor (Next.js SPA with user accounts), and proposes a 90-day plan across 4 versions.
 - `SCOPE.md` — refined product philosophy: "best at what we do, link to the rest". Defines the HTTP interception architecture for non-cheat, transparent data use, and the dividing line between diagnostic/advisory features (in scope) and gameplay-state features (out of scope, cheat-adjacent).
+
+### Changed
+- Code-polish passes (17 cron runs, 7 productive): sealed real memory leak in `EventTimers.js` `fired` Map (never cleared), removed redundant `_relTimeTimer` polling in `ui/app.js`, pruned 161 lines of dead CSS selectors in `styles.css`, removed 19 tombstone comments across `preload.js`, `main.js`, `tempmail.js`, `i18n.js`, `preview-mock.js`. Net −420 lines across 8 files with zero functional regression.
 
 ## [1.0.0] — 2026-07-21
 
