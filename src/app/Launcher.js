@@ -25,6 +25,7 @@ const { setupBlocker } = require('../network/blocker');
 const { setupPersistentCookies } = require('../network/cookies');
 const SessionLifecycle = require('./SessionLifecycle');
 const KeyboardShortcuts = require('../ui/manager/KeyboardShortcuts');
+const Auditor = require('./Auditor');
 
 const WINDOW_TITLE = 'Naruto Online';
 const CSP =
@@ -155,6 +156,9 @@ function launchProfile(profileId, onOpened, onClosed) {
   });
 
   // Cria a entrada do registry ANTES de anexar lifecycle (este precisa mutar entry)
+  // Auditor: coleta metadata de sessão (playtime, stalls, crashes, reloads) por profile.
+  // Phase 2: wired aqui. Falta wire-up de recordEvent (EventTimers) — Phase 3.
+  const auditor = Auditor.create(profileId);
   const entry = {
     window: win,
     partitionName: partName,
@@ -163,7 +167,8 @@ function launchProfile(profileId, onOpened, onClosed) {
     failLoadRetry: false,
     failLoadTimer: null,
     bypassAttempts: 0,
-    formInjectAttempts: 0
+    formInjectAttempts: 0,
+    auditor: auditor
   };
   gameWindows.set(profileId, entry);
 
@@ -173,9 +178,12 @@ function launchProfile(profileId, onOpened, onClosed) {
     profile: profile,
     entry: entry,
     ses: ses,
+    auditor: auditor,
     onOpened: onOpened,
     onClosed: function () {
       gameWindows.delete(profileId);
+      // Persiste estado final do auditor + para timer de persistência throttled.
+      try { auditor.destroy(); } catch (e) { logger.debug('auditor.destroy falhou: ' + e.message); }
       if (onClosed) onClosed();
     },
     getGameUrl: getGameUrl,

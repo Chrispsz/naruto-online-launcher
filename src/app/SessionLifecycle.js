@@ -159,6 +159,9 @@ function attach(win, ctx) {
   const onClosed = ctx.onClosed;
   const getGameUrl = ctx.getGameUrl;
   const LAUNCHER_PARAMS = ctx.LAUNCHER_PARAMS;
+  // Auditor (opcional — backward compatible com testes/callers antigos).
+  // Phase 2: sessionStart/sessionEnd + recordCrash/recordReload/recordStall.
+  const auditor = ctx.auditor || null;
 
   // ── StallDetector instance (auto-F5 quando SWF essencial falha) ──
   // Anexado em did-finish-load, desanexado em close/reload.
@@ -207,6 +210,12 @@ function attach(win, ctx) {
     }
     _crashTimestamps.push(now);
     logger.info('SessionLifecycle: auto-reload em 1.5s para "' + profile.name + '"');
+    if (auditor) {
+      try {
+        auditor.recordCrash(details && details.reason ? details.reason : 'unknown');
+        auditor.recordReload();
+      } catch (e) { logger.debug('auditor.recordCrash/Reload falhou: ' + e.message); }
+    }
     var reloadTimer = setTimeout(function () {
       if (win.isDestroyed() || win.webContents.isDestroyed()) return;
       try {
@@ -406,6 +415,9 @@ function attach(win, ctx) {
       onStall: function () {
         if (win.isDestroyed()) return;
         logger.info('StallDetector disparou auto-F5 (pré-auth) — "' + profile.name + '"');
+        if (auditor) {
+          try { auditor.recordStall('swf-stall'); } catch (e) { logger.debug('auditor.recordStall falhou: ' + e.message); }
+        }
         reloadWithPreAuth(profileId, profile, win, ses, getGameUrl);
       }
     });
@@ -566,6 +578,9 @@ function attach(win, ctx) {
   win.once('ready-to-show', function () {
     win.show();
     _sendWindowStatus(profileId, true);
+    if (auditor) {
+      try { auditor.sessionStart(); } catch (e) { logger.debug('auditor.sessionStart falhou: ' + e.message); }
+    }
     if (onOpened) onOpened();
     setImmediate(function () {
       _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl);
