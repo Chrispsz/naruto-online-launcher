@@ -16,6 +16,58 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] — 2026-07-25
+
+### Added — Test Coverage (+80 tests, 7 previously-untested modules)
+- `src/__tests__/main.test.js` — 14 tests covering bootstrap orchestrator (MESA env IIFE, flags.applyAll, app.on/process.on registrations, app.ready success + flashPath=null error paths, launchGameForProfile delegation).
+- `src/__tests__/preload.test.js` — 8 tests covering contextBridge exposures (__SHINOBI_DEBUG__, narutoLauncher API, DEBUG env propagation, exactly-2-keys invariant).
+- `src/memory/__tests__/guard.test.js` — 12 tests covering the guard↔MemoryGuard alias identity, 9 export-shape checks, shared-state via reportCrash + setForceLowSpec threshold propagation.
+- `src/ui/__tests__/app.test.js` — 10 tests for the renderer with a hand-rolled DOM mock (window.api shape, IPC delegations, 5 ipcRenderer.on channels, manager:ready send, dynamic-scale at 3 screen widths).
+- `src/ui/__tests__/controller.test.js` — 13 tests covering facade delegation (createManagerWindow/showManager wire onReady=pushAll, 4 aliased-refs identity checks).
+- `src/ui/__tests__/game-launcher.test.js` — 9 tests covering facade re-export identity, 5 export-shape checks, 3 delegation checks.
+- `src/ui/__tests__/server-selector.test.js` — 14 tests covering net.request success path with parse/sort/User-Agent, s9999 filter, dedup, locale map, HTTP/error/throw paths, cache hit, clearCache(region) vs clearCache().
+
+### Added — Performance Helpers
+- `src/utils/throttle.js` — zero-dependency `debounce` + `throttle` helpers with `flush`/`cancel` and leading/trailing edge options. Pure CommonJS so both main and renderer can require it.
+- `src/utils/__tests__/throttle.test.js` — 34 unit tests (validation, trailing/leading edges, flush/cancel, 100-call burst coalescing).
+
+### Security — Hardening (2 fixes applied)
+- **CRITICAL** `src/app/Launcher.js`: removed `webSecurity: false` and `allowRunningInsecureContent: true` from the game BrowserWindow. Defaults now in effect (webSecurity:true, allowRunningInsecureContent:false). Game login still works over HTTP because the cookies layer sets `secure=false` on game cookies — same-origin requests are unaffected.
+- **HIGH** `src/ui/setup/setup.html`: added strict CSP meta tag (`default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';`) matching the policy already applied to `index.html`. Closes a gap where the first-run setup window (loaded via `file://`) had no CSP.
+
+### Security — Verified Compliant
+- PBKDF2 iterations: 200,000 (2× OWASP 2023 minimum, SHA-512, 32-byte salt).
+- `enableRemoteModule`: not used anywhere.
+- `preload.js`: uses `contextBridge.exposeInMainWorld` exclusively — no `require`/`eval`/`process` exposure.
+- No hardcoded secrets (ripgrep sweep clean).
+- IPC input validation: comprehensive across 45+ handlers in IpcRouter.js + 4 in main.js (type checks + length caps + allowlists).
+
+### Security — Deferred (with rationale)
+- Electron 11.5.0 is EOL (3+ years past). Pinned for PPAPI Flash support (last Electron version with PPAPI). Upgrading requires migrating to Ruffle (Flash-in-WASM) — architectural decision beyond this release.
+- `src/ui/manager/ManagerWindow.js` `nodeIntegration:true, contextIsolation:false` — test explicitly asserts the insecure values; full preload-based refactor required before this can land.
+- Chromium sandbox disabled via `flags.js` (`no-sandbox`, `disable-gpu-sandbox`, `disable-setuid-sandbox`) — required for Flash PPAPI on Linux.
+
+### Performance — Hardening (1 fix applied)
+- `src/ui/app.js`: wrapped `renderProfiles()` calls in `auto-login:status` + `game-window:status` IPC handlers with 16ms trailing-edge debounce. When a game launches, 3-5 IPC events fire in <100ms — debouncing collapses the burst into one DOM render instead of N rebuilds.
+
+### Performance — Verified OK
+- `EventTimers.fired` Map already mitigated in source: max-size 200 + 3h TTL eviction + cached `occ` timestamp for O(1) cleanup comparisons.
+- `PasswordManager.getMachineKey()` already cached via `_cachedKey`.
+- `CryptoService.deriveKey` intentionally not cached (unique salt per backup export).
+- All `setInterval`s properly cleared on shutdown/window-close. No listener leaks.
+
+### Changed — CI/CD
+- `build-release.yml`: Node 16.20.2 → 20 LTS (EOL alignment).
+- `build-release.yml`: removed `branches: [main]` push trigger — tag-gated only, saves multi-OS build minutes on every main commit.
+- `build-release.yml`: added `--ignore-scripts` to `npm install` (supply-chain hardening).
+- `ci.yml`: added `permissions: contents: read` (least-privilege).
+- `ci.yml`: added `--no-audit --no-fund` to `npm install` (consistent with build-release).
+- `ci.yml`: added `ESLINT_USE_FLAT_CONFIG` env to lint step (explicit config).
+
+### Verified
+- 1240/1240 tests pass (45/45 suites), lint clean.
+- Test delta: 1126 → 1240 (+114), suites: 37 → 45 (+8).
+
 ## [1.2.0] — 2026-07-25
 
 ### Changed
