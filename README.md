@@ -5,7 +5,7 @@
 **A clean, minimal multi-account launcher for Naruto Online.**
 Isolated accounts • Encrypted credential vault • Real performance optimizations • Linux + Windows • Zero tracking
 
-[![Version](https://img.shields.io/badge/version-1.3.0-d4a543?style=flat-square)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.3.1-d4a543?style=flat-square)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
 [![License](https://img.shields.io/github/license/Chrispsz/naruto-online-launcher?style=flat-square)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-1240%20passing-10b981?style=flat-square)](#testing)
 [![Electron](https://img.shields.io/badge/electron-11.5.0-47848f?style=flat-square)](#why-electron-11)

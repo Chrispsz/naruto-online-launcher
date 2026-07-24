@@ -36,20 +36,20 @@ echo -e "${CYAN}${BOLD}  🔧 Shinobi Launcher — DEBUG (source tree)${NC}"
 echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════${NC}"
 echo ""
 echo -e "  ${GREEN}Repo:${NC}  $REPO_ROOT"
-echo -e "  ${GREEN}Mode:${NC}  SHINOBI_DEBUG=1 (Dev Tools panel visível em Configurações)"
+echo -e "  ${GREEN}Mode:${NC}  SHINOBI_DEBUG=1 (Dev Tools panel visible in Settings)"
 echo ""
 
 # ── Verify electron is installed ──
 if [ ! -d "node_modules/electron" ]; then
-  echo -e "${RED}❌ electron não encontrado em node_modules/.${NC}"
-  echo -e "   Rode ${BOLD}npm install${NC} primeiro."
+  echo -e "${RED}❌ electron not found in node_modules/.${NC}"
+  echo -e "   Run ${BOLD}npm install${NC} first."
   exit 1
 fi
 
 # ── Debug env vars ──
-export SHINOBI_DEBUG=1                    # Ativa Dev Tools panel no UI + verbose logger
-export LOG_LEVEL=debug                    # electron-log nível debug
-export ELECTRON_ENABLE_LOGGING=1          # Loga Chromium no stdout
+export SHINOBI_DEBUG=1                    # Enables Dev Tools panel in UI + verbose logger
+export LOG_LEVEL=debug                    # electron-log debug level
+export ELECTRON_ENABLE_LOGGING=1          # Logs Chromium to stdout
 export ELECTRON_DISABLE_SECURITY_WARNINGS=1
 
 # ── Chromium flags (passed to electron via npm start -- ) ──
@@ -61,15 +61,15 @@ CHROMIUM_FLAGS=(
   --disable-background-timer-throttling
 )
 
-# Wayland → XWayland (Flash PPAPI precisa de X11)
+# Wayland → XWayland (Flash PPAPI requires X11)
 if [ "${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "${WAYLAND_DISPLAY:-}" ]; then
   export XDG_SESSION_TYPE=x11
   export GDK_BACKEND=x11
-  echo -e "${YELLOW}⚠️  Wayland detectado — forçando XWayland (Flash precisa de X11)${NC}"
+  echo -e "${YELLOW}⚠️  Wayland detected — forcing XWayland (Flash requires X11)${NC}"
 fi
 
-echo -e "${YELLOW}📋 Dev Tools aparecerá em Configurações → seção Dev Tools.${NC}"
-echo -e "${YELLOW}📋 Logs salvos em: ${REPO_ROOT}/debug-session.log${NC}"
+echo -e "${YELLOW}📋 Dev Tools will appear in Settings → Dev Tools section.${NC}"
+echo -e "${YELLOW}📋 Logs saved to: ${REPO_ROOT}/debug-session.log${NC}"
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════════════${NC}"
 echo ""
@@ -84,8 +84,8 @@ EXIT_CODE=${PIPESTATUS[0]}
 
 echo ""
 echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════${NC}"
-echo -e "${CYAN}  Launcher finalizado (exit code: $EXIT_CODE)${NC}"
-echo -e "${CYAN}  Log salvo em: $LOG_FILE${NC}"
+echo -e "${CYAN}  Launcher finished (exit code: $EXIT_CODE)${NC}"
+echo -e "${CYAN}  Log saved to: $LOG_FILE${NC}"
 echo -e "${CYAN}${BOLD}═══════════════════════════════════════════════════${NC}"
 
 exit "$EXIT_CODE"

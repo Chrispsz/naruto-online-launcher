@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.1] — 2026-07-25
+
+### Changed — Shell Script Professionalization (PT→EN)
+- `scripts/publish-secure.sh`: full PT→EN translation (header, comments, log messages, error messages). Removed hardcoded v2.1 commit message — now uses generic `release: v<version>` so the script works for any release, not just v2.1.
+- `scripts/debug-launcher.sh`: full PT→EN translation (header, comments, log messages). ULTRA-VERBOSE DEBUG mode documentation now in English for consistency with the rest of the codebase.
+- `scripts/debug.sh`: full PT→EN translation (header, comments, log messages).
+- `linux/install.sh`, `linux/run.sh`, `linux/uninstall.sh`: kept PT log messages (user-facing installer UX for the Brazilian Naruto Online community) — these scripts are run by end users, not developers.
+
+### Verified
+- All 7 `.sh` scripts pass `bash -n` syntax validation.
+- 1240/1240 tests pass (45/45 suites), lint clean.
+
 ## [1.3.0] — 2026-07-25
 
 ### Added — Test Coverage (+80 tests, 7 previously-untested modules)

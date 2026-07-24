@@ -1,136 +1,124 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════════════
-# Shinobi Launcher — Script de Publicação Segura
+# Shinobi Launcher — Secure Publish Script
 # ═══════════════════════════════════════════════════════════════════════════
 #
-# PROBLEMA: Não é seguro colar o GitHub Personal Access Token (PAT) no chat.
-# SOLUÇÃO: Este script roda NA SUA MÁQUINA. Você cola o token apenas aqui,
-#          ele configura o remote com URL mascarada e dispara o push que
-#          aciona o GitHub Actions para build multi-OS.
+# PROBLEM: It is unsafe to paste a GitHub Personal Access Token (PAT) into chat.
+# SOLUTION: Run this script on YOUR machine. Paste the token only here; it
+#           configures the remote with a masked URL and triggers the push that
+#           fires GitHub Actions for the multi-OS build.
 #
-# USO:
-#   1. Salve este arquivo como ~/shinobi-publish.sh
-#   2. Crie um PAT em: github.com/settings/tokens (escopo: repo + workflow)
-#   3. Edite as 3 variáveis abaixo (USER, REPO, TOKEN)
+# USAGE:
+#   1. Save this file as ~/shinobi-publish.sh
+#   2. Create a PAT at: github.com/settings/tokens (scopes: repo + workflow)
+#   3. Edit the 3 variables below (USER, REPO, TOKEN)
 #   4. chmod +x ~/shinobi-publish.sh && ./shinobi-publish.sh
 #
-# O QUE ELE FAZ:
-#   - Valida que você está na pasta certa do projeto
-#   - Configura o remote origin (sem vazar o token no terminal)
-#   - Faz commit de todas as mudanças v2.1
-#   - Cria uma tag v2.1.0
-#   - Push → dispara o workflow .github/workflows/build-release.yml
-#   - Build AppImage (Linux) + Portable EXE (Windows) em paralelo
-#   - Auto-update dos links de download no README
+# WHAT IT DOES:
+#   - Validates you are in the correct project directory
+#   - Configures the origin remote (token never leaked to terminal)
+#   - Commits all pending changes
+#   - Creates a tag v<version>
+#   - Push → triggers .github/workflows/build-release.yml
+#   - Builds AppImage (Linux) + Portable EXE (Windows) in parallel
+#   - Auto-updates download links in README
 # ═══════════════════════════════════════════════════════════════════════════
 
 set -euo pipefail
 
-# ── CONFIGURE ESTAS 3 VARIÁVEIS ──────────────────────────────────────────
-GITHUB_USER="Chrispsz"                                    # seu usuário GitHub
-REPO_NAME="naruto-online-launcher"                        # nome do repo
-# Token: NUNCA suba isso pro git. Leia de variável de ambiente ou cole aqui.
-GH_TOKEN="${SHINOBI_GH_TOKEN:-ghp_SEU_TOKEN_AQUI}"        # substitua ou export SHINOBI_GH_TOKEN=...
+# ── CONFIGURE THESE 3 VARIABLES ──────────────────────────────────────────
+GITHUB_USER="Chrispsz"                                    # your GitHub username
+REPO_NAME="naruto-online-launcher"                        # repo name
+# Token: NEVER commit this. Read from env var or paste here.
+GH_TOKEN="${SHINOBI_GH_TOKEN:-ghp_YOUR_TOKEN_HERE}"        # replace, or: export SHINOBI_GH_TOKEN=...
 # ──────────────────────────────────────────────────────────────────────────
 
-# Cores
+# Colors
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
-echo -e "${CYAN}  🍥 Shinobi Launcher — Publicação Segura v2.1${NC}"
+echo -e "${CYAN}  🍥 Shinobi Launcher — Secure Publish${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
 
-# Validações
-if [[ "$GH_TOKEN" == "ghp_SEU_TOKEN_AQUI" ]]; then
-  echo -e "${RED}❌ ERRO: configure GH_TOKEN no script ou rode com SHINOBI_GH_TOKEN=... $0${NC}"
-  echo -e "   Crie o token em: ${YELLOW}https://github.com/settings/tokens${NC} (escopo repo + workflow)"
+# Validations
+if [[ "$GH_TOKEN" == "ghp_YOUR_TOKEN_HERE" ]]; then
+  echo -e "${RED}❌ ERROR: configure GH_TOKEN in the script, or run with SHINOBI_GH_TOKEN=... $0${NC}"
+  echo -e "   Create the token at: ${YELLOW}https://github.com/settings/tokens${NC} (scopes: repo + workflow)"
   exit 1
 fi
 
 if [[ ! -f "package.json" ]] || ! grep -q '"naruto-online-launcher"' package.json 2>/dev/null; then
-  echo -e "${RED}❌ ERRO: rode este script na raiz do repositório naruto-online-launcher${NC}"
-  echo -e "   (onde está o package.json)"
+  echo -e "${RED}❌ ERROR: run this script from the naruto-online-launcher repo root${NC}"
+  echo -e "   (the directory containing package.json)"
   exit 1
 fi
 
 if ! command -v git &>/dev/null; then
-  echo -e "${RED}❌ git não instalado${NC}"; exit 1
+  echo -e "${RED}❌ git not installed${NC}"; exit 1
 fi
 
-# Versão do package.json
+# Version from package.json
 VERSION=$(node -p "require('./package.json').version")
-echo -e "${GREEN}✓${NC} Versão detectada: ${YELLOW}v${VERSION}${NC}"
+echo -e "${GREEN}✓${NC} Detected version: ${YELLOW}v${VERSION}${NC}"
 
-# Configura remote (URL mascarada — token aparece no .git/config mas não no output)
+# Configure remote (masked URL — token appears in .git/config but not in output)
 REMOTE_URL="https://${GITHUB_USER}:${GH_TOKEN}@github.com/${GITHUB_USER}/${REPO_NAME}.git"
 MASKED_URL="https://github.com/${GITHUB_USER}/${REPO_NAME}.git"
 
-echo -e "${GREEN}✓${NC} Configurando remote origin → ${MASKED_URL} (token oculto)"
+echo -e "${GREEN}✓${NC} Configuring origin remote → ${MASKED_URL} (token hidden)"
 git remote remove origin 2>/dev/null || true
 git remote add origin "$REMOTE_URL"
 
-# Branch atual
+# Current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
 echo -e "${GREEN}✓${NC} Branch: ${YELLOW}${BRANCH}${NC}"
 
 # Status
-echo -e "${CYAN}── Mudanças pendentes ──${NC}"
+echo -e "${CYAN}── Pending changes ──${NC}"
 git status --short
 echo ""
 
-# Confirmação
-read -p "Commitar tudo e disparar push para ${MASKED_URL}? (s/N) " -n 1 -r
+# Confirmation
+read -p "Commit all and push to ${MASKED_URL}? (y/N) " -n 1 -r
 echo ""
-if [[ ! $REPLY =~ ^[Ss]$ ]]; then
-  echo -e "${YELLOW}Cancelado.${NC}"
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  echo -e "${YELLOW}Cancelled.${NC}"
   git remote remove origin
   exit 0
 fi
 
-# Commit
-echo -e "${CYAN}── Commitando ──${NC}"
+# Commit (auto-generated message — edit as needed for your release)
+echo -e "${CYAN}── Committing ──${NC}"
 git add -A
-git commit -m "feat: v${VERSION} — Multi-perfil + MemoryGuard adaptativo + Tray autônomo
+git commit -m "release: v${VERSION}" || true
 
-- ProfileStore (profiles/store.js): armazenamento atômico com backup .bak,
-  schema validation, export/import JSON para portabilidade Win<->Linux
-- MemoryGuard (memory/guard.js): 2 camadas efetivas (clearCache + OS trim),
-  Modo Low-Spec auto-detectado (RAM < 4GB), throttle anti-thrashing
-- EventTimers (utilities/event-timers.js): conversão matematica de fusos
-  para BR/NA/EU/HK, mute global, notificacoes nativas
-- main.js v2.1: flags agressivas Chromium (disable-background-networking,
-  component-update, renderer-backgrounding), System Tray autonomo quando
-  jogo abre (libera ~45MB RAM para o jogo)
-- DROP Shinobi Tunnel: complexidade alta, valor real baixo (CSS injection
-  fragil, deteccao OBS platform-fragile)" || true
-
-# Tag (dispara o workflow build-release.yml)
+# Tag (triggers build-release.yml workflow)
 TAG="v${VERSION}"
-echo -e "${CYAN}── Criando tag ${TAG} ──${NC}"
+echo -e "${CYAN}── Creating tag ${TAG} ──${NC}"
 git tag -d "$TAG" 2>/dev/null || true
 git tag -a "$TAG" -m "Shinobi Launcher ${TAG}"
 
-# Push (mascara token em qualquer output de erro)
-echo -e "${CYAN}── Push (dispara GitHub Actions) ──${NC}"
-git push -u origin "$BRANCH" 2>&1 | sed "s|${GH_TOKEN}|***TOKEN_OCULTO***|g"
-git push origin "$TAG" 2>&1 | sed "s|${GH_TOKEN}|***TOKEN_OCULTO***|g"
+# Push (mask token in any error output)
+echo -e "${CYAN}── Push (triggers GitHub Actions) ──${NC}"
+git push -u origin "$BRANCH" 2>&1 | sed "s|${GH_TOKEN}|***TOKEN_HIDDEN***|g"
+git push origin "$TAG" 2>&1 | sed "s|${GH_TOKEN}|***TOKEN_HIDDEN***|g"
 
-# Limpa token do remote (deixa apenas a URL pública para futuros fetches)
+# Clean token from remote (leave only the public URL for future fetches)
 git remote set-url origin "$MASKED_URL"
 
 echo ""
 echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}  ✅ Push concluído!${NC}"
+echo -e "${GREEN}  ✅ Push complete!${NC}"
 echo -e "${GREEN}═══════════════════════════════════════════════════════${NC}"
 echo ""
-echo -e "Acompanhe o build em:"
+echo "Track the build at:"
 echo -e "  ${CYAN}https://github.com/${GITHUB_USER}/${REPO_NAME}/actions${NC}"
 echo ""
-echo -e "Quando o build terminar (~8 min), os assets estarão em:"
+echo "When the build finishes (~8 min), assets will be at:"
 echo -e "  ${CYAN}https://github.com/${GITHUB_USER}/${REPO_NAME}/releases/tag/${TAG}${NC}"
 echo ""
-echo -e "O README será atualizado automaticamente com os novos links de download."
+echo "README will be auto-updated with the new download links."
 echo ""
-echo -e "${YELLOW}⚠  IMPORTANTE:${NC} o token foi removido do remote, mas pode estar no"
-echo -e "   histórico do shell. Rode: ${CYAN}history -c && rm -f ~/.git-credentials${NC}"
-echo -e "   se quiser limpar completamente."
+echo -e "${YELLOW}⚠  IMPORTANT:${NC} token was removed from the remote, but may linger in"
+echo -e "   shell history. Run: ${CYAN}history -c && rm -f ~/.git-credentials${NC}"
+echo -e "   to fully purge it."
