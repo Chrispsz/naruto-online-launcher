@@ -95,6 +95,9 @@ function reportCrash() {
 }
 
 module.exports = {
+  // Mantido (não remover): APIs de detecção de low-spec usadas pelo Modo Leve
+  // em máquinas com <4GB de RAM — getStats, isBatata, isRamen, IS_LOW_SPEC,
+  // SYSTEM_RAM_GB, getThreshold, setForceBatata, reportCrash.
   getStats: getStats,
   isBatata: isBatata,
   isRamen: isRamen,
