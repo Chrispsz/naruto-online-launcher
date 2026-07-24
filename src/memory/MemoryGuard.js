@@ -7,9 +7,6 @@
  * NÃO executa GC. O V8 cuida do main process sozinho — um launcher passa 99%
  * do tempo idle, e o jogo roda num processo renderer isolado que o main nunca
  * toca. GC forçado em main de 50–100MB é otimização inútil (removido em v1.1.2).
- *
- * Histórico: era God Object guard.js (436 linhas). Split em 2 em Fase 3f, depois
- * reduzido a 1 arquivo em v1.1.2 quando o GcDaemon foi removido por ser morto.
  */
 
 'use strict';

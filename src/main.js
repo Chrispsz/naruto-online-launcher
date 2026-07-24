@@ -70,7 +70,6 @@ const flashVersion = flashPath ? getFlashVersion(path.dirname(flashPath)) : null
 // GpuDetector.getEnvVars() retorna env vars específicas da GPU ativa
 // (NVIDIA __GL_*, AMD RADEONSI_ZERO_VRAM, Intel INTEL_DEBUG, MALLOC_ARENA_MAX, etc.)
 // Devem ser setadas ANTES de app.whenReady() para o GPU process herdar.
-// Antes v5.9.28: getEnvVars() existia mas nunca era chamado — env vars eram dead code.
 const gpuDetector = require('./app/GpuDetector');
 const gpuEnvVars = gpuDetector.getEnvVars(config.optimizationPreset || 'balanced');
 for (var _envKey in gpuEnvVars) {
@@ -124,7 +123,6 @@ if (config.forceBatata !== undefined) {
 }
 partition.setBatataMode(memoryGuard.isBatata());
 if (config.mutedEvents) eventTimers.setMuted(true);
-// v4.9.2: telemetria removida — zero tracking, logs no disco + exportador
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GAME LAUNCH — sem tray (v3.3 — user request: "nao quero ele na bandeja")

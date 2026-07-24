@@ -2,11 +2,6 @@
  * Detecção e Configuração do Flash PPAPI
  * v3.0.0 - Clean Flash PPAPI configuration
  *
- * v3.0: REMOVIDO js-flags e disable-plugin-power-saver daqui — essas flags
- * agora são gerenciadas por main/flags.js (single source of truth). Antes,
- * um configureFlash() removido sobrescrevia o js-flags setado pelo main.js.
- * Bug crítico corrigido.
- *
  * v4.9.3 (Fase 2): findFlashPlugin() procura TAMBÉM no cache on-demand
  * (userData/flash-cache/) para backward-compat com installs antigas.
  * O binário principal é committed no repo em flash/.
