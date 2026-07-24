@@ -48,13 +48,7 @@ describe('StallDetector.js', function () {
       expect(typeof StallDetector.attach).toBe('function');
     });
 
-    test('exporta DEFAULTS com thresholds esperados', function () {
-      expect(StallDetector.DEFAULTS).toBeDefined();
-      expect(StallDetector.DEFAULTS.maxRetries).toBe(3);
-      expect(StallDetector.DEFAULTS.stallThresholdMs).toBe(45000);
-      expect(StallDetector.DEFAULTS.swfErrorThreshold).toBe(2);
-      expect(StallDetector.DEFAULTS.readyAfterMs).toBe(120000);
-    });
+
   });
 
   describe('attach — validação', function () {

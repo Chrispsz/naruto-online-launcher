@@ -9,35 +9,35 @@ const urls = require('../urls');
 describe('urls.js', () => {
   describe('getGameUrl', () => {
     test('retorna URL com região padrão br quando região não informada', () => {
-      const result = urls.getGameUrl(null, 'pt');
+      const result = urls.getGameUrl(null);
       expect(result).toContain('narutowebgame.com/pt/serverlist');
       expect(result).toContain('logintype=4');
     });
 
     test('retorna URL com servidor normalizado (número sem "s")', () => {
-      const result = urls.getGameUrl('br', 'pt', '799');
+      const result = urls.getGameUrl('br', '799');
       expect(result).toContain('/s799?');
     });
 
     test('retorna URL com servidor normalizado (já com "s")', () => {
-      const result = urls.getGameUrl('br', 'pt', 's799');
+      const result = urls.getGameUrl('br', 's799');
       expect(result).toContain('/s799?');
     });
 
     test('retorna URL com servidor normalizado (maiúsculo)', () => {
-      const result = urls.getGameUrl('br', 'pt', 'S799');
+      const result = urls.getGameUrl('br', 'S799');
       expect(result).toContain('/s799?');
     });
 
     test('retorna URL sem servidor quando server é undefined', () => {
-      const result = urls.getGameUrl('br', 'pt');
+      const result = urls.getGameUrl('br');
       expect(result).toMatch(/serverlist\?/);
       // Não deve ter caminho de servidor (/s799 etc)
       expect(result).not.toMatch(/serverlist\/s\d/);
     });
 
     test('fallback para br quando região inválida', () => {
-      const result = urls.getGameUrl('xx', 'pt');
+      const result = urls.getGameUrl('xx');
       expect(result).toContain('narutowebgame.com/pt/serverlist');
     });
   });

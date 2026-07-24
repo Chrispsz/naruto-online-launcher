@@ -63,11 +63,10 @@ const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes&launcher=shinobi';
  *   https://naruto.narutowebgame.com/pt/serverlist?logintype=4&launcher=shinobi
  *
  * @param {string} [region] - Código da região (br/na/eu/hk)
- * @param {string} [language] - Código do idioma (pt/en/zh)
  * @param {string} [server] - Número do servidor (ex: "s799" ou "799")
  * @returns {string} URL completa com parâmetros de launcher
  */
-function getGameUrl(region, language, server) {
+function getGameUrl(region, server) {
   // Sem região → URL padrão (BR)
   if (!region) region = 'br';
 

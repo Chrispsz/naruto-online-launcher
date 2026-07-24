@@ -444,11 +444,7 @@ function _initManagerAndLaunch() {
     };
   });
 
-  // optimization:set-preset IPC handler removed — 3-preset card system
-  // replaced by single "Modo PC Fraco" toggle (optimization:set-lowpc below).
-  // The PRESETS/listForUI/isValidPreset/getDefaultPreset imports are kept because
-  // optimization:get-status still returns `preset` + `presets` for backwards compat
-  // with any external code that reads the status response.
+  // PRESETS/listForUI are kept for backwards compat with optimization:get-status response.
 
   // Toggle Modo PC Fraco (advancedMode / Flash low quality).
   // Re-creates mms.cfg immediately so the change takes effect on next game launch

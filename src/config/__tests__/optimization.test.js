@@ -7,46 +7,6 @@
 const opt = require('../optimization');
 
 describe('config/optimization.js', function () {
-  describe('PRESETS', function () {
-    test('has exactly 3 presets', function () {
-      expect(Object.keys(opt.PRESETS).length).toBe(3);
-    });
-
-    test('has performance, balanced, quality', function () {
-      expect(opt.PRESETS.performance).toBeDefined();
-      expect(opt.PRESETS.balanced).toBeDefined();
-      expect(opt.PRESETS.quality).toBeDefined();
-    });
-
-    test('each preset has name, description, icon, color', function () {
-      Object.keys(opt.PRESETS).forEach(function (code) {
-        const p = opt.PRESETS[code];
-        expect(typeof p.name).toBe('string');
-        expect(typeof p.description).toBe('string');
-        expect(typeof p.icon).toBe('string');
-        expect(typeof p.color).toBe('string');
-        expect(p.color).toMatch(/^#[0-9a-f]{6}$/i);
-      });
-    });
-
-    test('presets have NO chromiumFlags/cpu/memory/gpuEnv (dead code removed)', function () {
-      Object.keys(opt.PRESETS).forEach(function (code) {
-        const p = opt.PRESETS[code];
-        expect(p.chromiumFlags).toBeUndefined();
-        expect(p.cpu).toBeUndefined();
-        expect(p.memory).toBeUndefined();
-        expect(p.gpuEnv).toBeUndefined();
-      });
-    });
-
-    test('CPU logic is in CpuOptimizer, not in presets', function () {
-      // Presets are UI-only. CpuOptimizer hardcodes: performance→nice=-5, balanced→nice=0, quality→nice=+5
-      // This test documents that the preset object does NOT own CPU config.
-      expect(opt.PRESETS.performance.name).toBe('Performance');
-      expect(opt.PRESETS.quality.name).toBe('Qualidade');
-    });
-  });
-
   describe('isValidPreset', function () {
     test('returns true for valid codes', function () {
       expect(opt.isValidPreset('performance')).toBe(true);

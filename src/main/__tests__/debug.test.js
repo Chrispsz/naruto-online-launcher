@@ -23,14 +23,12 @@ describe('main/debug.js', () => {
     delete process.env.SHINOBI_DEBUG;
     const d = loadDebug();
     expect(d.DEBUG).toBe(false);
-    expect(d.isEnabled()).toBe(false);
   });
 
   test('DEBUG é true quando SHINOBI_DEBUG=1', () => {
     process.env.SHINOBI_DEBUG = '1';
     const d = loadDebug();
     expect(d.DEBUG).toBe(true);
-    expect(d.isEnabled()).toBe(true);
   });
 
   test('DEBUG é true quando SHINOBI_DEBUG=true', () => {
@@ -48,8 +46,8 @@ describe('main/debug.js', () => {
     expect(loadDebug().DEBUG).toBe(false);
   });
 
-  test('isEnabled() retorna boolean', () => {
+  test('DEBUG é um boolean', () => {
     delete process.env.SHINOBI_DEBUG;
-    expect(typeof loadDebug().isEnabled()).toBe('boolean');
+    expect(typeof loadDebug().DEBUG).toBe('boolean');
   });
 });

@@ -280,6 +280,5 @@ function attach(win, ses, ctx) {
 }
 
 module.exports = {
-  attach: attach,
-  DEFAULTS: DEFAULTS
+  attach: attach
 };

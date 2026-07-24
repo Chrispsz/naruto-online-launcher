@@ -41,7 +41,6 @@ function getDefaultProfile() {
 }
 
 module.exports = {
-  HARDWARE_PROFILES: HARDWARE_PROFILES,
   isValidProfile: isValidProfile,
   getDefaultProfile: getDefaultProfile
 };

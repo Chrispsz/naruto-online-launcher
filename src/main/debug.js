@@ -24,8 +24,5 @@
 const DEBUG = process.env.SHINOBI_DEBUG === '1' || process.env.SHINOBI_DEBUG === 'true';
 
 module.exports = {
-  DEBUG: DEBUG,
-  isEnabled: function () {
-    return DEBUG;
-  }
+  DEBUG: DEBUG
 };

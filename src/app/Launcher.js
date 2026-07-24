@@ -50,7 +50,7 @@ const LAUNCHER_PARAMS = urlConfig.getLauncherParams();
  */
 function getGameUrl(profile) {
   if (!profile) return urlConfig.getGameUrl('br');
-  return urlConfig.getGameUrl(profile.region, profile.language, profile.server);
+  return urlConfig.getGameUrl(profile.region, profile.server);
 }
 
 /**
@@ -218,19 +218,6 @@ function launchProfile(profileId, onOpened, onClosed) {
 }
 
 /**
- * Focus (show + raise) a game window by profile ID.
- * @param {string} profileId
- */
-function focusProfile(profileId) {
-  if (!gameWindows.has(profileId)) return;
-  const entry = gameWindows.get(profileId);
-  if (entry.window && !entry.window.isDestroyed()) {
-    entry.window.show();
-    entry.window.focus();
-  }
-}
-
-/**
  * Close a game window by profile ID (triggers close handler).
  * @param {string} profileId
  */
@@ -296,7 +283,6 @@ function reloadWithPreAuth(profileId) {
 
 module.exports = {
   launchProfile: launchProfile,
-  focusProfile: focusProfile,
   closeProfile: closeProfile,
   isProfileOpen: isProfileOpen,
   getWebContents: getWebContents,

@@ -292,8 +292,6 @@ function registerIpcHandlers(handlers) {
     return vault.hasCredentials(id);
   });
 
-  // ── Memory (removido em v1.1.2: GC forçado em main de 50MB é otimização inútil) ──
-
   // ── Diagnostics exporter (v4.9.2) ──
   const diagnostics = require('../../utils/diagnostics');
   ipcMain.handle('diagnostics:export', async function () {

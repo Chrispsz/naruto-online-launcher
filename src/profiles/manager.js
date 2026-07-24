@@ -139,7 +139,7 @@ function remove(id) {
  * Lança o jogo para um perfil. Orquestra:
  *   1. restoreCookies() se shadow partition (restaura auth cookies salvos).
  *   2. gameLauncher.launchProfile() — cria BrowserWindow isolada.
- *   3. Registra webContents no MemoryGuard (para injeção de window.gc()).
+ *   3. Registra webContents no MemoryGuard (observa métricas de memória).
  *   4. Trata crash: render-process-gone NÃO derruba outras janelas.
  *   5. Snapshot de cookies no fechamento (se shadow).
  *

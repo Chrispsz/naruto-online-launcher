@@ -147,9 +147,6 @@ describe('Launcher.js', () => {
     test('exporta launchProfile como função', () => {
       expect(typeof Launcher.launchProfile).toBe('function');
     });
-    test('exporta focusProfile como função', () => {
-      expect(typeof Launcher.focusProfile).toBe('function');
-    });
     test('exporta closeProfile como função', () => {
       expect(typeof Launcher.closeProfile).toBe('function');
     });
@@ -309,23 +306,6 @@ describe('Launcher.js', () => {
       launchAndTrack('p_001');
       const wc = Launcher.getWebContents('p_001');
       expect(wc).toBe(bwMock.wc);
-    });
-  });
-
-  describe('focusProfile', () => {
-    test('não lança para perfil não aberto', () => {
-      expect(() => Launcher.focusProfile('nonexistent')).not.toThrow();
-    });
-
-    test('foca janela existente', () => {
-      launchAndTrack('p_001');
-      // Reset call counts (but not implementations)
-      bwMock.win.show.mockClear();
-      bwMock.win.focus.mockClear();
-
-      Launcher.focusProfile('p_001');
-      expect(bwMock.win.show).toHaveBeenCalled();
-      expect(bwMock.win.focus).toHaveBeenCalled();
     });
   });
 

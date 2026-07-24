@@ -1414,9 +1414,7 @@ ipcRenderer.on('game-window:status', function (_e, data) {
   localStorage.setItem(LAST_SESSION_KEY, JSON.stringify(lastSession));
 });
 
-// ── v5.9.3: Keyboard handler simplificado ──
-// Atalhos de navegação (1/2/3, Ctrl+N, Ctrl+F, /, ?) e overlay de ajuda
-// foram removidos — a sidebar + botões são suficientes. Apenas Esc fecha modais.
+// v5.9.3: keyboard handler simplified — only Esc closes modals.
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     document.getElementById('profileModal').classList.remove('show');
