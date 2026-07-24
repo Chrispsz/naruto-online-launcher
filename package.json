@@ -48,7 +48,7 @@
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "jest": "^29.7.0",
-    "prettier": "^3.2.0"
+    "prettier": "^3.9.6"
   },
   "dependencies": {
     "electron-log": "^4.4.8"
