@@ -12,6 +12,10 @@
 })();
 
 const { ipcRenderer } = require('electron');
+// v1.2.0-perf: tiny debounce helper (zero deps) used to coalesce bursty IPC
+// events that each rebuild the entire profile grid (DOM thrash). See
+// src/utils/throttle.js for the implementation + tests.
+const { debounce } = require('../utils/throttle');
 // v1.1.0: 6 real Naruto Online server clusters (br/na/de/es/pl/fr).
 // Each cluster has its own language and event schedule. Legacy codes (eu/hk/pt/en)
 // are accepted by the backend (regions.js + store.js) and auto-migrated:
@@ -112,6 +116,24 @@ function applyI18n() {
   });
 }
 
+// v1.2.0-perf: Coalesce bursty status-driven re-renders into a single
+// trailing-edge render (~1 frame). State mutations stay synchronous; only
+// the DOM rebuild is debounced. See renderProfiles() for the render body
+// and the IPC handlers below for the call sites.
+//
+// Why: When a game launches, 3-5 IPC events fire in <100ms
+// (game-window:status open → auto-login:status loading → success →
+// possibly profiles:updated). Each uncoalesced call rebuilds the whole
+// grid (innerHTML reset + N card createElement + addEventListener per
+// card). Debouncing collapses the burst into one render.
+//
+// leading:false + trailing:true (default) — we don't need a leading fire
+// because the burst always settles within ~50ms and we want the LAST
+// status to be the one rendered.
+var debouncedRenderProfiles = debounce(function () {
+  renderProfiles();
+}, 16);
+
 // ── IPC ──
 ipcRenderer.on('profiles:updated', (_e, list) => {
   profiles = list;
@@ -136,10 +158,14 @@ ipcRenderer.on('auto-login:result', (_e, data) => {
 });
 // v4.5: Real-time status updates for auto-login and window open state.
 // v5.22.0: Simpler — just re-render the affected card to keep DOM + state in sync.
+// v1.2.0-perf: Debounced — these handlers fire in bursts of 3-5 events when
+// a game launches. State (autoLoginStatus, openWindows) is mutated
+// synchronously above; only renderProfiles is debounced so the LAST status
+// in the burst wins. See debouncedRenderProfiles above.
 ipcRenderer.on('auto-login:status', (_e, data) => {
   if (!data || !data.profileId) return;
   autoLoginStatus[data.profileId] = data.status || 'idle';
-  renderProfiles();
+  debouncedRenderProfiles();
 });
 ipcRenderer.on('game-window:status', (_e, data) => {
   if (!data || !data.profileId) return;
@@ -148,7 +174,7 @@ ipcRenderer.on('game-window:status', (_e, data) => {
     delete openWindows[data.profileId];
     delete autoLoginStatus[data.profileId];
   }
-  renderProfiles();
+  debouncedRenderProfiles();
 });
 
 // ── Navigation ──

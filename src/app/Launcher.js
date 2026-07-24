@@ -132,8 +132,13 @@ function launchProfile(profileId, onOpened, onClosed) {
       nodeIntegration: false,
       contextIsolation: true,
       backgroundThrottling: false,
-      webSecurity: false,
-      allowRunningInsecureContent: true,
+      // @security (audit 2-b): webSecurity MUST stay true (default) — never
+      // disable same-origin policy. allowRunningInsecureContent MUST stay false
+      // (default) — no mixed-content loading from HTTPS pages. Previously both
+      // were inverted to allow HTTP game endpoints; the cookies layer already
+      // sets secure=false on game cookies so login still works over HTTP via
+      // same-origin requests. Mixed-content (HTTPS page → HTTP resource) is
+      // now blocked by default per Chromium security model.
       partition: partName, // <- TOTAL ISOLATION per profile
       preload: path.join(__dirname, '..', 'preload.js'),
       userAgent: LAUNCHER_UA
