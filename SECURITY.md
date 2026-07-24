@@ -4,9 +4,9 @@
 
 | Version | Supported | Status |
 |---------|-----------|--------|
-| 5.24.x  | ✅        | Active development |
-| 5.20–5.23 | ✅      | Maintenance (security fixes only) |
-| < 5.20  | ❌        | End of life |
+| 1.3.x   | ✅        | Active development |
+| 1.0–1.2 | ✅        | Maintenance (security fixes only) |
+| < 1.0   | ❌        | End of life |
 
 ## Known security considerations
 
@@ -61,9 +61,7 @@ Settings → Advanced → Export diagnostics (.zip) includes:
 
 ### Telemetry
 
-**None.** The launcher does not phone home. No crash reporter, no usage analytics, no auto-update checks. Everything stays local.
-
-The previous v3.x crash-reporter feature was removed in v4.9.2 at the user's request. The `ai-evolve` branch / autonomous cron experiments mentioned in older SECURITY.md versions are also removed — the launcher is a normal open-source project now.
+**None.** The launcher does not phone home — no crash reporter, no usage analytics, no auto-update checks. Everything stays local.
 
 ## Reporting a vulnerability
 

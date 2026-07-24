@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in contributing to Shinobi Launcher!
+Thanks for your interest in contributing to **Shinobi Launcher**! Whether you're fixing a typo, squashing a bug, or proposing a new feature, every contribution is welcome. This guide will get you from clone to PR in a few minutes.
 
 ## Development setup
 
@@ -28,11 +28,11 @@ npm run lint:fix
 npm run format
 ```
 
-**Requirements:** Node.js ≥16, npm. Electron binary downloads on `npm start` (not needed for lint/test).
+**Requirements:** Node.js ≥18 (CI uses Node 20 LTS), npm. The Electron binary downloads on `npm start` but is **not** needed for lint/test.
 
 ## Project structure
 
-See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full module map.
+See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full module map.
 
 ```
 src/
@@ -55,6 +55,7 @@ src/
 - **TypeScript**: not used (vanilla JS with JSDoc). Keep JSDoc annotations on public functions.
 - **Commits**: English or Portuguese, descriptive. Suggested format: `<type>: <description>` (e.g., `fix: auto-login loop guard`, `feat: drag-drop profile reorder`, `docs: add ARCHITECTURE.md`).
 - **PRs**: clear description of what changed and why. Reference the issue if applicable.
+- **Design system**: AMOLED black background + shinobi gold (`#d4a543`) accents. Do **not** introduce indigo or blue — they break the visual identity.
 
 ## Testing
 
@@ -66,13 +67,13 @@ src/
 ## Before submitting a PR
 
 1. `npm run lint` — fix all errors.
-2. `npm test` — all 1235 tests must pass.
+2. `npm test` — all 1240 tests must pass.
 3. Test manually on Linux and/or Windows if your change affects the UI or game launch.
-4. If you added a new feature, update the relevant docs (`README.md`, `README.pt-BR.md`, `docs/`).
+4. If you added a new feature, update the relevant docs (`README.md`, `ARCHITECTURE.md`, `FLASH_SETUP.md`). The README is bilingual (EN + collapsible PT-BR section) — update both halves when touching user-facing copy.
 
 ## Bilingual docs
 
-The launcher supports EN + PT. If you add or change a user-facing string:
+The launcher supports EN + PT-BR. If you add or change a user-facing string:
 
 1. Add the key to **both** `en` and `pt` dictionaries in `src/config/i18n.js`.
 2. Update the fallback text in `src/ui/index.html` (the `data-i18n="..."` attribute's text content).
@@ -84,10 +85,11 @@ Open an [issue](https://github.com/Chrispsz/naruto-online-launcher/issues) with:
 
 1. **Launcher version** (Settings → About, or `package.json`).
 2. **OS** (distro + version for Linux, or Windows build).
-3. **Steps to reproduce**.
-4. **Expected vs actual behavior**.
-5. **Logs** — export via Settings → Advanced → Export diagnostics (.zip). This includes logs + config + system info, **never credentials**.
+3. **Hardware profile** (Auto / Low-Spec / Force High — see Settings).
+4. **Steps to reproduce**.
+5. **Expected vs actual behavior**.
+6. **Logs** — export via Settings → Advanced → Export diagnostics (.zip). This includes logs + config + system info, **never credentials**.
 
 ## Questions?
 
-Open an [issue](https://github.com/Chrispsz/naruto-online-launcher/issues) with the `question` label.
+Open an [issue](https://github.com/Chrispsz/naruto-online-launcher/issues) with the `question` label, or start a Discussion. Be excellent to each other — see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).

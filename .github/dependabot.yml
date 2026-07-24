@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # npm dependencies — weekly, Monday
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, triage]
+    ignore:
+      # Electron is pinned to 11.x for Flash PPAPI support — do not auto-bump
+      - dependency-name: electron
+      - dependency-name: electron-builder
+
+  # GitHub Actions versions — weekly, Monday
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [ci, dependencies]

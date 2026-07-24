@@ -10,7 +10,7 @@ Brief description of what this PR changes and why.
 
 ## Checklist
 - [ ] `npm run lint` passes with no errors
-- [ ] `npx jest` passes — all 1235 tests green
+- [ ] `npx jest` passes — all 1240 tests green
 - [ ] If UI/config changed: `bash scripts/build-preview.sh` run and preview verified
 - [ ] No new dependencies added without justification
 - [ ] No indigo or blue colors introduced (design system: AMOLED black + shinobi gold #d4a543)

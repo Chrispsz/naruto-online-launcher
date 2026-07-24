@@ -140,47 +140,46 @@ jobs:
           body: |
             ## Naruto Online Launcher
 
-            Flash game launcher for Naruto Online — zero tracking, zero dependencies, FUSE-free.
+            Privacy-first multi-account Flash launcher for Naruto Online — zero tracking, FUSE-free, AES-256 vault.
 
             ### Downloads
 
             | Platform | File |
             |----------|------|
-            | Linux | `naruto-online-linux.zip` (AppImage + installer) |
+            | Linux   | `naruto-online-linux.zip` (AppImage + installer) |
             | Windows | `naruto-online-win.zip` (Portable EXE) |
 
             ### Installation
 
-            **Linux:**
+            **Linux**
             ```bash
             unzip naruto-online-linux.zip
             chmod +x install.sh
             ./install.sh
             ```
 
-            **Windows:**
-            Extract and run `NarutoOnline.exe`
+            **Windows** — extract and run `NarutoOnline.exe`
 
             ### Shortcuts
 
-            | Key | Action |
-            |-----|--------|
-            | F5 | Clear Login |
-            | F6 | Switch Region |
-            | F7 | Switch Hardware Profile |
-            | F11 | Fullscreen |
-            | Ctrl+Shift+S | Screenshot |
-            | Ctrl+Shift+T | Always on Top |
-            | Ctrl+N | New Account |
-            | F8 | Force Memory GC |
-            | Alt+1..9 | Quick Launch Profile (v5.8) |
-            | Alt+P | Toggle Always-on-Top (v5.8) |
+            | Key            | Action                          |
+            |----------------|---------------------------------|
+            | F5             | Clear Login                     |
+            | F6             | Switch Region                   |
+            | F7             | Switch Hardware Profile         |
+            | F8             | Force Memory GC                 |
+            | F11            | Fullscreen                      |
+            | Ctrl+N         | New Account                     |
+            | Ctrl+Shift+S   | Screenshot                      |
+            | Ctrl+Shift+T   | Always on Top                   |
+            | Alt+1..9       | Quick Launch Profile            |
+            | Alt+P          | Toggle Always-on-Top            |
 
             ### Regions
             🇧🇷 PT · 🇺🇸 EN · 🇫🇷 FR · 🇩🇪 DE · 🇪🇸 ES · 🇵🇱 PL
 
             ### Flash PPAPI
-            Flash PPAPI binaries (Linux `.so` + Windows `.dll`) are committed to the repo so the build is fully reproducible offline. Linux shows an actionable error if Flash cannot be provisioned at runtime.
+            Clean Flash PPAPI binaries (Linux `.so` + Windows `.dll`) are committed to the repo for fully reproducible offline builds. See [FLASH_SETUP.md](https://github.com/Chrispsz/naruto-online-launcher/blob/main/FLASH_SETUP.md) for details.
 
   # ── Auto-update README with latest download links ──
   update-readme:

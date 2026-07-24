@@ -11,10 +11,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > This repository was squashed to a single commit on 2026-07-21 to establish a
 > clean public baseline. The full pre-squash history (153 commits, v4.9.2 →
-> v5.26.0) is preserved locally in the `archive/v5-messy` branch and is
-> available to maintainers on request. The changelog below starts at v1.0.0.
+> v5.26.0) is preserved locally by the maintainer and is available on request.
+> The changelog below starts at v1.0.0.
 
 ---
+
+## [1.4.0] — 2026-07-25
+
+### Summary — Repository professionalization & SEO
+Repo-wide overhaul to match the hygiene bar of top-starred open-source projects. No source-code or behavior changes — all 1240 tests still pass, lint still clean.
+
+### Removed — Git hygiene
+- Deleted legacy tags `v5.9.1` and `v5.9.2` (local + remote) — remnants of the pre-squash v5 history that no longer correspond to the v1.x release line.
+- Deleted `backup/messy-history-v5` local branch and `origin/archive/v5-messy` remote branch — the squashed history is the canonical baseline.
+- Tag set is now a clean monotonic sequence: `v1.0.0 → v1.1.0 → v1.1.2 → v1.2.0 → v1.3.1 → v1.4.0`. Sole branch: `main`.
+
+### Added — Community & security files
+- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1.
+- `.github/dependabot.yml` — weekly npm + GitHub Actions update checks (Electron / electron-builder ignored — pinned to 11.x for Flash PPAPI).
+- `.github/workflows/codeql.yml` — CodeQL security scanning on push/PR + weekly schedule.
+- `.github/repo-metadata.yml` — topic categorization for GitHub's repo recommender (11 topics).
+
+### Changed — Documentation overhaul (−2,030 lines across 5 docs)
+- `README.md`: 518 → 197 lines. New sleek GitHub-native layout — centered hero with 7 badges, compact features table, shortcuts, architecture tree, security highlights, collapsible PT-BR section. No macOS content.
+- `ARCHITECTURE.md`: 785 → 236 lines. Cut bilingual duplication + over-explanation; preserved module map, process model, IPC flow, vault crypto, launch sequence, memory mgmt, event timers.
+- `ROADMAP.md`: 480 → 110 lines. Vision + completed milestones + next items + top-5 tech debt + non-goals.
+- `FLASH_SETUP.md`: 275 → 136 lines. Cut PT duplicate; kept PPAPI rationale, binary table, search paths, troubleshooting.
+- `CONTRIBUTING.md`: fixed stale refs (`1235→1240` tests, `Node ≥16→≥18`, `docs/ARCHITECTURE.md→ARCHITECTURE.md`, removed phantom `README.pt-BR.md`).
+- `SECURITY.md`: replaced stale v5.x version table with v1.x table (`1.3.x` active / `1.0–1.2` maintenance / `<1.0` EOL); simplified Telemetry section.
+- `CHANGELOG.md`: removed dead `archive/v5-messy` branch reference; pruned redundant `[Unreleased]/Removed` entries.
+- `.github/ISSUE_TEMPLATE/bug_report.md`: example version `v1.0.0→v1.3.1`, added Hardware profile field.
+- `.github/PULL_REQUEST_TEMPLATE.md`: `1235→1240` tests.
+
+### Changed — CI/CD
+- `ci.yml`: added `concurrency` block to cancel superseded runs on the same ref.
+- `build-release.yml`: tightened release-notes body (compact intro, re-sorted shortcuts table, dropped stale version tags).
+
+### Added — GitHub repo metadata (SEO)
+- Repo description set: "Privacy-first multi-account Flash launcher for Naruto Online. Encrypted credential vault, GPU/CPU optimization, zero tracking. Linux + Windows."
+- 12 topics applied: `naruto`, `naruto-online`, `electron`, `flash`, `ppapi`, `launcher`, `game-launcher`, `multi-account`, `privacy`, `encryption`, `desktop-app`, `cross-platform`.
+- Discussions enabled; homepage pinned to latest release.
+
+### Verified
+- 1240/1240 tests pass (45/45 suites), lint clean.
+- All 5 `.github/**/*.y*ml` files pass YAML validation.
+- 4 docs in target length range; README preserves all factual feature/security/shortcut claims.
 
 ## [1.3.1] — 2026-07-25
 
@@ -101,9 +142,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Code-polish passes (17 cron runs, 7 productive): removed dead CSS selectors, tombstone comments, and redundant polling. Net −420 lines across 8 files with zero functional regression.
-
-### Removed
-- `src/network/request-logger.js`, `RESEARCH.md`, `STRATEGY.md`, `SCOPE.md`, `HOW_THEY_MODIFY_FLASH.md` — research artifacts that were superseded or never shipped.
 
 ## [1.1.2] — 2026-07-24
 

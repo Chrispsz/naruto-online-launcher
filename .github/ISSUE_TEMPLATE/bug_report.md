@@ -23,8 +23,9 @@ If applicable, add screenshots to help explain your problem.
 
 ## Environment
 - OS: [e.g. Windows 11, Ubuntu 22.04]
-- Launcher version: [e.g. v1.0.0 — see About panel]
+- Launcher version: [e.g. v1.3.1 — see About panel]
 - Region: [BR / NA / EU / HK]
+- Hardware profile: [Auto / Low-Spec / Force High]
 - GPU: [e.g. NVIDIA RTX 3060, Intel UHD 620, AMD Vega 8]
 - Electron version (if known):
 
