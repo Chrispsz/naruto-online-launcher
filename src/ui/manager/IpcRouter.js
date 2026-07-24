@@ -15,7 +15,7 @@
 const { ipcMain, dialog, session } = require('electron');
 const fs = require('fs');
 const logger = require('../../utils/logger');
-const { isValidRegion } = require('../../config/regions');
+const { isValidRegion, normalizeRegion } = require('../../config/regions');
 const store = require('../../profiles/store');
 const mg = require('../../memory/guard');
 const et = require('../../utils/EventTimers');
@@ -345,7 +345,7 @@ function registerIpcHandlers(handlers) {
       const profile = store.create({
         name: opts.name || 'Player ' + result.game.nickname,
         server: opts.server || '',
-        region: isValidRegion(opts.region) ? opts.region : 'br',
+        region: isValidRegion(opts.region) ? normalizeRegion(opts.region) : 'br',
         language: opts.language || 'pt',
         notificationsEnabled: opts.notificationsEnabled !== false
       });

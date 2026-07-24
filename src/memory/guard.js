@@ -20,9 +20,9 @@ module.exports = Object.assign({}, MemoryGuard, {
   // GcDaemon sobrescreve as 3 funções de daemon/collect do MemoryGuard
   collect: GcDaemon.collect,
   start: GcDaemon.start,
-  // stop precisa parar AMBOS o daemon e o webview-GC (compat com guard.stop antigo)
+  // stop only needs to stop the GcDaemon — the webview-GC no-ops were removed
+  // in v4.9.1 (window.gc() in the renderer caused black screens in Flash).
   stop: function () {
     GcDaemon.stop();
-    MemoryGuard.stopWebviewGC();
   }
 });

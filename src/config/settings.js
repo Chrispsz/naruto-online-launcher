@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const { app } = require('electron');
 const logger = require('../utils/logger');
-const { isValidRegion, getDefaultRegion } = require('./regions');
+const { isValidRegion, normalizeRegion, getDefaultRegion } = require('./regions');
 const { isValidProfile, getDefaultProfile } = require('./hardware');
 const { isValidPreset, getDefaultPreset } = require('./optimization');
 
@@ -34,7 +34,7 @@ function validateConfig(rawConfig) {
   const optimizationPreset = rawConfig && rawConfig.optimizationPreset;
 
   const validated = {
-    region: isValidRegion(region) ? region : getDefaultRegion(),
+    region: isValidRegion(region) ? normalizeRegion(region) : getDefaultRegion(),
     hardwareProfile: isValidProfile(hardwareProfile) ? hardwareProfile : getDefaultProfile(),
     forceBatata: forceBatata === true ? true : forceBatata === false ? false : undefined,
     mutedEvents: rawConfig && rawConfig.mutedEvents === true,

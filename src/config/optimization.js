@@ -69,15 +69,6 @@ function getDefaultPreset() {
 }
 
 /**
- * Retorna o preset pelo código (ou default se inválido).
- * @param {string} code
- * @returns {Object}
- */
-function getPreset(code) {
-  return PRESETS[isValidPreset(code) ? code : getDefaultPreset()];
-}
-
-/**
  * Lista presets formatados para UI.
  * @returns {Array<{code, name, description, icon, color}>}
  */
@@ -99,6 +90,5 @@ module.exports = {
   PRESET_CODES: PRESET_CODES,
   isValidPreset: isValidPreset,
   getDefaultPreset: getDefaultPreset,
-  getPreset: getPreset,
   listForUI: listForUI
 };

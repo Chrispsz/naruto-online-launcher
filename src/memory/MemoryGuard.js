@@ -236,32 +236,10 @@ function _recordGC(isManual, result) {
 }
 
 // ── Webview GC no-ops (v4.9.1: DESATIVADO — causava tela preta no Flash) ──
-// Mantidos como no-op pra não quebrar callers (main.js chama startWebviewGC,
-// manager.js chama registerGameWebContents). O registry ainda é populado
-// porque o GcDaemon o usa para o black screen fix.
-
-const WEBVIEW_GC_INTERVAL_NORMAL = 15 * 60 * 1000;
-const WEBVIEW_GC_INTERVAL_BATATA = 7 * 60 * 1000;
-
-/**
- * NO-OP v4.9.1: window.gc() no renderer pausa o Flash PPAPI.
- * @returns {Promise<{ok: boolean, savedMB: number, disabled: boolean}>}
- */
-async function injectGC() {
-  // NO-OP v4.9.1: window.gc() no renderer pausa o Flash PPAPI → tela preta.
-  return { ok: true, savedMB: 0, disabled: true };
-}
-
-/** NO-OP: daemon desativado pra evitar tela preta no Flash. */
-function startWebviewGC() {
-  // NO-OP v4.9.1: daemon desativado pra evitar tela preta no Flash.
-  logger.info('MemoryGuard: daemon window.gc() DESATIVADO (v4.9.1 — causava tela preta no Flash)');
-}
-
-/** NO-OP: daemon nunca inicia. Mantido p/ compat de API. */
-function stopWebviewGC() {
-  // NO-OP (daemon nunca inicia). Mantido p/ compat de API.
-}
+// As funções injectGC/startWebviewGC/stopWebviewGC e os intervalos
+// WEBVIEW_GC_INTERVAL_* foram REMOVIDOS em cleanup-launcher. O registry de
+// webviews ainda é populado por registerGameWebContents e consumido pelo
+// GcDaemon para o fix de black screen.
 
 /**
  * Retorna estatísticas das webviews ativas.
@@ -274,13 +252,14 @@ function getWebviewStats() {
     totalGCs += entry.collected;
     if (entry.lastGC > lastGCAt) lastGCAt = entry.lastGC;
   });
+  // Intervalos históricos do webview-GC (desativado desde v4.9.1 — causava tela
+  // preta no Flash PPAPI). Mantidos aqui apenas para o campo intervalMin do stats.
+  const intervalMs = isBatata() ? 7 * 60 * 1000 : 15 * 60 * 1000;
   return {
     active: _webviewRegistry.size,
     totalGCs: totalGCs,
     lastGCAt: lastGCAt || null,
-    intervalMin: Math.round(
-      (isBatata() ? WEBVIEW_GC_INTERVAL_BATATA : WEBVIEW_GC_INTERVAL_NORMAL) / 60000
-    )
+    intervalMin: Math.round(intervalMs / 60000)
   };
 }
 
@@ -305,10 +284,7 @@ module.exports = {
   registerGameWebContents: registerGameWebContents,
   unregisterGameWebContents: unregisterGameWebContents,
   getActiveProfileIds: getActiveProfileIds,
-  // webview GC no-ops
-  injectGC: injectGC,
-  startWebviewGC: startWebviewGC,
-  stopWebviewGC: stopWebviewGC,
+  // webview stats (registry-derived)
   getWebviewStats: getWebviewStats,
   // constants
   IS_LOW_SPEC: IS_LOW_SPEC,

@@ -5,7 +5,6 @@
  * process.resourcesPath pra testar:
  *   - getFlashVersion (manifest.json + fallbacks por plataforma)
  *   - findFlashPlugin (busca em múltiplos paths, validação de tamanho, plataforma)
- *   - configureFlash (appendSwitch path+version)
  *
  * Nota: process.resourcesPath é undefined em Node puro (só existe em Electron
  * runtime). Setamos um stub em beforeEach pra evitar path.join(undefined, ...)
@@ -15,7 +14,6 @@
 'use strict';
 
 const fs = require('fs');
-const electron = require('electron');
 const plugin = require('../plugin');
 
 const ORIGINAL_PLATFORM = process.platform;
@@ -223,89 +221,6 @@ describe('plugin.js', () => {
       const result = plugin.findFlashPlugin();
       expect(result).not.toBeNull();
       expect(typeof result).toBe('string');
-    });
-  });
-
-  describe('configureFlash', () => {
-    test('retorna false quando flashPath é vazio', () => {
-      expect(plugin.configureFlash('')).toBe(false);
-    });
-
-    test('retorna false quando flashPath é null', () => {
-      expect(plugin.configureFlash(null)).toBe(false);
-    });
-
-    test('retorna false quando flashPath é undefined', () => {
-      expect(plugin.configureFlash(undefined)).toBe(false);
-    });
-
-    test('não chama appendSwitch quando flashPath é vazio', () => {
-      plugin.configureFlash('');
-      expect(electron.app.commandLine.appendSwitch).not.toHaveBeenCalled();
-    });
-
-    test('configura path + version via commandLine.appendSwitch (linux sem manifest)', () => {
-      setPlatform('linux');
-      // getFlashVersion vai ler manifest de path.dirname('/flash/libpepflashplayer.so') = '/flash'
-      jest.spyOn(fs, 'existsSync').mockReturnValue(false); // sem manifest → fallback
-      const result = plugin.configureFlash('/flash/libpepflashplayer.so');
-      expect(result).toBe(true);
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-path',
-        '/flash/libpepflashplayer.so'
-      );
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-version',
-        '34.0.0.137' // linux fallback
-      );
-    });
-
-    test('configura path + version via commandLine.appendSwitch (win32 sem manifest)', () => {
-      setPlatform('win32');
-      jest.spyOn(fs, 'existsSync').mockReturnValue(false);
-      const result = plugin.configureFlash('/flash/pepflashplayer.dll');
-      expect(result).toBe(true);
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-path',
-        '/flash/pepflashplayer.dll'
-      );
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-version',
-        '34.0.0.376' // win32 fallback
-      );
-    });
-
-    test('usa versão do manifest quando disponível', () => {
-      setPlatform('win32');
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockReturnValue(
-        JSON.stringify({
-          version: '34.0.0.377'
-        })
-      );
-      const result = plugin.configureFlash('/flash/pepflashplayer.dll');
-      expect(result).toBe(true);
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-version',
-        '34.0.0.377'
-      );
-    });
-
-    test('usa linux_version do manifest no linux quando disponível', () => {
-      setPlatform('linux');
-      jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-      jest.spyOn(fs, 'readFileSync').mockReturnValue(
-        JSON.stringify({
-          version: '34.0.0.300',
-          linux_version: '34.0.0.140'
-        })
-      );
-      const result = plugin.configureFlash('/flash/libpepflashplayer.so');
-      expect(result).toBe(true);
-      expect(electron.app.commandLine.appendSwitch).toHaveBeenCalledWith(
-        'ppapi-flash-version',
-        '34.0.0.140'
-      );
     });
   });
 });

@@ -317,7 +317,6 @@ app.on('ready', function () {
   // Subsystems
   profileStore.load();
   memoryGuard.start();
-  memoryGuard.startWebviewGC();
 
   // v3.4: EventTimers com perfis completos (respeita notificationsEnabled por perfil)
   eventTimers.startWithProfiles(profileStore.getAll());

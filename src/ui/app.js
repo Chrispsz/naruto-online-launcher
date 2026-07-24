@@ -12,15 +12,28 @@
 })();
 
 const { ipcRenderer } = require('electron');
-// v5.13.0: 4 real Naruto Online server clusters.
-// de/es/pl/fr were language variants of EU server, not separate regions.
-// Old profiles with de/es/pl/fr region still work (urls.js keeps backwards compat)
-// but new profiles can only be created with one of these 4 main regions.
+// v1.1.0: 6 real Naruto Online server clusters (br/na/de/es/pl/fr).
+// Each cluster has its own language and event schedule. Legacy codes (eu/hk/pt/en)
+// are accepted by the backend (regions.js + store.js) and auto-migrated:
+// eu→na, hk→na, pt→br, en→na. Old profiles load without error.
+// v1.1.1: Flags are inline SVG (not emoji) — regional-indicator flag emojis do
+// NOT render on Windows (show as letter-pairs/tofu). SVG renders identically on
+// every platform (Windows/Linux/macOS), so the mock print matches the real app.
+const FLAG_SVG = {
+  br: '<svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#009b3a"/><path d="M10 2.5L18 7.5L10 12.5L2 7.5Z" fill="#fedf00"/><circle cx="10" cy="7.5" r="3" fill="#002776"/></svg>',
+  na: '<svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#fff"/><rect width="20" height="3" fill="#b22234"/><rect y="6" width="20" height="3" fill="#b22234"/><rect y="12" width="20" height="3" fill="#b22234"/><rect width="8" height="8" fill="#3c3b6e"/></svg>',
+  de: '<svg viewBox="0 0 20 15"><rect width="20" height="5" fill="#000"/><rect y="5" width="20" height="5" fill="#dd0000"/><rect y="10" width="20" height="5" fill="#ffce00"/></svg>',
+  es: '<svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#c60b1e"/><rect y="3.75" width="20" height="7.5" fill="#ffc400"/></svg>',
+  pl: '<svg viewBox="0 0 20 15"><rect width="20" height="7.5" fill="#fff"/><rect y="7.5" width="20" height="7.5" fill="#dc143c"/></svg>',
+  fr: '<svg viewBox="0 0 20 15"><rect width="6.67" height="15" fill="#0055a4"/><rect x="6.67" width="6.67" height="15" fill="#fff"/><rect x="13.33" width="6.67" height="15" fill="#ef4135"/></svg>'
+};
 const REGIONS = {
-  br: 'BR',
-  na: 'NA',
-  eu: 'EU',
-  hk: 'HK'
+  br: '<span class="flag">' + FLAG_SVG.br + '</span>BR',
+  na: '<span class="flag">' + FLAG_SVG.na + '</span>NA',
+  de: '<span class="flag">' + FLAG_SVG.de + '</span>DE',
+  es: '<span class="flag">' + FLAG_SVG.es + '</span>ES',
+  pl: '<span class="flag">' + FLAG_SVG.pl + '</span>PL',
+  fr: '<span class="flag">' + FLAG_SVG.fr + '</span>FR'
 };
 
 window.api = {
@@ -296,7 +309,7 @@ function renderRegionTabs() {
   regions.forEach(r => {
     const t = document.createElement('span');
     t.className = 'tab' + (r === selectedRegion ? ' active' : '');
-    t.textContent = REGIONS[r] || r;
+    t.innerHTML = REGIONS[r] || r;
     t.addEventListener('click', () => {
       selectedRegion = r;
       renderRegionTabs();

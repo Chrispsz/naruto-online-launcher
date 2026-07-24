@@ -4,8 +4,8 @@
  *
  * v3.0: REMOVIDO js-flags e disable-plugin-power-saver daqui — essas flags
  * agora são gerenciadas por main/flags.js (single source of truth). Antes,
- * configureFlash() sobrescrevia o js-flags setado pelo main.js, perdendo
- * --expose-gc e quebrando o MemoryGuard. Bug crítico corrigido.
+ * um configureFlash() removido sobrescrevia o js-flags setado pelo main.js,
+ * perdendo --expose-gc e quebrando o MemoryGuard. Bug crítico corrigido.
  *
  * v4.9.3 (Fase 2): findFlashPlugin() procura TAMBÉM no cache on-demand
  * (userData/flash-cache/) para backward-compat com installs antigas.
@@ -119,23 +119,7 @@ function findFlashPlugin() {
   return null;
 }
 
-/**
- * Configure Flash PPAPI path+version ONLY.
- * js-flags and disable-plugin-power-saver are now managed by main/flags.js.
- * @param {string} flashPath - Absolute path to Flash binary
- * @returns {boolean} True if configured successfully
- */
-function configureFlash(flashPath) {
-  if (!flashPath) return false;
-  const version = getFlashVersion(path.dirname(flashPath));
-  app.commandLine.appendSwitch('ppapi-flash-path', flashPath);
-  app.commandLine.appendSwitch('ppapi-flash-version', version);
-  logger.info('Flash ' + version + ' path configurado (flags GPU/JS em main/flags.js)');
-  return true;
-}
-
 module.exports = {
   findFlashPlugin: findFlashPlugin,
-  configureFlash: configureFlash,
   getFlashVersion: getFlashVersion
 };

@@ -4,7 +4,7 @@
  * Verifies: exports, getStats, isBatata/isRamen, threshold/interval getters/setters,
  * setForceBatata, onMemoryUpdate/onGC, _notify, _recordGC, reportCrash,
  * webview registry (registerGameWebContents/unregisterGameWebContents/getActiveProfileIds),
- * injectGC/startWebviewGC/stopWebviewGC/getWebviewStats, IS_LOW_SPEC/IS_RAMEN.
+ * getWebviewStats, IS_LOW_SPEC/IS_RAMEN.
  */
 
 'use strict';
@@ -69,15 +69,6 @@ describe('MemoryGuard.js', () => {
     });
     test('exports getActiveProfileIds as function', () => {
       expect(typeof MemoryGuard.getActiveProfileIds).toBe('function');
-    });
-    test('exports injectGC as function', () => {
-      expect(typeof MemoryGuard.injectGC).toBe('function');
-    });
-    test('exports startWebviewGC as function', () => {
-      expect(typeof MemoryGuard.startWebviewGC).toBe('function');
-    });
-    test('exports stopWebviewGC as function', () => {
-      expect(typeof MemoryGuard.stopWebviewGC).toBe('function');
     });
     test('exports getWebviewStats as function', () => {
       expect(typeof MemoryGuard.getWebviewStats).toBe('function');
@@ -380,23 +371,6 @@ describe('MemoryGuard.js', () => {
 
     test('unregisterGameWebContents is safe for non-existent id', () => {
       expect(() => MemoryGuard.unregisterGameWebContents('p_nonexistent')).not.toThrow();
-    });
-  });
-
-  describe('webview GC no-ops (v4.9.1)', () => {
-    test('injectGC returns ok:true with disabled:true', async () => {
-      const result = await MemoryGuard.injectGC();
-      expect(result.ok).toBe(true);
-      expect(result.disabled).toBe(true);
-      expect(result.savedMB).toBe(0);
-    });
-
-    test('startWebviewGC does not throw', () => {
-      expect(() => MemoryGuard.startWebviewGC()).not.toThrow();
-    });
-
-    test('stopWebviewGC does not throw', () => {
-      expect(() => MemoryGuard.stopWebviewGC()).not.toThrow();
     });
   });
 

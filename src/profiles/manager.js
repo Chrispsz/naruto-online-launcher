@@ -377,28 +377,28 @@ function _notify() {
 module.exports = {
   // Lifecycle
   setMemoryGuard: setMemoryGuard,
-  // CRUD
-  list: list,
-  create: create,
-  update: update,
-  remove: remove,
+  // CRUD — Used by tests only (zero production callers per cleanup-launcher audit)
+  list: list, // Used by tests only
+  create: create, // Used by tests only
+  update: update, // Used by tests only
+  remove: remove, // Used by tests only
   // Launch
   launch: launch,
   close: close,
   reportCrash: reportCrash,
-  // Vault
-  getCredentials: getCredentials,
-  setCredentials: setCredentials,
-  removeCredentials: removeCredentials,
-  hasCredentials: hasCredentials,
-  // Import/Export
-  exportAll: exportAll,
-  importAll: importAll,
-  // Stats
-  getStats: getStats,
-  getOpenProfileIds: getOpenProfileIds,
-  // Events
-  onChange: onChange,
-  // Constants
-  MAX_PROFILES: store.MAX_PROFILES
+  // Vault — Used by tests only
+  getCredentials: getCredentials, // Used by tests only
+  setCredentials: setCredentials, // Used by tests only
+  removeCredentials: removeCredentials, // Used by tests only
+  hasCredentials: hasCredentials, // Used by tests only
+  // Import/Export — Used by tests only
+  exportAll: exportAll, // Used by tests only
+  importAll: importAll, // Used by tests only
+  // Stats — Used by tests only
+  getStats: getStats, // Used by tests only
+  getOpenProfileIds: getOpenProfileIds, // Used by tests only
+  // Events — Used by tests only
+  onChange: onChange, // Used by tests only
+  // Constants — Used by tests only
+  MAX_PROFILES: store.MAX_PROFILES // Used by tests only
 };

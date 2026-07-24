@@ -34,9 +34,10 @@ function _getSaltPath() {
 
 /**
  * Carrega (ou gera+persiste) o salt aleatório de 32 bytes único por instalação.
+ * Helper interno de getMachineKey (não exportado).
  * @returns {Buffer}
  */
-function getSalt() {
+function _loadSalt() {
   if (_cachedSalt) return _cachedSalt;
   const saltPath = _getSaltPath();
   try {
@@ -74,21 +75,10 @@ function getMachineKey() {
     /* ignore */
   }
   const machineSeed = os.hostname() + '|' + username + '|' + userDataPath + '|shinobi-vault-v2';
-  const salt = getSalt();
+  const salt = _loadSalt();
   // 100k iters para a chave de máquina (diferente das 200k do backup c/ senha)
   _cachedKey = crypto.pbkdf2Sync(machineSeed, salt, 100000, CryptoService.PBKDF2_KEYLEN, 'sha512');
   return _cachedKey;
-}
-
-/**
- * Deriva chave a partir de uma senha mestre digitada (para backup export/import).
- * Delega ao CryptoService.deriveKey (200k iters).
- * @param {string} password
- * @param {Buffer} salt
- * @returns {Buffer}
- */
-function deriveMasterKey(password, salt) {
-  return CryptoService.deriveKey(password, salt);
 }
 
 /**
@@ -100,9 +90,7 @@ function _resetCache() {
 }
 
 module.exports = {
-  getSalt: getSalt,
   getMachineKey: getMachineKey,
-  deriveMasterKey: deriveMasterKey,
   _resetCache: _resetCache,
   VAULT_SALT_FILE: VAULT_SALT_FILE
 };

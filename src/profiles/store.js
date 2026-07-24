@@ -29,6 +29,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { app } = require('electron');
 const logger = require('../utils/logger');
+const { isValidRegion, normalizeRegion, isCurrentRegion } = require('../config/regions');
 
 const PROFILES_DIR = 'profiles';
 const PROFILES_FILE = 'profiles.json';
@@ -50,7 +51,10 @@ function isValidProfile(p) {
   if (typeof p.id !== 'string' || !/^p_[a-f0-9]{8,16}$/.test(p.id)) return false;
   if (typeof p.name !== 'string' || p.name.length === 0 || p.name.length > 40) return false;
   if (typeof p.server !== 'string' || p.server.length > 20) return false;
-  if (!['br', 'na', 'eu', 'hk', 'de', 'es', 'pl', 'fr'].includes(p.region)) return false;
+  // v1.1.0: accept 6 current clusters (br/na/de/es/pl/fr) + 4 legacy codes
+  // (eu/hk/pt/en) which are auto-migrated to current clusters on load via
+  // normalizeRegion(). isValidRegion accepts both current + legacy.
+  if (!isValidRegion(p.region)) return false;
   // v3.4: language opcional (default 'pt' para retrocompatibilidade)
   // v4.0.1 FIX: sync with settings.js — i18n supports 6 languages
   if (p.language !== undefined && !['pt', 'en', 'de', 'es', 'pl', 'fr'].includes(p.language))
@@ -189,18 +193,33 @@ function load() {
     );
   }
   // v3.4: migra perfis v1 (sem language/notificationsEnabled) para v2
+  // v1.1.0: migra region codes legacy (eu/hk/pt/en) para clusters atuais
   let migrated = 0;
+  let regionMigrated = 0;
   _profiles.forEach(function (p) {
-    const before = JSON.stringify({ l: p.language, n: p.notificationsEnabled });
+    const before = JSON.stringify({ l: p.language, n: p.notificationsEnabled, r: p.region });
     _migrateProfile(p);
-    const after = JSON.stringify({ l: p.language, n: p.notificationsEnabled });
+    // Normalize legacy region codes (eu→na, hk→na, pt→br, en→na)
+    if (p.region && !isCurrentRegion(p.region)) {
+      const oldRegion = p.region;
+      p.region = normalizeRegion(p.region);
+      if (oldRegion !== p.region) regionMigrated++;
+    }
+    const after = JSON.stringify({ l: p.language, n: p.notificationsEnabled, r: p.region });
     if (before !== after) migrated++;
   });
+  if (regionMigrated > 0) {
+    logger.info(
+      'ProfileStore: ' +
+        regionMigrated +
+        ' perfil(is) com região legacy migrada para cluster atual'
+    );
+  }
   if (migrated > 0) {
     logger.info(
       'ProfileStore: ' +
         migrated +
-        ' perfil(is) migrado(s) para schema v2 (language + notificationsEnabled)'
+        ' perfil(is) migrado(s) para schema atual (language + notificationsEnabled + region)'
     );
     _saveToDisk(_profiles);
   } else if (_profiles.length !== parsed.length) {
@@ -304,9 +323,7 @@ function create(opts) {
     server: String(opts.server || '')
       .slice(0, 20)
       .trim(),
-    region: ['br', 'na', 'eu', 'hk', 'de', 'es', 'pl', 'fr'].includes(opts.region)
-      ? opts.region
-      : 'br',
+    region: isValidRegion(opts.region) ? normalizeRegion(opts.region) : 'br',
     // v4.0.1 FIX: sync with settings.js — i18n supports 6 languages
     language: ['pt', 'en', 'de', 'es', 'pl', 'fr'].includes(opts.language) ? opts.language : 'pt',
     notificationsEnabled:
@@ -351,8 +368,7 @@ function update(id, updates) {
   if (!p) return false;
   if (typeof updates.name === 'string') p.name = updates.name.slice(0, 40).trim() || p.name;
   if (typeof updates.server === 'string') p.server = updates.server.slice(0, 20).trim();
-  if (['br', 'na', 'eu', 'hk', 'de', 'es', 'pl', 'fr'].includes(updates.region))
-    p.region = updates.region;
+  if (isValidRegion(updates.region)) p.region = normalizeRegion(updates.region);
   // v4.0.1 FIX: sync with settings.js — i18n supports 6 languages
   if (['pt', 'en', 'de', 'es', 'pl', 'fr'].includes(updates.language))
     p.language = updates.language;

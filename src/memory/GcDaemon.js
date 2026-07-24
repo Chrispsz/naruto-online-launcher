@@ -89,7 +89,8 @@ async function collect(opts) {
     }
 
     await new Promise(function (r) {
-      setTimeout(r, 200);
+      const t = setTimeout(r, 200);
+      if (typeof t.unref === 'function') t.unref();
     });
     const after = MemoryGuard.getStats().totalMB;
     const saved = before - after;
@@ -182,7 +183,7 @@ function _emptyWorkingSetWindows() {
             resolve();
           }
         );
-        setTimeout(function () {
+        const tAlt = setTimeout(function () {
           try {
             alt.kill();
           } catch (_) {
@@ -190,11 +191,12 @@ function _emptyWorkingSetWindows() {
           }
           resolve();
         }, 6000);
+        if (typeof tAlt.unref === 'function') tAlt.unref();
         return;
       }
       resolve();
     });
-    setTimeout(function () {
+    const tChild = setTimeout(function () {
       try {
         child.kill();
       } catch (_) {
@@ -202,6 +204,7 @@ function _emptyWorkingSetWindows() {
       }
       resolve();
     }, 6000);
+    if (typeof tChild.unref === 'function') tChild.unref();
   });
 }
 

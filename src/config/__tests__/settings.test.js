@@ -39,25 +39,35 @@ beforeEach(() => {
 describe('settings.js - validateConfig', () => {
   test('retorna defaults para config vazia', () => {
     const result = validateConfig({});
-    expect(result.region).toBe('pt');
+    expect(result.region).toBe('br');
     expect(result.hardwareProfile).toBe('modern');
   });
 
   test('retorna defaults para config undefined', () => {
     const result = validateConfig(undefined);
-    expect(result.region).toBe('pt');
+    expect(result.region).toBe('br');
     expect(result.hardwareProfile).toBe('modern');
   });
 
   test('retorna defaults para config null', () => {
     const result = validateConfig(null);
-    expect(result.region).toBe('pt');
+    expect(result.region).toBe('br');
     expect(result.hardwareProfile).toBe('modern');
   });
 
-  test('mantém região válida', () => {
+  test('mantém região válida (current cluster)', () => {
+    const result = validateConfig({ region: 'na' });
+    expect(result.region).toBe('na');
+  });
+
+  test('normaliza região legacy (en → na)', () => {
     const result = validateConfig({ region: 'en' });
-    expect(result.region).toBe('en');
+    expect(result.region).toBe('na');
+  });
+
+  test('normaliza região legacy (pt → br)', () => {
+    const result = validateConfig({ region: 'pt' });
+    expect(result.region).toBe('br');
   });
 
   test('mantém perfil válido', () => {
@@ -76,7 +86,7 @@ describe('settings.js - validateConfig', () => {
 
   test('sanitiza região inválida', () => {
     const result = validateConfig({ region: 'invalid' });
-    expect(result.region).toBe('pt');
+    expect(result.region).toBe('br');
   });
 
   test('sanitiza perfil inválido', () => {
@@ -199,7 +209,7 @@ describe('settings.js - loadConfig', () => {
   test('retorna defaults quando arquivo não existe', () => {
     mockExistsSync.mockReturnValue(false);
     const config = loadConfig();
-    expect(config.region).toBe('pt');
+    expect(config.region).toBe('br');
     expect(config.hardwareProfile).toBe('modern');
   });
 
@@ -214,7 +224,8 @@ describe('settings.js - loadConfig', () => {
       })
     );
     const config = loadConfig();
-    expect(config.region).toBe('en');
+    // 'en' is a legacy code, normalized to 'na'
+    expect(config.region).toBe('na');
     expect(config.hardwareProfile).toBe('legacy');
     expect(config.language).toBe('en');
     expect(config.advancedMode).toBe(true);
@@ -224,7 +235,7 @@ describe('settings.js - loadConfig', () => {
     mockExistsSync.mockReturnValue(true);
     mockStatSync.mockReturnValue({ size: 2 * 1024 * 1024 }); // 2MB
     const config = loadConfig();
-    expect(config.region).toBe('pt'); // fallback defaults
+    expect(config.region).toBe('br'); // fallback defaults
     expect(mockReadFileSync).not.toHaveBeenCalled();
   });
 
@@ -241,7 +252,7 @@ describe('settings.js - loadConfig', () => {
     mockStatSync.mockReturnValue({ size: 512 });
     mockReadFileSync.mockReturnValue('not json{{{');
     const config = loadConfig();
-    expect(config.region).toBe('pt');
+    expect(config.region).toBe('br');
   });
 
   test('retorna defaults quando readFileSync lança erro', () => {
@@ -251,7 +262,7 @@ describe('settings.js - loadConfig', () => {
       throw new Error('EACCES');
     });
     const config = loadConfig();
-    expect(config.region).toBe('pt');
+    expect(config.region).toBe('br');
   });
 
   test('sanitiza valores inválidos do arquivo', () => {
@@ -265,7 +276,7 @@ describe('settings.js - loadConfig', () => {
       })
     );
     const config = loadConfig();
-    expect(config.region).toBe('pt');
+    expect(config.region).toBe('br');
     expect(config.hardwareProfile).toBe('modern');
     // v5.13.0: invalid language now falls back to 'en' (was 'pt')
     expect(config.language).toBe('en');

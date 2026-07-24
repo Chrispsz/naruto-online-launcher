@@ -551,7 +551,7 @@ function attach(win, ctx) {
       /* ignore */
     }
 
-    setTimeout(function () {
+    const t = setTimeout(function () {
       try {
         if (win && !win.isDestroyed()) {
           win.destroy();
@@ -560,6 +560,7 @@ function attach(win, ctx) {
         /* ignore */
       }
     }, 500);
+    if (typeof t.unref === 'function') t.unref();
   });
 
   // ── Closed → cleanup final ──
@@ -758,9 +759,10 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
       // O guard _reloadingWindows é liberado em did-finish-load (após o novo
       // StallDetector ser anexado). Timeout de segurança de 30s como fallback
       // caso did-finish-load nunca dispare (janela destruída, etc).
-      setTimeout(function () {
+      const t = setTimeout(function () {
         _reloadingWindows.delete(winId);
       }, 30000);
+      if (typeof t.unref === 'function') t.unref();
     })
     .catch(function (e) {
       _reloadingWindows.delete(winId);

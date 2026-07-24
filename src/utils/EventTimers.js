@@ -1,8 +1,11 @@
 /**
  * EventTimers — Event reminders with timezone math + bilingual names
- * v2.2.0 — v5.13.0 (bilingual events + days[] + end-notification)
+ * v2.3.0 — v1.1.0 (6-cluster model + bilingual events + days[] + end-notification)
  *
- * CHANGES (v5.13.0):
+ * CHANGES (v1.1.0):
+ *   - 6 server clusters: br/na/de/es/pl/fr (replaced old 4-cluster br/na/eu/hk)
+ *   - eu schedule moved to de/es/pl/fr (all are European clusters, UTC+1/+2 DST)
+ *   - hk removed (zh cluster DNS-dead since 2024; legacy profiles migrate hk→na)
  *   - Each event has name_pt + name_en (rendered by launcher language)
  *   - Each event has `days`: array of weekday numbers (0=Sun..6=Sat). Empty = daily.
  *   - Each event has `durationMin` (how long the event lasts)
@@ -10,15 +13,16 @@
  *   - When event ends, an "ended" notification fires (smarter: only the active badge
  *     on the Events nav item disappears; the start toast auto-dismisses)
  *
- * REGIÕES SUPORTADAS (4 clusters reais de servidores Naruto Online):
+ * REGIÕES SUPORTADAS (6 clusters reais de servidores Naruto Online):
  *   br — America/Sao_Paulo (UTC-3, sem DST)
  *   na — America/New_York   (UTC-5/-4 DST)
- *   eu — Europe/Berlin      (UTC+1/+2 DST)
- *   hk — Asia/Hong_Kong     (UTC+8, sem DST)
+ *   de — Europe/Berlin      (UTC+1/+2 DST)
+ *   es — Europe/Madrid      (UTC+1/+2 DST)
+ *   pl — Europe/Warsaw      (UTC+1/+2 DST)
+ *   fr — Europe/Paris       (UTC+1/+2 DST)
  *
- * Validação: naruto.narutowebgame.com/{pt|en|zh}/serverlist — apenas 4 clusters.
- * Idiomas de/es/pl/fr foram removidos (não há servidores dedicados, eram
- * language variants do server EU). Launcher agora é EN+PT apenas.
+ * Validação: naruto.narutowebgame.com/{pt|en|de|es|pl|fr}/serverlist — 6 clusters.
+ * Legacy codes eu/hk/pt/en são migrados por regions.js (eu→na, hk→na, pt→br, en→na).
  */
 
 'use strict';
@@ -26,14 +30,19 @@
 const { Notification } = require('electron');
 const path = require('path');
 const logger = require('../utils/logger');
+const { normalizeRegion } = require('../config/regions');
 
 // Offsets UTC aproximados por região (sem libs de TZ).
 // DST é auto-detectado comparando o offset atual do Date com o offset base.
+// v1.1.1: flag field uses [XX] text tag (not emoji) — native OS notifications
+// can't render SVG and Windows doesn't render flag emoji. Text tag works everywhere.
 const REGION_TZ = {
-  br: { name: 'Brasil', name_en: 'Brazil', flag: '🇧🇷', baseOffset: -3 }, // UTC-3, sem DST
-  na: { name: 'América do Norte', name_en: 'North America', flag: '🇺🇸', baseOffset: -5 }, // UTC-5, DST -4
-  eu: { name: 'Europa', name_en: 'Europe', flag: '🇪🇺', baseOffset: 1 }, // UTC+1, DST +2
-  hk: { name: 'Hong Kong', name_en: 'Hong Kong', flag: '🇭🇰', baseOffset: 8 } // UTC+8, sem DST
+  br: { name: 'Brasil', name_en: 'Brazil', flag: '[BR]', baseOffset: -3 }, // UTC-3, sem DST
+  na: { name: 'América do Norte', name_en: 'North America', flag: '[NA]', baseOffset: -5 }, // UTC-5, DST -4
+  de: { name: 'Deutschland', name_en: 'Germany', flag: '[DE]', baseOffset: 1 }, // UTC+1, DST +2
+  es: { name: 'España', name_en: 'Spain', flag: '[ES]', baseOffset: 1 }, // UTC+1, DST +2
+  pl: { name: 'Polska', name_en: 'Poland', flag: '[PL]', baseOffset: 1 }, // UTC+1, DST +2
+  fr: { name: 'France', name_en: 'France', flag: '[FR]', baseOffset: 1 } // UTC+1, DST +2
 };
 
 // Catálogo de eventos por região (horários no fuso do SERVIDOR)
@@ -79,33 +88,61 @@ const EVENTS_BY_REGION = {
     { id: 'na-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
     { id: 'na-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
   ],
-  // ── Europe (EN) — 11 events ──
-  eu: [
-    { id: 'eu-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
-    { id: 'eu-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
-    { id: 'eu-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
-    { id: 'eu-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
-    { id: 'eu-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
-    { id: 'eu-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
-    { id: 'eu-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
-    { id: 'eu-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
-    { id: 'eu-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
-    { id: 'eu-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
-    { id: 'eu-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
+  // ── Deutschland (DE) — 11 events (European schedule, UTC+1/+2 DST) ──
+  de: [
+    { id: 'de-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
+    { id: 'de-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
+    { id: 'de-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
+    { id: 'de-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
+    { id: 'de-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
+    { id: 'de-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
+    { id: 'de-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
+    { id: 'de-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
+    { id: 'de-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
+    { id: 'de-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
+    { id: 'de-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
   ],
-  // ── Hong Kong (ZH) — 11 events ──
-  hk: [
-    { id: 'hk-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
-    { id: 'hk-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
-    { id: 'hk-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
-    { id: 'hk-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
-    { id: 'hk-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
-    { id: 'hk-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
-    { id: 'hk-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
-    { id: 'hk-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
-    { id: 'hk-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
-    { id: 'hk-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
-    { id: 'hk-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
+  // ── España (ES) — 11 events (European schedule) ──
+  es: [
+    { id: 'es-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
+    { id: 'es-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
+    { id: 'es-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
+    { id: 'es-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
+    { id: 'es-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
+    { id: 'es-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
+    { id: 'es-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
+    { id: 'es-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
+    { id: 'es-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
+    { id: 'es-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
+    { id: 'es-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
+  ],
+  // ── Polska (PL) — 11 events (European schedule) ──
+  pl: [
+    { id: 'pl-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
+    { id: 'pl-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
+    { id: 'pl-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
+    { id: 'pl-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
+    { id: 'pl-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
+    { id: 'pl-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
+    { id: 'pl-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
+    { id: 'pl-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
+    { id: 'pl-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
+    { id: 'pl-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
+    { id: 'pl-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
+  ],
+  // ── France (FR) — 11 events (European schedule) ──
+  fr: [
+    { id: 'fr-boss-world', name_pt: 'Boss Mundial', name_en: 'World Boss', days: [], hours: [12, 20], durationMin: 60, category: 'boss', remindMin: 5 },
+    { id: 'fr-arena-3v3', name_pt: 'Arena 3v3 (PvP)', name_en: 'Arena 3v3 (PvP)', days: [], hours: [18], durationMin: 60, category: 'arena', remindMin: 10 },
+    { id: 'fr-dungeon', name_pt: 'Dungeon em Time', name_en: 'Team Dungeon', days: [], hours: [14, 21], durationMin: 90, category: 'dungeon', remindMin: 5 },
+    { id: 'fr-escolta', name_pt: 'Escolta', name_en: 'Escort', days: [], hours: [11, 19], durationMin: 60, category: 'escort', remindMin: 5 },
+    { id: 'fr-instancia-ninja', name_pt: 'Instância Ninja', name_en: 'Ninja Instance', days: [], hours: [10, 22], durationMin: 60, category: 'instance', remindMin: 5 },
+    { id: 'fr-treinamento', name_pt: 'Treinamento Ninja', name_en: 'Ninja Training', days: [], hours: [6, 12, 18], durationMin: 45, category: 'instance', remindMin: 0 },
+    { id: 'fr-clan-war', name_pt: 'Guerra de Clã', name_en: 'Clan War', days: [6, 0], hours: [20], durationMin: 120, category: 'social', remindMin: 30 },
+    { id: 'fr-guild-arena', name_pt: 'Arena de Guildas', name_en: 'Guild Arena', days: [2, 4, 6], hours: [19], durationMin: 60, category: 'arena_guild', remindMin: 15 },
+    { id: 'fr-bond-checkin', name_pt: 'Bond / Check-in Diário', name_en: 'Bond / Daily Check-in', days: [], hours: [5], durationMin: 30, category: 'social', remindMin: 0 },
+    { id: 'fr-desafio-diario', name_pt: 'Desafio Diário (meia-noite)', name_en: 'Daily Challenge (midnight)', days: [], hours: [0], durationMin: 5, category: 'reset', remindMin: 0 },
+    { id: 'fr-reset', name_pt: 'Reset Diário (5h)', name_en: 'Daily Reset (5 AM)', days: [], hours: [5], durationMin: 5, category: 'reset', remindMin: 0 }
   ]
 };
 
@@ -135,14 +172,16 @@ function getUserOffsetHours() {
 
 /**
  * Calcula o offset UTC ATUAL de uma região de servidor.
+ * Legacy codes (eu/hk/pt/en) are normalized to a current cluster first.
  */
 function getServerOffsetHours(region) {
-  const r = REGION_TZ[region];
+  const norm = normalizeRegion(region);
+  const r = REGION_TZ[norm];
   if (!r) return 0;
-  if (region === 'br' || region === 'hk') return r.baseOffset; // sem DST
+  if (norm === 'br') return r.baseOffset; // sem DST
   const now = new Date();
   const month = now.getUTCMonth(); // 0-11
-  const inDST = region === 'na' ? month >= 2 && month <= 10 : month >= 2 && month <= 9;
+  const inDST = norm === 'na' ? month >= 2 && month <= 10 : month >= 2 && month <= 9;
   return r.baseOffset + (inDST ? 1 : 0);
 }
 
@@ -185,13 +224,15 @@ function nextOccurrenceMs(region, serverHour, days) {
  * @returns {Array}
  */
 function getUpcoming(region, lang) {
-  const events = EVENTS_BY_REGION[region] || EVENTS_BY_REGION.br;
+  // Normalize legacy region codes (eu/hk/pt/en) to current clusters.
+  const norm = normalizeRegion(region);
+  const events = EVENTS_BY_REGION[norm] || EVENTS_BY_REGION.br;
   const useLang = lang || _lang;
   return events
     .map(function (ev) {
       let soonest = Infinity;
       for (let i = 0; i < ev.hours.length; i++) {
-        const occ = nextOccurrenceMs(region, ev.hours[i], ev.days);
+        const occ = nextOccurrenceMs(norm, ev.hours[i], ev.days);
         if (occ < soonest) soonest = occ;
       }
       const remind = _globalRemindMin !== null ? _globalRemindMin : ev.remindMin;
@@ -209,13 +250,13 @@ function getUpcoming(region, lang) {
         category: ev.category,
         remindMin: remind,
         durationMin: durationMin,
-        region: region,
+        region: norm,
         nextFireMs: ms,
         nextFireLabel: formatCountdown(ms),
         // User-local time when the event starts
         userTimeLabel: formatUserTime(soonest),
         // Server-local time (string HH:MM)
-        serverTimeLabel: formatServerTime(soonest, region),
+        serverTimeLabel: formatServerTime(soonest, norm),
         // When the event actually starts (without remind offset)
         startsAtMs: soonest,
         // When the event ends (startsAtMs + durationMin)
@@ -301,7 +342,8 @@ function showNotification(event, region, lang) {
   if (!Notification.isSupported()) return;
   try {
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icon.png');
-    const r = REGION_TZ[region] || {};
+    const norm = normalizeRegion(region);
+    const r = REGION_TZ[norm] || {};
     const useLang = lang || _lang;
     const name = localizedEventName(event, useLang);
     const remind = _globalRemindMin !== null ? _globalRemindMin : event.remindMin;
@@ -332,7 +374,8 @@ function showEndNotification(event, region, lang) {
   if (!Notification.isSupported()) return;
   try {
     const iconPath = path.join(__dirname, '..', '..', 'assets', 'icon.png');
-    const r = REGION_TZ[region] || {};
+    const norm = normalizeRegion(region);
+    const r = REGION_TZ[norm] || {};
     const useLang = lang || _lang;
     const name = localizedEventName(event, useLang);
     const n = new Notification({
@@ -368,7 +411,12 @@ function startWithProfiles(profiles) {
   }
   const regions = [];
   enabledProfiles.forEach(function (p) {
-    if (p.region && regions.indexOf(p.region) === -1) regions.push(p.region);
+    if (p.region) {
+      // Normalize legacy codes (eu→na, hk→na, pt→br, en→na) so old profiles
+      // still get event notifications under their migrated cluster.
+      const norm = normalizeRegion(p.region);
+      if (regions.indexOf(norm) === -1) regions.push(norm);
+    }
   });
   if (regions.length === 0) regions.push('br');
   logger.info(

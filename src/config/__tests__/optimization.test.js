@@ -79,23 +79,6 @@ describe('config/optimization.js', function () {
     });
   });
 
-  describe('getPreset', function () {
-    test('returns preset for valid code', function () {
-      const p = opt.getPreset('performance');
-      expect(p).toBe(opt.PRESETS.performance);
-    });
-
-    test('returns balanced for invalid code (fallback)', function () {
-      const p = opt.getPreset('invalid');
-      expect(p).toBe(opt.PRESETS.balanced);
-    });
-
-    test('returns balanced for undefined', function () {
-      const p = opt.getPreset(undefined);
-      expect(p).toBe(opt.PRESETS.balanced);
-    });
-  });
-
   describe('listForUI', function () {
     test('returns array of 3 items with code, name, description, icon, color', function () {
       const list = opt.listForUI();

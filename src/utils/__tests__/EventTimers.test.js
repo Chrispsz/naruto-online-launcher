@@ -57,11 +57,13 @@ describe('EventTimers.js', () => {
   });
 
   describe('REGION_TZ', () => {
-    test('has entries for br, na, eu, hk', () => {
+    test('has entries for br, na, de, es, pl, fr', () => {
       expect(et.REGION_TZ.br).toBeDefined();
       expect(et.REGION_TZ.na).toBeDefined();
-      expect(et.REGION_TZ.eu).toBeDefined();
-      expect(et.REGION_TZ.hk).toBeDefined();
+      expect(et.REGION_TZ.de).toBeDefined();
+      expect(et.REGION_TZ.es).toBeDefined();
+      expect(et.REGION_TZ.pl).toBeDefined();
+      expect(et.REGION_TZ.fr).toBeDefined();
     });
 
     test('each region has name, flag, and baseOffset', () => {
@@ -77,17 +79,19 @@ describe('EventTimers.js', () => {
       expect(et.REGION_TZ.br.baseOffset).toBe(-3);
     });
 
-    test('hk has baseOffset +8 (no DST)', () => {
-      expect(et.REGION_TZ.hk.baseOffset).toBe(8);
+    test('de has baseOffset +1 (European, DST +2)', () => {
+      expect(et.REGION_TZ.de.baseOffset).toBe(1);
     });
   });
 
   describe('EVENTS_BY_REGION', () => {
-    test('has entries for all 4 regions', () => {
+    test('has entries for all 6 regions', () => {
       expect(Array.isArray(et.EVENTS_BY_REGION.br)).toBe(true);
       expect(Array.isArray(et.EVENTS_BY_REGION.na)).toBe(true);
-      expect(Array.isArray(et.EVENTS_BY_REGION.eu)).toBe(true);
-      expect(Array.isArray(et.EVENTS_BY_REGION.hk)).toBe(true);
+      expect(Array.isArray(et.EVENTS_BY_REGION.de)).toBe(true);
+      expect(Array.isArray(et.EVENTS_BY_REGION.es)).toBe(true);
+      expect(Array.isArray(et.EVENTS_BY_REGION.pl)).toBe(true);
+      expect(Array.isArray(et.EVENTS_BY_REGION.fr)).toBe(true);
     });
 
     test('each event has id, name, hours, category, remindMin', () => {
@@ -141,20 +145,24 @@ describe('EventTimers.js', () => {
       expect(et.getServerOffsetHours('br')).toBe(-3);
     });
 
-    test('returns baseOffset for hk (no DST)', () => {
-      // hk has no DST, should always be 8
-      expect(et.getServerOffsetHours('hk')).toBe(8);
+    test('legacy hk normalizes to na (returns -5 or -4)', () => {
+      // hk was merged into na — legacy code migrates via normalizeRegion
+      const offset = et.getServerOffsetHours('hk');
+      expect([-5, -4]).toContain(offset);
     });
 
-    test('returns 0 for unknown region', () => {
-      expect(et.getServerOffsetHours('xx')).toBe(0);
+    test('returns 0 for unknown region (normalizes to br which is -3)', () => {
+      // 'xx' is not a valid region; normalizeRegion returns default 'br'
+      // so getServerOffsetHours returns br's offset, not 0
+      const offset = et.getServerOffsetHours('xx');
+      expect(offset).toBe(-3);
     });
 
-    test('returns a number for na and eu', () => {
+    test('returns a number for na and de', () => {
       const na = et.getServerOffsetHours('na');
-      const eu = et.getServerOffsetHours('eu');
+      const de = et.getServerOffsetHours('de');
       expect(typeof na).toBe('number');
-      expect(typeof eu).toBe('number');
+      expect(typeof de).toBe('number');
     });
 
     test('na offset is -5 or -4 (DST)', () => {
@@ -162,9 +170,14 @@ describe('EventTimers.js', () => {
       expect([-5, -4]).toContain(offset);
     });
 
-    test('eu offset is +1 or +2 (DST)', () => {
-      const offset = et.getServerOffsetHours('eu');
+    test('de offset is +1 or +2 (European DST)', () => {
+      const offset = et.getServerOffsetHours('de');
       expect([1, 2]).toContain(offset);
+    });
+
+    test('legacy eu normalizes to na (returns -5 or -4)', () => {
+      const offset = et.getServerOffsetHours('eu');
+      expect([-5, -4]).toContain(offset);
     });
   });
 

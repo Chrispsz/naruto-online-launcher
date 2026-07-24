@@ -154,7 +154,8 @@
         box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
       }
       .lang-btn .flag {
-        font-size: 0.9rem;
+        width: 1.1rem;
+        height: 0.82rem;
       }
 
       /* Region selector — 2x4 grid */
@@ -189,7 +190,22 @@
         box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
       }
       .region-btn .flag {
-        font-size: 0.9rem;
+        width: 1.2rem;
+        height: 0.9rem;
+      }
+      /* v1.1.1: SVG flags (emoji flags don't render on Windows) */
+      .flag {
+        display: inline-block;
+        border-radius: 2px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        vertical-align: middle;
+      }
+      .flag svg {
+        display: block;
+        width: 100%;
+        height: 100%;
       }
       .region-btn .region-name {
         flex: 1;
@@ -354,47 +370,47 @@
         <h2 data-i18n="setup.language.label">Idioma</h2>
         <div class="lang-grid">
           <button class="lang-btn active" data-lang="pt">
-            <span class="flag">🇧🇷</span> Português
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#009b3a"/><path d="M10 2.5L18 7.5L10 12.5L2 7.5Z" fill="#fedf00"/><circle cx="10" cy="7.5" r="3" fill="#002776"/></svg></span> Português
           </button>
-          <button class="lang-btn" data-lang="en"><span class="flag">🇺🇸</span> English</button>
-          <button class="lang-btn" data-lang="de"><span class="flag">🇩🇪</span> Deutsch</button>
-          <button class="lang-btn" data-lang="es"><span class="flag">🇪🇸</span> Español</button>
-          <button class="lang-btn" data-lang="pl"><span class="flag">🇵🇱</span> Polski</button>
-          <button class="lang-btn" data-lang="fr"><span class="flag">🇫🇷</span> Français</button>
+          <button class="lang-btn" data-lang="en"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#fff"/><rect width="20" height="3" fill="#b22234"/><rect y="6" width="20" height="3" fill="#b22234"/><rect y="12" width="20" height="3" fill="#b22234"/><rect width="8" height="8" fill="#3c3b6e"/></svg></span> English</button>
+          <button class="lang-btn" data-lang="de"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="5" fill="#000"/><rect y="5" width="20" height="5" fill="#dd0000"/><rect y="10" width="20" height="5" fill="#ffce00"/></svg></span> Deutsch</button>
+          <button class="lang-btn" data-lang="es"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#c60b1e"/><rect y="3.75" width="20" height="7.5" fill="#ffc400"/></svg></span> Español</button>
+          <button class="lang-btn" data-lang="pl"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="7.5" fill="#fff"/><rect y="7.5" width="20" height="7.5" fill="#dc143c"/></svg></span> Polski</button>
+          <button class="lang-btn" data-lang="fr"><span class="flag"><svg viewBox="0 0 20 15"><rect width="6.67" height="15" fill="#0055a4"/><rect x="6.67" width="6.67" height="15" fill="#fff"/><rect x="13.33" width="6.67" height="15" fill="#ef4135"/></svg></span> Français</button>
         </div>
       </div>
 
-      <!-- Region Selector (8 regions) — v4.1 Sprint 6 -->
+      <!-- Region Selector (6 clusters) — v1.1.0 -->
       <div class="section">
         <h2 data-i18n="setup.region.label">Região do Servidor</h2>
         <div class="region-grid">
           <button class="region-btn active" data-region="br">
-            <span class="flag">🇧🇷</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#009b3a"/><path d="M10 2.5L18 7.5L10 12.5L2 7.5Z" fill="#fedf00"/><circle cx="10" cy="7.5" r="3" fill="#002776"/></svg></span
             ><span class="region-name" data-i18n="setup.region.br">Brasil</span
             ><span class="region-code">BR</span>
           </button>
           <button class="region-btn" data-region="na">
-            <span class="flag">🇺🇸</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#fff"/><rect width="20" height="3" fill="#b22234"/><rect y="6" width="20" height="3" fill="#b22234"/><rect y="12" width="20" height="3" fill="#b22234"/><rect width="8" height="8" fill="#3c3b6e"/></svg></span
             ><span class="region-name" data-i18n="setup.region.na">América do Norte</span
             ><span class="region-code">NA</span>
           </button>
           <button class="region-btn" data-region="de">
-            <span class="flag">🇩🇪</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="5" fill="#000"/><rect y="5" width="20" height="5" fill="#dd0000"/><rect y="10" width="20" height="5" fill="#ffce00"/></svg></span
             ><span class="region-name" data-i18n="setup.region.de">Alemanha</span
             ><span class="region-code">DE</span>
           </button>
           <button class="region-btn" data-region="es">
-            <span class="flag">🇪🇸</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#c60b1e"/><rect y="3.75" width="20" height="7.5" fill="#ffc400"/></svg></span
             ><span class="region-name" data-i18n="setup.region.es">Espanha</span
             ><span class="region-code">ES</span>
           </button>
           <button class="region-btn" data-region="pl">
-            <span class="flag">🇵🇱</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="7.5" fill="#fff"/><rect y="7.5" width="20" height="7.5" fill="#dc143c"/></svg></span
             ><span class="region-name" data-i18n="setup.region.pl">Polônia</span
             ><span class="region-code">PL</span>
           </button>
           <button class="region-btn" data-region="fr">
-            <span class="flag">🇫🇷</span
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="6.67" height="15" fill="#0055a4"/><rect x="6.67" width="6.67" height="15" fill="#fff"/><rect x="13.33" width="6.67" height="15" fill="#ef4135"/></svg></span
             ><span class="region-name" data-i18n="setup.region.fr">França</span
             ><span class="region-code">FR</span>
           </button>

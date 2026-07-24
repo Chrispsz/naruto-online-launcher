@@ -53,28 +53,6 @@ function decode(token) {
   }
 }
 
-/**
- * Formata o JWT decodificado para exibição amigável (PT-BR).
- * @param {string} token
- * @returns {string} resumo legível
- */
-function summarize(token) {
-  const d = decode(token);
-  if (!d) return 'JWT inválido ou malformado';
-  const p = d.payload;
-  const lines = [];
-  lines.push('Player: ' + (p.nickname || p.playerId || '?'));
-  lines.push('Email: ' + (p.username || '?'));
-  lines.push('ID: ' + (p.playerId || p.uuid || '?'));
-  lines.push('Emitido: ' + (d.iat ? d.iat.toISOString() : '?'));
-  lines.push('Expira: ' + (d.exp ? d.exp.toISOString() : '?') + (d.expired ? ' [EXPIRADO]' : ''));
-  lines.push('Lifetime: ' + (d.lifetime ? d.lifetime / 60 + ' min' : '?'));
-  lines.push('Roles: ' + JSON.stringify(p.roles || []));
-  lines.push('GrantType: ' + (p.loginGrantType || '?'));
-  return lines.join('\n');
-}
-
 module.exports = {
-  decode: decode,
-  summarize: summarize
+  decode: decode
 };
