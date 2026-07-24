@@ -1,7 +1,7 @@
 /**
- * app/Launcher.js — Orquestra o launch de janelas de jogo por perfil (Fase 3d split)
+ * app/Launcher.js — Orchestrates game window launches per profile (Phase 3d split)
  *
- * Responsabilidade ÚNICA (SRP): criar a BrowserWindow isolada por perfil
+ * Single Responsibility (SRP): create an isolated BrowserWindow per profile
  * (partition própria, network layer, loading screen, loadURL) e delegar o
  * lifecycle ao SessionLifecycle + atalhos ao KeyboardShortcuts. Mantém o
  * registry de janelas abertas (gameWindows Map).
@@ -134,7 +134,7 @@ function launchProfile(profileId, onOpened, onClosed) {
       backgroundThrottling: false,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      partition: partName, // <- ISOLAMENTO TOTAL por perfil
+      partition: partName, // <- TOTAL ISOLATION per profile
       preload: path.join(__dirname, '..', 'preload.js'),
       userAgent: LAUNCHER_UA
     }
@@ -143,7 +143,7 @@ function launchProfile(profileId, onOpened, onClosed) {
   win.webContents.session.setUserAgent(LAUNCHER_UA);
   const ses = win.webContents.session;
 
-  // Network layer para ESTA partition (blocker + cookies+CSP mesclados num handler)
+  // Network layer for THIS partition (blocker + cookies+CSP merged in one handler)
   setupBlocker(ses);
   setupPersistentCookies(ses, { csp: CSP });
 
@@ -155,9 +155,9 @@ function launchProfile(profileId, onOpened, onClosed) {
     win.setTitle(WINDOW_TITLE + ' — ' + profile.name);
   });
 
-  // Cria a entrada do registry ANTES de anexar lifecycle (este precisa mutar entry)
-  // Auditor: coleta metadata de sessão (playtime, stalls, crashes, reloads) por profile.
-  // Phase 2: wired aqui. Falta wire-up de recordEvent (EventTimers) — Phase 3.
+  // Create the registry entry BEFORE attaching lifecycle (this one needs to mutate entry)
+  // Auditor: collects session metadata (playtime, stalls, crashes, reloads) per profile.
+  // Phase 2: wired here. Missing wire-up of recordEvent (EventTimers) — Phase 3.
   const auditor = Auditor.create(profileId);
   const entry = {
     window: win,
@@ -172,7 +172,7 @@ function launchProfile(profileId, onOpened, onClosed) {
   };
   gameWindows.set(profileId, entry);
 
-  // Anexa lifecycle (event handlers) + atalhos
+  // Attach lifecycle (event handlers) + shortcuts
   SessionLifecycle.attach(win, {
     profileId: profileId,
     profile: profile,
@@ -182,15 +182,15 @@ function launchProfile(profileId, onOpened, onClosed) {
     onOpened: onOpened,
     onClosed: function () {
       gameWindows.delete(profileId);
-      // Persiste estado final do auditor + para timer de persistência throttled.
+      // Persist auditor final state + stop throttled persistence timer.
       try { auditor.destroy(); } catch (e) { logger.debug('auditor.destroy failed: ' + e.message); }
       if (onClosed) onClosed();
     },
     getGameUrl: getGameUrl,
     LAUNCHER_PARAMS: LAUNCHER_PARAMS
   });
-  // F5 (clear login) agora faz pré-autenticação via API antes de recarregar
-  // (igual ao Play) → não mostra a tela de login do jogo, email não fica visível.
+  // F5 (clear login) now does pre-authentication via API before reloading
+  // (same as Play) → doesn't show the game login screen, email stays hidden.
   KeyboardShortcuts.attach(win, profile.name, ses, function onClearLogin() {
     reloadWithPreAuth(profileId);
   });
@@ -209,7 +209,7 @@ function launchProfile(profileId, onOpened, onClosed) {
           '.t{font-size:15px;font-weight:600;letter-spacing:.2px;color:#f0ede6}' +
           '</style></head><body>' +
           '<div class="spin"></div>' +
-          '<div class="t">Carregando ' +
+          '<div class="t">Loading ' +
           String(profile.name).replace(/</g, '&lt;') +
           '</div>' +
           '</body></html>'
@@ -251,12 +251,12 @@ function getWebContents(profileId) {
 }
 
 /**
- * Recarrega a janela do jogo com pré-autenticação (igual ao fluxo do Play).
- * Delegado ao SessionLifecycle.reloadWithPreAuth — usado pelo atalho F5.
+ * Reloads the game window with pre-authentication (same flow as Play).
+ * Delegated to SessionLifecycle.reloadWithPreAuth — used by the F5 shortcut.
  *
- * Diferente de um reload cru, limpa o login E pré-autentica via API antes de
- * recarregar, então a tela de login do Naruto Online não chega a aparecer
- * (email não fica visível). Veja SessionLifecycle.reloadWithPreAuth.
+ * Unlike a plain reload, clears the login AND pre-authenticates via API before
+ * reloading, so the Naruto Online login screen doesn't appear
+ * (email stays hidden). See SessionLifecycle.reloadWithPreAuth.
  *
  * @param {string} profileId
  */

@@ -66,7 +66,7 @@ const BLOCKED_DOMAINS = new Set([
 // Bloquear o PATH (não o domínio) preserva o jogo e corta o vazamento.
 const BLOCKED_PATH_PATTERNS = [
   /\/oss_report\.fcgi\b/i, // Tencent iMSDK telemetry (server_id, role_id, uin)
-  /\/crossdomain\.xml$/i // Flash security policy — sempre falha (404/timeout), só gera ruído
+  /\/crossdomain\.xml$/i // Flash security policy — always fails (404/timeout), only generates noise
 ];
 
 /**

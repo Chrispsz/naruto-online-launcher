@@ -32,7 +32,7 @@ function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
     var creds = vault.getCredentials(profileId);
     if (creds && creds.user && creds.pass) {
       var apiLogin = require('../network/api-login');
-      logger.info('Login direto via API para "' + profile.name + '" (cookie pre-injected)');
+      logger.info('Direct API login for "' + profile.name + '" (cookie pre-injected)');
       apiLogin
         .loginAndInject(ses, creds.user, creds.pass)
         .then(function () {
@@ -42,7 +42,7 @@ function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
         .catch(function (e) {
           if (win.isDestroyed()) return;
           logger.warn(
-            'Login via API falhou para "' +
+            'API login failed for "' +
               profile.name +
               '" — fallback form-injection: ' +
               e.message
@@ -58,7 +58,7 @@ function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
 }
 
 /**
- * Envia resultado do auto-login ao manager window (UI feedback).
+ * Send auto-login result to manager window (UI feedback).
  * @param {string} profileId
  * @param {string} result - 'filled'|'clicked'|'waiting'|'not-found'|'error'
  */
@@ -73,7 +73,7 @@ function _sendAutoLoginResult(profileId, result) {
 }
 
 /**
- * Envia status de janela aberta/fechada ao manager window.
+ * Send window open/closed status to manager window.
  * @param {string} profileId
  * @param {boolean} isOpen
  */
@@ -82,7 +82,7 @@ function _sendWindowStatus(profileId, isOpen) {
 }
 
 /**
- * Limpa timers pendentes de um entry de lifecycle (autoLogin + failLoad).
+ * Clear pending timers from a lifecycle entry (autoLogin + failLoad).
  * @param {Object|null} entry
  */
 function _clearEntryTimers(entry) {
@@ -92,11 +92,11 @@ function _clearEntryTimers(entry) {
 }
 
 /**
- * Tenta auto-login injetando credenciais do vault no form da página.
- * Loop guard: max 5 tentativas de form injection por sessão.
+ * Attempt auto-login by injecting vault credentials into the page form.
+ * Loop guard: max 5 form injection attempts per session.
  * @param {string} profileId
  * @param {Electron.BrowserWindow} win
- * @param {Object} entry - entrada do gameWindows Map (mutada para tracking)
+ * @param {Object} entry - gameWindows Map entry (mutated for tracking)
  */
 function _tryAutoLogin(profileId, win, entry) {
   if (!vault.hasCredentials(profileId)) return;
@@ -105,9 +105,9 @@ function _tryAutoLogin(profileId, win, entry) {
   if (entry) {
     if (entry.formInjectAttempts > 5) {
       logger.debug(
-        'Auto-login form: max attempts atingido para ' +
+        'Auto-login form: max attempts reached for ' +
           profileId +
-          ' — parando (possível loop de redirect)'
+          ' — stopping (possible redirect loop)'
       );
       return;
     }
@@ -146,7 +146,7 @@ function _tryAutoLogin(profileId, win, entry) {
 }
 
 /**
- * Anexa todos os handlers de lifecycle a uma janela de jogo.
+ * Attach all lifecycle handlers to a game window.
  * @param {Electron.BrowserWindow} win
  * @param {Object} ctx - { profileId, profile, entry, ses, onOpened, onClosed, getGameUrl, LAUNCHER_PARAMS }
  */
@@ -159,20 +159,20 @@ function attach(win, ctx) {
   const onClosed = ctx.onClosed;
   const getGameUrl = ctx.getGameUrl;
   const LAUNCHER_PARAMS = ctx.LAUNCHER_PARAMS;
-  // Auditor (opcional — backward compatible com testes/callers antigos).
+  // Auditor (optional — backward compatible with old tests/callers).
   // Phase 2: sessionStart/sessionEnd + recordCrash/recordReload/recordStall.
   const auditor = ctx.auditor || null;
 
-  // ── StallDetector instance (auto-F5 quando SWF essencial falha) ──
-  // Anexado em did-finish-load, desanexado em close/reload.
+  // ── StallDetector instance (auto-F5 when essential SWF fails) ──
+  // Attached on did-finish-load, detached on close/reload.
   var _stallDetector = null;
 
-  // ── ISOLAMENTO DE CRASH + AUTO-RECOVERY ──
-  // Backoff: max 3 auto-reloads em 10 min por perfil (evita crash loop).
+  // ── CRASH ISOLATION + AUTO-RECOVERY ──
+  // Backoff: max 3 auto-reloads in 10 min per profile (prevents crash loop).
   var _crashTimestamps = [];
   win.webContents.on('render-process-gone', function (_e, details) {
     logger.error(
-      'SessionLifecycle: render-process-gone em "' +
+      'SessionLifecycle: render-process-gone in "' +
         profile.name +
         '" — reason=' +
         details.reason +
@@ -196,10 +196,10 @@ function attach(win, ctx) {
     var now = Date.now();
     _crashTimestamps = _crashTimestamps.filter(function (ts) {
       return now - ts < 600000;
-    }); // janela de 10 min
+    }); // 10 min window
     if (_crashTimestamps.length >= 3) {
       logger.error(
-        'SessionLifecycle: crash limit atingido para "' + profile.name + '" — não recarrega (loop)'
+        'SessionLifecycle: crash limit reached for "' + profile.name + '" — not reloading (loop)'
       );
       return;
     }
@@ -224,7 +224,7 @@ function attach(win, ctx) {
 
   win.on('unresponsive', function () {
     logger.warn(
-      'SessionLifecycle: janela UNRESPONSIVE — "' + profile.name + '" (outras contas continuam ok)'
+      'SessionLifecycle: window UNRESPONSIVE — "' + profile.name + '" (other accounts continue ok)'
     );
   });
   win.on('responsive', function () {
@@ -297,7 +297,7 @@ function attach(win, ctx) {
       logger.debug('CpuOptimizer: skip — ' + e.message);
     }
 
-    // CAMADA 1: limpeza leve (ads, cookies, popups, poluição do site do jogo)
+    // LAYER 1: light cleanup (ads, cookies, popups, game site clutter)
     // Usa executeJavaScript com guard de idempotência — insertCSS() adiciona
     // um novo <style> a CADA chamada (incluindo sub-frame loads do Flash),
     // acumulando estilos duplicados. Com o guard, injeta exatamente uma vez.
@@ -321,7 +321,7 @@ function attach(win, ctx) {
       )
       .catch(function () {});
 
-    // CAMADA 2: fullscreen limpo — esconde header/footer/sidebars do site e faz
+    // LAYER 2: clean fullscreen — hides header/footer/sidebars and makes
     // o #oas-player preencher a janela (experiência imersiva só do jogo).
     //
     // Usa MutationObserver + polling (mesmo padrão robusto do auto-login)
@@ -374,13 +374,13 @@ function attach(win, ctx) {
           logger.info('Fullscreen CSS applied immediately — ' + profile.name);
         } else if (result === 'observing') {
           logger.info(
-            'Fullscreen CSS: aguardando #oas-player (MutationObserver) — ' + profile.name
+            'Fullscreen CSS: waiting for #oas-player (MutationObserver) — ' + profile.name
           );
         }
       })
       .catch(function () {});
 
-    // Mock FB object — fallback se SDK real não carrega
+    // Mock FB object — fallback if real SDK doesn't load
     win.webContents
       .executeJavaScript(
         'if (typeof window.FB === "undefined") {' +
@@ -392,11 +392,11 @@ function attach(win, ctx) {
 
     _tryAutoLogin(profileId, win, entry);
 
-    // ── StallDetector: auto-F5 quando SWF essencial falha (v5.9.11) ──
-    // Monitora webRequest.onCompleted + onErrorOccurred. Se 2+ SWFs falham
-    // em 60s, ou 45s sem atividade de rede durante o loading → trigger
-    // reloadWithPreAuth (mesmo fluxo do F5: limpa + pré-auth via API).
-    // Backoff: max 3 auto-reloads em 10 min. Auto-stop após 120s de atividade.
+    // ── StallDetector: auto-F5 when essential SWF fails (v5.9.11) ──
+    // Monitors webRequest.onCompleted + onErrorOccurred. If 2+ SWFs fail
+    // in 60s, or 45s without network activity during loading → trigger
+    // reloadWithPreAuth (same flow as F5: clear + pre-auth via API).
+    // Backoff: max 3 auto-reloads in 10 min. Auto-stop after 120s of activity.
     if (_stallDetector) {
       try {
         _stallDetector.detach();
@@ -583,19 +583,19 @@ function attach(win, ctx) {
     });
   });
 
-  // ── JWT auto-renewal (pendência herdada, Fase 3g) ──
-  // A cada 30 min, se o perfil tem credenciais no vault, checa se o JWT está
-  // próximo de expirar (threshold 5 min) e renova via api-login. O JWT do
-  // Naruto Online expira em 2h; sem renovação, a sessão cai e o auto-login
-  // via form injection reassume — mas renovar evita essa interrupção.
+  // ── JWT auto-renewal (inherited task, Phase 3g) ──
+  // Every 30 min, if the profile has credentials in the vault, checks if the JWT is
+  // about to expire (threshold 5 min) and renews via api-login. The Naruto Online
+  // JWT expires in 2h; without renewal, the session drops and auto-login
+  // via form injection takes over — but renewing avoids this interruption.
   //
-  // Usa setTimeout recursivo (não setInterval) para aplicar backoff exponencial
-  // REAL: se a renovação falha N vezes consecutivas, o próximo delay dobra
-  // (30min → 1h → 2h → 2h cap). Reseta no próximo sucesso.
+  // Uses recursive setTimeout (not setInterval) to apply exponential backoff
+  // REAL: if renewal fails N consecutive times, the next delay doubles
+  // (30min → 1h → 2h → 2h cap). Resets on next success.
   //
-  // Adicionado backoff exponencial.
-  // Fix — backoff agora é APLICADO no agendamento (antes era calculado
-  // apenas no log, setInterval mantinha 30min fixo).
+  // Added exponential backoff.
+  // Fix — backoff is now APPLIED to scheduling (previously was only
+  // calculated in the log, setInterval kept 30min fixed).
   var _renewConsecutiveFailures = 0;
   var _renewBaseIntervalMs = 30 * 60 * 1000; // 30 min base
 
@@ -638,23 +638,23 @@ function attach(win, ctx) {
             );
             if (_renewConsecutiveFailures <= 2) {
               logger.debug(
-                'JWT auto-renewal falhou (' +
+                'JWT auto-renewal failed (' +
                   _renewConsecutiveFailures +
-                  'x, próximo em ' +
+                  'x, next in ' +
                   Math.round(backoffMs / 60000) +
                   'min): ' +
                   e.message
               );
             } else {
               logger.warn(
-                'JWT auto-renewal falhou ' +
+                'JWT auto-renewal failed ' +
                   _renewConsecutiveFailures +
-                  'x consecutivas — backoff ' +
+                  'x consecutively — backoff ' +
                   Math.round(backoffMs / 60000) +
-                  'min (servidor pode estar fora do ar)'
+                  'min (server may be down)'
               );
             }
-            // Aplica backoff REAL no agendamento
+            // Apply REAL backoff to scheduling
             _scheduleJwtRenewal(backoffMs);
           });
       } catch (e) {

@@ -13,14 +13,14 @@
  *
  *   - performance: máx FPS, fixa CPU em P-cores, nice=-5, OOM protection,
  *                  env vars GPU (NVIDIA threaded opts, PRIME offload, etc.).
- *                  Trade-off: mais consumo de energia, fan mais alto, PC esquenta.
+ *                  Trade-off: higher power consumption, louder fan, PC heats up.
  *
  *   - balanced:    padrão. CPU em P-cores, nice=0, OOM protection.
- *                  Trade-off: nenhum. Recomendado para maioria dos users.
+ *                  Trade-off: none. Recommended for most users.
  *
  *   - quality:     máxima compatibilidade. Sem CPU affinity (scheduler decide),
  *                  nice=+5 (cede prioridade a outras apps), sem OOM protection.
- *                  Trade-off: menos FPS em PCs fracos. Recomendado para quem
+ *                  Trade-off: fewer FPS on low-end PCs. Recommended for those who
  *                  roda o jogo em segundo plano enquanto trabalha.
  */
 

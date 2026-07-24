@@ -1,6 +1,6 @@
 /**
  * Network Inspector — captura dados do jogo via webRequest
- * v1.0.0 — v4.9: dev-mode network inspector (alternativa ao DevTools bloqueado)
+ * v1.0.0 — v4.9: dev-mode network inspector (alternative to blocked DevTools)
  *
  * O jogo Naruto Online roda em Flash (PPAPI). Os dados do personagem (stats,
  * itens, party, etc.) NÃO estão no DOM — estão nas respostas HTTP que o SWF
@@ -14,7 +14,7 @@
  *   - Estatísticas agregadas (requests/min, domains hit, etc.)
  *
  * O DevTools (Ctrl+Shift+I) é bloqueado no jogo por segurança. Este inspector
- * é a alternativa legítima pra desenvolvedores analisarem o tráfego.
+ * is the legitimate alternative for developers to analyze traffic.
  */
 
 'use strict';
@@ -223,7 +223,7 @@ function create(session, profileId) {
       session.webRequest.onBeforeRequest(_filter, null);
       session.webRequest.onResponseStarted(_filter, null);
     } catch (_) {
-      /* session pode estar destruída */
+      /* session may already be destroyed */
     }
     logger.info('Inspector: capture disabled for ' + profileId);
   }

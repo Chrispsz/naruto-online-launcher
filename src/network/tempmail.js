@@ -27,9 +27,9 @@ const MAIL_TM_DOMAINS = MAIL_TM_BASE + '/domains';
 const MAIL_TM_ACCOUNTS = MAIL_TM_BASE + '/accounts';
 const MAIL_TM_TOKEN = MAIL_TM_BASE + '/token';
 
-// v4.9.1: Rate limiting pra não sobrecarregar mail.tm + passport.oasgames.com
+// v4.9.1: Rate limiting to avoid overloading mail.tm + passport.oasgames.com
 // mail.tm tem ~8 contas/hora por IP; passport tem rate-limit desconhecido.
-// Limite: máx 5 contas por hora, mínimo 30s entre tentativas.
+// Limit: max 5 accounts per hour, minimum 30s between attempts.
 const _rateLimit = { history: [], MAX_PER_HOUR: 5, MIN_INTERVAL_MS: 30000 };
 
 function _checkRateLimit() {
@@ -73,7 +73,7 @@ function _checkRateLimit() {
  */
 async function createNarutoAccount(opts) {
   opts = opts || {};
-  // v4.9.1: rate limit pra não sobrecarregar mail.tm + passport
+  // v4.9.1: rate limit to avoid overloading mail.tm + passport
   _checkRateLimit();
   const password = opts.password || _generatePassword();
   const prefix = opts.prefix || 'shinobi' + Math.random().toString(36).slice(2, 10);
@@ -258,7 +258,7 @@ async function _httpGetJson(url, authHeader) {
         try {
           resolve(JSON.parse(data));
         } catch (e) {
-          reject(new Error('JSON parse falhou: ' + e.message + ' | body: ' + data.slice(0, 200)));
+          reject(new Error('JSON parse failed: ' + e.message + ' | body: ' + data.slice(0, 200)));
         }
       });
     });
@@ -296,7 +296,7 @@ async function _httpPostJson(url, body) {
           try {
             resolve(JSON.parse(data));
           } catch (e) {
-            reject(new Error('JSON parse falhou: ' + e.message));
+            reject(new Error('JSON parse failed: ' + e.message));
           }
         });
       }
@@ -329,7 +329,7 @@ async function _httpGetJsonp(url) {
             try {
               resolve(JSON.parse(m[1]));
             } catch (e) {
-              reject(new Error('JSONP parse falhou: ' + e.message));
+              reject(new Error('JSONP parse failed: ' + e.message));
             }
           } else {
             try {
@@ -352,7 +352,7 @@ module.exports = {
   createNarutoAccount: createNarutoAccount,
   login: login,
   getRecommendedServers: getRecommendedServers,
-  // expostos pra testes
+  // exposed for tests
   _generatePassword: _generatePassword,
   _decode: jwt.decode
 };

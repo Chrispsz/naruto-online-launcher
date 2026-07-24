@@ -213,7 +213,7 @@ function removeSnapshot(profileId) {
 }
 
 /**
- * Cria eageramente o diretório da partition persistente no disco.
+ * Creates the persistent partition directory on disk eagerly.
  * Necessário para que bunshin/clone de um perfil recém-criado não falhe com
  * "user-data-dir do origem não existe" (o Chromium só cria o dir no primeiro
  * launch — sem isso, operações que dependem do dir antes do primeiro launch

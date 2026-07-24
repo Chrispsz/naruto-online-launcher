@@ -17,7 +17,7 @@
  *   - Atomic write: escreve em .tmp, renomeia. Nunca corrompe se cair luz.
  *   - Backup .bak antes de cada save. Recuperação automática se JSON quebrar.
  *   - Schema validation: cada perfil é validado; inválidos são descartados.
- *   - Limite 1MB no arquivo (saneamento contra corrupção silenciosa).
+ *   - 1MB file size limit (sanity check against silent corruption).
  *   - Try/catch em TODAS as operações síncronas de I/O.
  *   - Máximo 12 perfis (elevado conforme requisito, mas default é 1 janela ativa).
  */
@@ -38,7 +38,7 @@ const MAX_PROFILES = 10;
 const MAX_FILE_BYTES = 1024 * 1024; // 1MB sane limit
 
 // Launch log (timeline) — persisted separado de profiles.json para
-// não interferir em migrações de schema de perfis. Limite de 5000 entradas
+// avoid interfering with profile schema migrations. Limit of 5000 entries
 // previne crescimento ilimitado (~6 meses de uso intensivo).
 const LAUNCH_LOG_FILE = 'launch-log.json';
 const MAX_LAUNCH_LOG_ENTRIES = 5000;
@@ -245,7 +245,7 @@ function _saveToDisk(profiles) {
   try {
     const json = JSON.stringify(profiles, null, 2);
 
-    // Limite de tamanho antes de escrever
+    // Size limit before writing
     if (Buffer.byteLength(json, 'utf8') > MAX_FILE_BYTES) {
       logger.error('ProfileStore: refusing to save — JSON exceeds 1MB');
       return false;

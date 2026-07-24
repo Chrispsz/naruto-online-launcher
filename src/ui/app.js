@@ -1100,7 +1100,7 @@ function initDevTools() {
       refreshInspector();
       inspectorPoll = setInterval(refreshInspector, 2000);
     } else {
-      toast('Inspector falhou: ' + r.error, 'error');
+      toast('Inspector failed: ' + r.error, 'error');
     }
   };
 

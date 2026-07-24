@@ -14,7 +14,7 @@ const COOKIE_EXPIRY = 365 * 86400; // 1 year in seconds
 // registrava NOVO listener em session.cookies.on('changed'). Como sessions
 // persist:profile-<id> são cached pelo Electron, reabrir um perfil
 // duplicava os listeners → cada cookie change disparava N cookies.set()
-// → degradação cumulativa de performance. Agora skipamos se já configurado.
+// → cumulative performance degradation. Now skipped if already configured.
 const _configuredSessions = new WeakSet();
 
 // Tracking domains to strip cookies from

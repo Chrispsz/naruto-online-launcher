@@ -212,7 +212,7 @@ function _readLegacyCrashReports() {
 }
 
 // ── ZIP writer minimalista (sem dependências) ────────────────────────────
-// Formato ZIP: estrutura simples, deflate. Implementação inline pra não
+// ZIP format: simple structure, deflate. Inline implementation to
 // adicionar dependência (adm-zip/jszip) ao launcher.
 
 function _crc32(buf) {
@@ -391,7 +391,7 @@ async function exportZip(parentWindow) {
 
 module.exports = {
   exportZip: exportZip,
-  // expostos pra testes
+  // exposed for tests
   _sanitize: _sanitize,
   _sanitizeObj: _sanitizeObj,
   _collectSystemInfo: _collectSystemInfo

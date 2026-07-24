@@ -1,31 +1,31 @@
 /**
- * app/CpuOptimizer.js — Otimizações de CPU para Flash Player (v1.0.0)
+ * app/CpuOptimizer.js — CPU optimizations for Flash Player (v1.0.0)
  *
- * Responsabilidade ÚNICA: aplicar otimizações de CPU/Scheduler no processo
- * renderer do Electron onde o Flash PPAPI roda.
+ * Single Responsibility: apply CPU/Scheduler optimizations to the process
+ * Electron renderer process where Flash PPAPI runs.
  *
- * CONTEXTO CRÍTICO — Flash é SINGLE-THREADED:
- *   O ActionScript (lógica do jogo Naruto Online) roda em UM thread só dentro
- *   do processo renderer do Electron. Mesmo que a CPU tenha 16 núcleos, o Flash
- *   só usa 1 para a lógica principal. O scheduler do Linux/Windows move esse
- *   thread entre núcleos (cache thrashing) — fixar em um núcleo P (performance)
- *   reduz cache misses e dá ganho real de FPS (5-15% em CPUs híbridas).
+ * CRITICAL CONTEXT — Flash is SINGLE-THREADED:
+ *   ActionScript (Naruto Online game logic) runs in a SINGLE thread inside the
+ *   Electron renderer process. Even if the CPU has 16 cores, Flash only uses
+ *   1 for the main logic. The Linux/Windows scheduler moves this thread between
+ *   cores (cache thrashing) - pinning to a P-core (performance) reduces cache
+ *   misses and gives a real FPS gain (5-15% on hybrid CPUs).
  *
- * Otimizações aplicadas:
+ * Applied optimizations:
  *   LINUX:
- *     1. CPU affinity via `taskset -cp <cores> <pid>` (fixa renderer em P-cores).
+ *     1. CPU affinity via `taskset -cp <cores> <pid>` (pins renderer to P-cores).
  *     2. Nice priority via `renice -n <priority> -p <pid>` (-5 performance).
- *     3. oom_score_adj=-500 via /proc/<pid>/oom_score_adj (kernel não mata em OOM).
+ *     3. oom_score_adj=-500 via /proc/<pid>/oom_score_adj (kernel won't kill on OOM).
  *
  *   WINDOWS (Win10/11):
  *     1. CPU affinity via PowerShell `Set-Process -ProcessorAffinity <mask>`.
  *     2. Process priority via Node.js `os.setPriority()` (cross-platform, REAL).
- *     3. Sem oom_score_adj equivalente (Windows não tem OOM killer como Linux).
+ *     3. No oom_score_adj equivalent (Windows has no OOM killer like Linux).
  *
- *   macOS: no-op (Mac não roda Flash PPAPI — sem suporte ao plugin).
+ *   macOS: no-op (Mac doesn't run Flash PPAPI — no plugin support).
  *
- * Como Electron não expõe setAffinity direto, usamos processos externos.
- * Em AppImage sem taskset / Windows sem PowerShell, falha silenciosamente.
+ * Since Electron doesn't expose setAffinity directly, we use external processes.
+ * In AppImage without taskset / Windows without PowerShell, fails silently.
  */
 
 'use strict';
@@ -48,15 +48,15 @@ function _winPrioConstants() {
   return _winPrioCache;
 }
 
-let _appliedPids = new Set(); // pids já otimizados (evita reapply)
+let _appliedPids = new Set(); // already-optimized PIDs (avoids reapply)
 
 /**
- * Tenta executar um comando via PowerShell (Windows).
- * Win11 24H2+ e Windows Server Core podem não ter powershell.exe (v5.1).
- * Fallback: pwsh.exe (PowerShell 7+), que pode estar instalado separadamente.
- * Se nenhum estiver disponível, falha silenciosamente.
- * @param {string} script - comando PowerShell (sem -Command wrapper)
- * @param {number} timeout - timeout em ms
+ * Attempts to run a command via PowerShell (Windows).
+ * Win11 24H2+ and Windows Server Core may not have powershell.exe (v5.1).
+ * Fallback: pwsh.exe (PowerShell 7+), which may be installed separately.
+ * If neither is available, fails silently.
+ * @param {string} script - PowerShell command (without -Command wrapper)
+ * @param {number} timeout - timeout in ms
  * @returns {Promise<{ok: boolean, stdout?: string, error?: string}>}
  */
 function _execPowershell(script, timeout) {
@@ -86,10 +86,10 @@ function _tryPwsh(bin, script, timeout, callback) {
 }
 
 /**
- * Detecta o layout de núcleos P (performance) vs E (efficiency) em CPUs híbridas.
+ * Detect P-core vs E-core layout in hybrid CPUs.
  *
- * Em Intel Alder Lake+ (12a gen+), o kernel Linux expõe em
- * /sys/devices/cpu_atom/cpus (E-cores) e /sys/devices/cpu_core/cpus (P-cores).
+ * On Intel Alder Lake+ (12th gen+), the Linux kernel exposes
+ * /sys/devices/cpu_atom/cpus (E-cores) and /sys/devices/cpu_core/cpus (P-cores).
  *
  * @returns {Object} { pCores: [0,1,2,3], eCores: [4,5,6,7], isHybrid: bool }
  */
@@ -103,7 +103,7 @@ function detectCoreTopology() {
       // P-cores (cpu_core): high-performance
       if (fs.existsSync('/sys/devices/cpu_core/cpus')) {
         const raw = fs.readFileSync('/sys/devices/cpu_core/cpus', 'utf8').trim();
-        // Formato: "0-7" ou "0 1 2 3" ou "0,2,4,6"
+        // Format: "0-7" or "0 1 2 3" or "0,2,4,6"
         _parseCpuList(raw).forEach(function (n) {
           pCores.push(n);
         });
@@ -133,7 +133,7 @@ function detectCoreTopology() {
                 if (coreType === 'efficiency') {
                   eCores.push(cpuNum);
                 } else {
-                  // 'performance' ou desconhecido → assume P-core
+                  // 'performance' or unknown → assume P-core
                   pCores.push(cpuNum);
                 }
               }
@@ -142,7 +142,7 @@ function detectCoreTopology() {
             }
           }
         } catch (_) {
-          /* cpuDir não existe — muito improvável */
+          /* cpuDir doesn't exist — very unlikely */
         }
       }
     } catch (_) {
@@ -173,7 +173,7 @@ function detectCoreTopology() {
 function _parseCpuList(raw) {
   if (!raw || raw === '\n') return [];
   const out = [];
-  // Pode ter vírgula ou espaço como separador
+  // Can have comma or space as separator
   const parts = raw.split(/[,\s]+/).filter(Boolean);
   for (const part of parts) {
     const m = part.match(/^(\d+)-(\d+)$/);
@@ -212,7 +212,7 @@ function _applyTaskset(pid, cores) {
       },
       function (err) {
         if (err) {
-          // taskset não disponível (AppImage minimal) ou sem permissão
+          // taskset unavailable (minimal AppImage) or no permission
           logger.debug(
             'CpuOptimizer: taskset failed pid=' + pid + ' cores=' + coresArg + ' — ' + err.message
           );
@@ -300,7 +300,7 @@ function _applyWindowsAffinity(pid, cores) {
     if (!pid || cores.length === 0) {
       return resolve({ ok: false, error: 'invalid-args' });
     }
-    // Bitmask: bit N = core N (máx 64 cores suportadas pelo Windows)
+    // Bitmask: bit N = core N (max 64 cores supported by Windows)
     let mask = 0;
     cores.forEach(function (c) {
       if (c >= 0 && c < 64) mask |= 1 << c;
@@ -412,16 +412,16 @@ async function optimizeRenderer(pid, opts) {
   if (preset === 'quality') {
     // Sem affinity
   } else if (preset === 'performance') {
-    // P-cores + 1 E-core (se híbrido) pra GC não competir com Flash thread
+    // P-cores + 1 E-core (if hybrid) so GC doesn't compete with Flash thread
     if (topology.isHybrid && topology.pCores.length > 0) {
       cores = topology.pCores.slice();
       if (topology.eCores.length > 0) cores.push(topology.eCores[0]);
     } else {
-      // CPU uniforme: primeiros min(4, total) núcleos
+      // Uniform CPU: first min(4, total) cores
       cores = topology.pCores.slice(0, Math.min(4, topology.pCores.length));
     }
   } else {
-    // Balanced: só P-cores (ou primeiros 2 se uniforme)
+    // Balanced: P-cores only (or first 2 if uniform)
     if (topology.isHybrid) {
       cores = topology.pCores.slice(0, Math.max(1, Math.min(topology.pCores.length, 4)));
     } else {
@@ -454,7 +454,7 @@ async function optimizeRenderer(pid, opts) {
         : Promise.resolve({ ok: true, skipped: 'quality-preset' });
     nicePromise = _applyRenice(pid, niceTarget).then(function (res) {
       if (!res.ok && niceTarget < 0) {
-        // Retry com 0 (sem necessidade de CAP_SYS_NICE)
+        // Retry with 0 (no CAP_SYS_NICE needed)
         return _applyRenice(pid, 0);
       }
       return res;
@@ -503,14 +503,14 @@ function getStats() {
  */
 function _reset() {
   _appliedPids.clear();
-  _winPrioCache = null; // limpa cache de constants Windows
+  _winPrioCache = null; // clear Windows constants cache
 }
 
 module.exports = {
   detectCoreTopology: detectCoreTopology,
   optimizeRenderer: optimizeRenderer,
   getStats: getStats,
-  // expostos p/ testes
+  // exposed for tests
   _reset: _reset,
   _parseCpuList: _parseCpuList,
   _applyTaskset: _applyTaskset,

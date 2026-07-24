@@ -271,7 +271,7 @@ function showSetupWindow(onDone) {
         // Persiste
         _persistConfig();
 
-        // Recria mms.cfg com Modo Leve Avançado se ativado
+        // Recreate mms.cfg with Advanced Light Mode if enabled
         try {
           const { createMmsCfg } = require('./flash/mms');
           createMmsCfg(config.hardwareProfile, { advancedMode: config.advancedMode });
@@ -354,7 +354,7 @@ function _showFlashMissingError() {
  * Inicializa UI Manager + banner (separado para chamar após setup).
  */
 function _initManagerAndLaunch() {
-  // v3.5: Recria mms.cfg com Modo Leve Avançado se ativado no config
+  // v3.5: Recreate mms.cfg with Advanced Light Mode if enabled in config
   try {
     const { createMmsCfg } = require('./flash/mms');
     createMmsCfg(config.hardwareProfile, { advancedMode: config.advancedMode === true });
@@ -516,7 +516,7 @@ app.on('window-all-closed', function () {
   app.quit();
 });
 
-// ── Monitoramento de crashes de processos filhos (cron-review-2) ──
+// ── Child process crash monitoring (cron-review-2) ──
 // Estes eventos NÃO fecham o app principal — apenas logamos para diagnóstico.
 // Cada BrowserWindow de jogo já trata 'render-process-gone' isoladamente
 // (em game-launcher.js), mas eventos de GPU/child-process são globais.

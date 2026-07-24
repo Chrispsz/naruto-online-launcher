@@ -1,27 +1,27 @@
 /**
- * app/Auditor.js — Coleta de metadata de sessão por profile (Phase 1, sem UI)
+ * app/Auditor.js — Session metadata collection per profile (Phase 1, no UI)
  *
- * Objetivo: registrar metricas de uso e eventos de cada profile, em memoria +
- * persistir em userData/audit/<profileId>.json. Permite analise post-mortem
- * de稳定性, performance e padroes de uso.
+ * Purpose: record usage metrics and events for each profile, in memory +
+ * persist to userData/audit/<profileId>.json. Enables post-mortem analysis
+ * of stability, performance and usage patterns.
  *
- * Metadata coletada:
- *   - playtimeMs: tempo total (ms) com janela de jogo aberta
- *   - sessionCount: número de sessões (cada attach = 1 sessão)
+ * Metadata collected:
+ *   - playtimeMs: total time (ms) with game window open
+ *   - sessionCount: number of sessions (each attach = 1 session)
  *   - eventsTriggered: { exp: N, pvp: N, war: N, other: N }
  *   - stallsDetected: { count: N, lastAt: ts, reasons: [] }
  *   - networkErrors: { count: N, byType: { auth: N, game: N, ... } }
  *   - crashes: { count: N, reasons: [] }
  *   - autoReloads: { count: N, lastAt: ts }
  *
- * Phase 1: SEM UI. So coleta + persistencia. UI virá em Phase 2.
+ * Phase 1: NO UI. Only collection + persistence. UI comes in Phase 2.
  *
- * Persistencia:
- *   - Throttled: persiste a cada PERSIST_INTERVAL_MS (30s) se dirty
+ * Persistence:
+ *   - Throttled: persists every PERSIST_INTERVAL_MS (30s) if dirty
  *   - Atomic write: tmp + rename
- *   - Retention: max 90 dias (cargas antigas sao deletadas no init)
+ *   - Retention: max 90 days (old data is deleted on init)
  *
- * Integração (hooks externos chamam Auditor.record*):
+ * Integration (external hooks call Auditor.record*):
  *   - SessionLifecycle.attach() → auditor.sessionStart()
  *   - SessionLifecycle close handler → auditor.sessionEnd()
  *   - StallDetector.triggerStall() → auditor.recordStall(reason)
@@ -38,7 +38,7 @@ var logger = require('../utils/logger');
 
 var PERSIST_INTERVAL_MS = 30000; // 30s
 var MAX_RETENTION_DAYS = 90;
-var MAX_REASONS_KEPT = 20; // limita array de reasons pra não crescer indefinidamente
+var MAX_REASONS_KEPT = 20; // cap reasons array to prevent unbounded growth
 
 /**
  * Cria um Auditor para um profile.
@@ -64,14 +64,14 @@ function create(profileId, opts) {
 
   var _now = opts.now || function () { return Date.now(); };
 
-  // Estado em memória (carregado do disco se existir)
+  // In-memory state (loaded from disk if exists)
   var _state = _loadInitialState();
   var _dirty = false;
   var _persistTimer = null;
   var _sessionStartTs = null;
   var _destroyed = false;
 
-  // ── Estado interno ──
+  // ── Internal state ──
   function _loadInitialState() {
     var defaultState = {
       profileId: profileId,
@@ -91,7 +91,7 @@ function create(profileId, opts) {
       if (!fs.existsSync(fp)) return defaultState;
       var raw = fs.readFileSync(fp, 'utf8');
       var loaded = JSON.parse(raw);
-      // Merge: campos novos no default não sobrescrevem os carregados
+      // Merge: new fields in default don't overwrite loaded ones
       var merged = Object.assign({}, defaultState, loaded);
       merged.eventsTriggered = Object.assign(defaultState.eventsTriggered, loaded.eventsTriggered || {});
       merged.stallsDetected = Object.assign(defaultState.stallsDetected, loaded.stallsDetected || {});
@@ -131,10 +131,10 @@ function create(profileId, opts) {
   }
 
   /**
-   * Persiste o estado em disco (atomic: tmp + rename).
-   * Chamado pelo timer throttled ou no destroy.
-   * Nota: _destroyed não bloqueia persist — destroy() precisa persistir
-   * estado final. O guard contra double-persist é _dirty (resetado após write).
+   * Persist state to disk (atomic: tmp + rename).
+   * Called by the throttled timer or on destroy.
+   * Note: _destroyed does not block persist — destroy() needs to persist
+   * final state. The guard against double-persist is _dirty (reset after write).
    */
   function persist() {
     if (!_dirty) return false;
@@ -156,7 +156,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Inicia o timer de persistência throttled.
+   * Start the throttled persistence timer.
    */
   function startPersistTimer() {
     if (_persistTimer) return;
@@ -176,7 +176,7 @@ function create(profileId, opts) {
   // ── Public API: recording methods ──
 
   /**
-   * Registra início de sessão (janela de jogo aberta).
+   * Record session start (game window opened).
    */
   function sessionStart() {
     _state.sessionCount++;
@@ -186,7 +186,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra fim de sessão (janela fechada). Acumula playtime.
+   * Record session end (window closed). Accumulates playtime.
    */
   function sessionEnd() {
     if (_sessionStartTs !== null) {
@@ -199,7 +199,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra um evento disparado (exp/pvp/war/other).
+   * Record a triggered event (exp/pvp/war/other).
    * @param {string} type - exp|pvp|war|other
    */
   function recordEvent(type) {
@@ -209,8 +209,8 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra um stall detectado pelo StallDetector.
-   * @param {string} reason - motivo do stall
+   * Record a stall detected by StallDetector.
+   * @param {string} reason - stall reason
    */
   function recordStall(reason) {
     _state.stallsDetected.count++;
@@ -223,7 +223,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra um erro de rede.
+   * Record a network error.
    * @param {string} type - auth|game|api|other
    */
   function recordNetworkError(type) {
@@ -234,8 +234,8 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra um crash do render process.
-   * @param {string} reason - reason do render-process-gone
+   * Record a render process crash.
+   * @param {string} reason - render-process-gone reason
    */
   function recordCrash(reason) {
     _state.crashes.count++;
@@ -247,7 +247,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Registra um auto-reload (StallDetector ou crash recovery).
+   * Record an auto-reload (StallDetector or crash recovery).
    */
   function recordReload() {
     _state.autoReloads.count++;
@@ -258,10 +258,10 @@ function create(profileId, opts) {
   // ── Public API: query methods ──
 
   /**
-   * Retorna snapshot do estado (cópia profunda).
+   * Return state snapshot (deep copy).
    */
   function getStats() {
-    // Se sessão ativa, inclui playtime corrente
+    // If session active, include current playtime
     var currentPlaytime = _state.playtimeMs;
     if (_sessionStartTs !== null) {
       currentPlaytime += _now() - _sessionStartTs;
@@ -273,7 +273,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Retorna resumo compacto (para IPC/UI futura).
+   * Return compact summary (for future IPC/UI).
    */
   function getSummary() {
     var s = getStats();
@@ -290,7 +290,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Reseta o estado (para testes ou reset manual via UI futura).
+   * Reset state (for tests or manual reset via future UI).
    */
   function reset() {
     _state = {
@@ -311,23 +311,23 @@ function create(profileId, opts) {
   }
 
   /**
-   * Destrói o auditor: persiste estado final, para timer.
+   * Destroy auditor: persist final state, stop timer.
    */
   function destroy() {
     if (_destroyed) return;
     _destroyed = true;
-    sessionEnd(); // acumula playtime final
+    sessionEnd(); // accumulates final playtime
     stopPersistTimer();
     persist();
     logger.debug('Auditor: destroyed — ' + profileId);
   }
 
-  // ── Inicialização ──
+  // ── Initialization ──
   _cleanupOldAudits();
   startPersistTimer();
 
   /**
-   * Limpa arquivos de audit antigos (> MAX_RETENTION_DAYS) de todos profiles.
+   * Clean old audit files (> MAX_RETENTION_DAYS) from all profiles.
    */
   function _cleanupOldAudits() {
     var dir = _getAuditDir();
@@ -359,7 +359,7 @@ function create(profileId, opts) {
     reset: reset,
     persist: persist,
     destroy: destroy,
-    // exposto pra testes
+    // exposed for tests
     _isDirty: function () { return _dirty; },
     _isDestroyed: function () { return _destroyed; },
     _state: function () { return _state; }
@@ -367,9 +367,9 @@ function create(profileId, opts) {
 }
 
 /**
- * Carrega o summary de todos os profiles auditados (para UI futura).
+ * Load summaries from all audited profiles (for future UI).
  * @param {string} userDataPath
- * @returns {Array<Object>} lista de summaries
+ * @returns {Array<Object>} list of summaries
  */
 function loadAllSummaries(userDataPath) {
   var dir = path.join(userDataPath, 'audit');

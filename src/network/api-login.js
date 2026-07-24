@@ -57,7 +57,7 @@ async function loginAndInject(session, email, password, opts) {
     expirationDate: Math.floor(auth.expiresAt / 1000)
   });
 
-  // 3. Seta também o cookie de idioma (pra não rebater pra tela de seleção)
+  // 3. Also sets the language cookie (to avoid bouncing to language selection screen)
   await session.cookies.set({
     url: cookieUrl,
     name: 'oas_lp_language_naruto',

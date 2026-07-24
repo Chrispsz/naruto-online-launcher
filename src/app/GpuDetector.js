@@ -1,5 +1,5 @@
 /**
- * app/GpuDetector.js — Detecção real de GPU por marca (v1.0.0)
+ * app/GpuDetector.js — Real GPU detection by brand (v1.0.0)
  *
  * Responsabilidade ÚNICA: identificar a GPU ativa do sistema (vendor + modelo)
  * para que o flags.js possa aplicar otimizações específicas por marca.
@@ -116,14 +116,14 @@ function _listGpusLinuxSysfs() {
         const vendorRaw = fs.readFileSync(vendorPath, 'utf8').trim();
         const vendorId = parseInt(vendorRaw, 16);
         const code = VENDOR_MAP[vendorId];
-        if (!code) continue; // desconhecido (provável não-GPU)
+        if (!code) continue; // unknown (likely not a GPU)
 
         const deviceRaw = fs.existsSync(devicePath)
           ? fs.readFileSync(devicePath, 'utf8').trim()
           : '0x0000';
         const deviceId = parseInt(deviceRaw, 16);
 
-        // Tenta pegar descrição amigável do uevent (DRM_DRIVER=amdgpu etc)
+        // Try to get friendly description from uevent (DRM_DRIVER=amdgpu etc)
         let driver = '';
         let description = code.toUpperCase() + ' GPU';
         if (fs.existsSync(ueventPath)) {
@@ -282,21 +282,21 @@ function detect() {
 
   let gpus = [];
   if (process.platform === 'linux') {
-    // Detecta sandbox (Flatpak/Snap) — GPU detection via sysfs/lspci pode falhar
+    // Detect sandbox (Flatpak/Snap) — GPU detection via sysfs/lspci may fail
     var sandbox = detectLinuxSandbox();
     if (sandbox) {
       logger.info(
-        'GpuDetector: detectado sandbox ' + sandbox + ' — GPU detection pode ser limitada'
+        'GpuDetector: detected sandbox ' + sandbox + ' — GPU detection may be limited'
       );
     }
     gpus = _listGpusLinuxSysfs();
     if (gpus.length === 0) gpus = _listGpusLinuxLspci();
     if (gpus.length === 0 && sandbox) {
       logger.warn(
-        'GpuDetector: nenhuma GPU detectada em sandbox ' +
+        'GpuDetector: no GPU detected in sandbox ' +
           sandbox +
-          ' — o jogo usará renderização software (swiftshader). ' +
-          'Para GPU passthrough, use flatpak override ou snap interface gpu.'
+          ' — the game will use software rendering (swiftshader). ' +
+          'For GPU passthrough, use flatpak override or snap interface gpu.'
       );
     }
   } else if (process.platform === 'win32') {
@@ -556,9 +556,9 @@ function _parsePowershellGpuCsv(out) {
  */
 function detectLinuxSandbox() {
   if (process.platform !== 'linux') return null;
-  // Flatpak: FLATPAK_ID é setado pelo runtime
+  // Flatpak: FLATPAK_ID is set by the runtime
   if (process.env.FLATPAK_ID) return 'flatpak';
-  // Snap: SNAP_NAME é setado pelo snapd
+  // Snap: SNAP_NAME is set by snapd
   if (process.env.SNAP_NAME) return 'snap';
   return null;
 }
@@ -566,7 +566,7 @@ function detectLinuxSandbox() {
 module.exports = {
   detect: detect,
   getEnvVars: getEnvVars,
-  // expostos p/ testes
+  // exposed for tests
   _resetCache: _resetCache,
   _listGpusLinuxSysfs: _listGpusLinuxSysfs,
   _listGpusLinuxLspci: _listGpusLinuxLspci,

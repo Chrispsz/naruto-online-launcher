@@ -1,12 +1,12 @@
 /**
- * memory/MemoryGuard.js — Monitoramento de memória + Modo Leve (low-spec)
+ * memory/MemoryGuard.js — Memory monitoring + Light Mode (low-spec)
  *
  * Responsabilidade ÚNICA (SRP): observar e reportar o estado de memória do
  * processo main + detectar máquinas low-spec (Modo Leve / Minimal).
  *
  * NÃO executa GC. O V8 cuida do main process sozinho — um launcher passa 99%
  * do tempo idle, e o jogo roda num processo renderer isolado que o main nunca
- * toca. GC forçado em main de 50–100MB é otimização inútil (removido em v1.1.2).
+ * touch. Forced GC in main of 50-100MB is a useless optimization (removed in v1.1.2).
  */
 
 'use strict';
@@ -27,7 +27,7 @@ const MODE = IS_LOW_SPEC ? CONFIG.lowSpec : CONFIG.normal;
 let _thresholdMB = MODE.thresholdMB;
 let _forceLowSpec = false;
 
-// ── Monitoramento ──
+// ── Monitoring ──
 const _startedAt = Date.now();
 let _crashCount = 0;
 
