@@ -14,7 +14,7 @@
  *   - Lançamento de janelas isoladas por `session.fromPartition('persist:profile-<id>')`.
  *     Pepper Flash é injetado via app.commandLine (global, uma vez no boot) —
  *     NÃO por janela. Cada BrowserWindow com `plugins:true` herda o Flash.
- *   - Coordenação com partition.js para shadow partitions (Modo Batata):
+ *   - Coordenação com partition.js para shadow partitions (Modo Low-Spec):
  *     restoreCookies() antes de loadURL, snapshotCookies() no fechamento.
  *   - Coordenação com vault.js para auto-login: se o perfil tem credenciais,
  *     game-launcher injeta no formulário após did-finish-load.

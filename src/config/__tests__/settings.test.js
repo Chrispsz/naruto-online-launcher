@@ -128,23 +128,23 @@ describe('settings.js - validateConfig', () => {
     expect(validateConfig({ language: 123 }).language).toBe('en');
   });
 
-  // ── forceBatata ──
+  // ── forceLowSpec ──
 
-  test('forceBatata true é preservado', () => {
-    expect(validateConfig({ forceBatata: true }).forceBatata).toBe(true);
+  test('forceLowSpec true é preservado', () => {
+    expect(validateConfig({ forceLowSpec: true }).forceLowSpec).toBe(true);
   });
 
-  test('forceBatata false é preservado', () => {
-    expect(validateConfig({ forceBatata: false }).forceBatata).toBe(false);
+  test('forceLowSpec false é preservado', () => {
+    expect(validateConfig({ forceLowSpec: false }).forceLowSpec).toBe(false);
   });
 
-  test('forceBatata undefined resulta undefined', () => {
-    expect(validateConfig({}).forceBatata).toBeUndefined();
+  test('forceLowSpec undefined resulta undefined', () => {
+    expect(validateConfig({}).forceLowSpec).toBeUndefined();
   });
 
-  test('forceBatata com valor truthy não-booleano resulta undefined', () => {
-    expect(validateConfig({ forceBatata: 'yes' }).forceBatata).toBeUndefined();
-    expect(validateConfig({ forceBatata: 1 }).forceBatata).toBeUndefined();
+  test('forceLowSpec com valor truthy não-booleano resulta undefined', () => {
+    expect(validateConfig({ forceLowSpec: 'yes' }).forceLowSpec).toBeUndefined();
+    expect(validateConfig({ forceLowSpec: 1 }).forceLowSpec).toBeUndefined();
   });
 
   // ── mutedEvents ──

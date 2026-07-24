@@ -1,8 +1,8 @@
 /**
- * Tests for src/memory/MemoryGuard.js — telemetria + Modo Leve detection
+ * Tests for src/memory/MemoryGuard.js — monitoramento + Modo Leve detection
  *
- * Verifies: exports, getStats, isBatata/isRamen, getThreshold, setForceBatata,
- * reportCrash, IS_LOW_SPEC/IS_RAMEN.
+ * Verifies: exports, getStats, isLowSpecMode/isMinimal, getThreshold, setForceLowSpec,
+ * reportCrash, IS_LOW_SPEC/IS_MINIMAL.
  *
  * v1.1.2: GcDaemon removido (GC forçado em main de 50MB é otimização inútil).
  * Testes de collect/start/stop/register/unregister/onMemoryUpdate/onGC/
@@ -11,9 +11,9 @@
 
 'use strict';
 
-// Mock partition to avoid side effects from setForceBatata
+// Mock partition to avoid side effects from setForceLowSpec
 jest.mock('../../profiles/partition', () => ({
-  setBatataMode: jest.fn()
+  setLowSpecMode: jest.fn()
 }));
 
 const MemoryGuard = require('../MemoryGuard');
@@ -27,17 +27,17 @@ describe('MemoryGuard.js', () => {
     test('exports getStats as function', () => {
       expect(typeof MemoryGuard.getStats).toBe('function');
     });
-    test('exports isBatata as function', () => {
-      expect(typeof MemoryGuard.isBatata).toBe('function');
+    test('exports isLowSpecMode as function', () => {
+      expect(typeof MemoryGuard.isLowSpecMode).toBe('function');
     });
-    test('exports isRamen as function', () => {
-      expect(typeof MemoryGuard.isRamen).toBe('function');
+    test('exports isMinimal as function', () => {
+      expect(typeof MemoryGuard.isMinimal).toBe('function');
     });
     test('exports getThreshold as function', () => {
       expect(typeof MemoryGuard.getThreshold).toBe('function');
     });
-    test('exports setForceBatata as function', () => {
-      expect(typeof MemoryGuard.setForceBatata).toBe('function');
+    test('exports setForceLowSpec as function', () => {
+      expect(typeof MemoryGuard.setForceLowSpec).toBe('function');
     });
     test('exports reportCrash as function', () => {
       expect(typeof MemoryGuard.reportCrash).toBe('function');
@@ -45,8 +45,8 @@ describe('MemoryGuard.js', () => {
     test('exports IS_LOW_SPEC as boolean', () => {
       expect(typeof MemoryGuard.IS_LOW_SPEC).toBe('boolean');
     });
-    test('exports IS_RAMEN as boolean', () => {
-      expect(typeof MemoryGuard.IS_RAMEN).toBe('boolean');
+    test('exports IS_MINIMAL as boolean', () => {
+      expect(typeof MemoryGuard.IS_MINIMAL).toBe('boolean');
     });
     test('exports SYSTEM_RAM_GB as number', () => {
       expect(typeof MemoryGuard.SYSTEM_RAM_GB).toBe('number');
@@ -59,8 +59,8 @@ describe('MemoryGuard.js', () => {
       const stats = MemoryGuard.getStats();
       expect(stats).toHaveProperty('totalMB');
       expect(stats).toHaveProperty('thresholdMB');
-      expect(stats).toHaveProperty('isBatata');
-      expect(stats).toHaveProperty('isRamen');
+      expect(stats).toHaveProperty('isLowSpecMode');
+      expect(stats).toHaveProperty('isMinimal');
       expect(stats).toHaveProperty('systemRAM');
       expect(stats).toHaveProperty('timestamp');
       expect(stats).toHaveProperty('uptimeMs');
@@ -98,51 +98,51 @@ describe('MemoryGuard.js', () => {
     });
   });
 
-  describe('isBatata / isRamen', () => {
-    test('isBatata returns a boolean', () => {
-      expect(typeof MemoryGuard.isBatata()).toBe('boolean');
+  describe('isLowSpecMode / isMinimal', () => {
+    test('isLowSpecMode returns a boolean', () => {
+      expect(typeof MemoryGuard.isLowSpecMode()).toBe('boolean');
     });
 
-    test('isRamen returns a boolean', () => {
-      expect(typeof MemoryGuard.isRamen()).toBe('boolean');
+    test('isMinimal returns a boolean', () => {
+      expect(typeof MemoryGuard.isMinimal()).toBe('boolean');
     });
 
-    test('IS_RAMEN implies IS_LOW_SPEC', () => {
-      if (MemoryGuard.IS_RAMEN) {
+    test('IS_MINIMAL implies IS_LOW_SPEC', () => {
+      if (MemoryGuard.IS_MINIMAL) {
         expect(MemoryGuard.IS_LOW_SPEC).toBe(true);
       }
     });
 
-    test('isRamen is consistent with IS_RAMEN', () => {
-      expect(MemoryGuard.isRamen()).toBe(MemoryGuard.IS_RAMEN);
+    test('isMinimal is consistent with IS_MINIMAL', () => {
+      expect(MemoryGuard.isMinimal()).toBe(MemoryGuard.IS_MINIMAL);
     });
   });
 
-  describe('setForceBatata', () => {
-    test('enables batata mode when called with true', () => {
-      MemoryGuard.setForceBatata(true);
-      expect(MemoryGuard.isBatata()).toBe(true);
+  describe('setForceLowSpec', () => {
+    test('enables lowSpec mode when called with true', () => {
+      MemoryGuard.setForceLowSpec(true);
+      expect(MemoryGuard.isLowSpecMode()).toBe(true);
     });
 
     test('restores normal mode when called with false', () => {
-      MemoryGuard.setForceBatata(true);
-      MemoryGuard.setForceBatata(false);
-      expect(MemoryGuard.isBatata()).toBe(MemoryGuard.IS_LOW_SPEC);
+      MemoryGuard.setForceLowSpec(true);
+      MemoryGuard.setForceLowSpec(false);
+      expect(MemoryGuard.isLowSpecMode()).toBe(MemoryGuard.IS_LOW_SPEC);
     });
 
-    test('updates threshold to batata config when enabled', () => {
-      MemoryGuard.setForceBatata(true);
-      expect(MemoryGuard.getThreshold()).toBe(450); // batata thresholdMB
+    test('updates threshold to lowSpec config when enabled', () => {
+      MemoryGuard.setForceLowSpec(true);
+      expect(MemoryGuard.getThreshold()).toBe(450); // lowSpec thresholdMB
     });
 
-    test('calls partition.setBatataMode', () => {
+    test('calls partition.setLowSpecMode', () => {
       const partition = require('../../profiles/partition');
-      MemoryGuard.setForceBatata(true);
-      expect(partition.setBatataMode).toHaveBeenCalledWith(true);
+      MemoryGuard.setForceLowSpec(true);
+      expect(partition.setLowSpecMode).toHaveBeenCalledWith(true);
     });
 
     afterEach(() => {
-      MemoryGuard.setForceBatata(false);
+      MemoryGuard.setForceLowSpec(false);
     });
   });
 

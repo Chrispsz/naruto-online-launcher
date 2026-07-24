@@ -40,9 +40,9 @@ First public release. Squashed from 153 pre-squash commits (v4.9.2 → v5.26.0) 
 - **Multi-account, fully isolated** — each account gets its own Chromium session partition (`persist:profile-<id>`). Cookies, localStorage, cache, and service workers are 100% isolated.
 - **Encrypted credential vault** — AES-256-GCM + PBKDF2-SHA512 (100k iterations on-disk, 200k for master-password backups). Machine-bound key.
 - **Multi-region event reminders** — 4 server clusters (BR / NA / EU / HK), 11 events per region, DST auto-detected, native desktop notifications N minutes before each event.
-- **Memory guard daemon** — samples RSS every 5 min (2 min in Modo Batata); triggers layered GC (idle-session `clearCache()` + `process.gc(true)` + Windows `EmptyWorkingSet`) when memory crosses 700 MB normal / 450 MB low-spec thresholds.
+- **Memory guard daemon** — samples RSS every 5 min (2 min in Modo Low-Spec); triggers layered GC (idle-session `clearCache()` + `process.gc(true)` + Windows `EmptyWorkingSet`) when memory crosses 700 MB normal / 450 MB low-spec thresholds.
 - **Stall auto-recovery** — 3 retries within 10 min, auto re-login via form injection + API pre-auth, self-disabling after 120s stable.
-- **Modo Batata (low-end PC mode)** — auto-enabled on <4 GB RAM, or manually forced. Writes `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` to `mms.cfg`.
+- **Modo Low-Spec (low-end PC mode)** — auto-enabled on <4 GB RAM, or manually forced. Writes `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` to `mms.cfg`.
 - **Temp email for alt accounts** — mail.tm integration, rate-limited to 5 accounts/hour, captures 2h JWT login key automatically.
 - **Tracker blocking** — WebRequest-level filter for known tracker domains (Google Analytics, DoubleClick, Facebook pixels, Oasgames analytics). Game API endpoints explicitly whitelisted.
 - **Cross-platform** — Linux (AppImage) + Windows (portable EXE). Zero tracking, zero dependencies, FUSE-free.

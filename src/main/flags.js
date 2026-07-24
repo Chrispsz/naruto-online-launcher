@@ -27,11 +27,11 @@ let _applied = false;
 
 /**
  * Compute the V8 heap size in MB based on available RAM.
- * @param {boolean} [forceBatata=false] - Force low-RAM mode
+ * @param {boolean} [forceLowSpec=false] - Force low-RAM mode
  * @returns {number} heap size in MB
  */
-function _computeHeapMB(forceBatata) {
-  const low = forceBatata || TOTAL_RAM_GB < 4;
+function _computeHeapMB(forceLowSpec) {
+  const low = forceLowSpec || TOTAL_RAM_GB < 4;
   if (low) return 384;
   if (TOTAL_RAM_GB < 8) return 768;
   if (TOTAL_RAM_GB < 16) return 1024;
@@ -40,14 +40,14 @@ function _computeHeapMB(forceBatata) {
 
 /**
  * Aplica TODAS as flags. Idempotente (só roda 1x).
- * @param {Object} opts - { flashPath, flashVersion, hardwareProfile, forceBatata }
+ * @param {Object} opts - { flashPath, flashVersion, hardwareProfile, forceLowSpec }
  */
 function applyAll(opts) {
   opts = opts || {};
   if (_applied) return;
   _applied = true;
 
-  const low = !!opts.forceBatata || TOTAL_RAM_GB < 4;
+  const low = !!opts.forceLowSpec || TOTAL_RAM_GB < 4;
 
   // Sandbox (global — PPAPI precisa)
   app.commandLine.appendSwitch('no-sandbox');
@@ -106,7 +106,7 @@ function applyAll(opts) {
   }
 
   // JS heap
-  _jsFlags.push('--max-old-space-size=' + _computeHeapMB(opts.forceBatata));
+  _jsFlags.push('--max-old-space-size=' + _computeHeapMB(opts.forceLowSpec));
 
   // Flash
   if (opts.flashPath) {
@@ -140,7 +140,7 @@ module.exports = {
   applyAll,
   getAppliedSnapshot,
   IS_LOW_SPEC: TOTAL_RAM_GB < 4,
-  IS_RAMEN: TOTAL_RAM_GB < 2,
+  IS_MINIMAL: TOTAL_RAM_GB < 2,
   IS_WAYLAND: IS_WAYLAND,
   SYSTEM_RAM_GB: Math.round(TOTAL_RAM_GB * 10) / 10
 };

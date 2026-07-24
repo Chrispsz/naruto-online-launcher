@@ -18,7 +18,7 @@ jest.mock('../../../profiles/store', () => ({
 }));
 
 jest.mock('../../../memory/guard', () => ({
-  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 700, isBatata: false }))
+  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 700, isLowSpecMode: false }))
 }));
 
 jest.mock('../../../utils/EventTimers', () => ({

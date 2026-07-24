@@ -14,12 +14,12 @@
  *   domínio do jogo (típicos 2-5KB) e salva em cookie-snapshots.json.
  *   Na próxima abertura, restaura os cookies antes de carregar a página.
  *
- *   Resultado: mesmo multi-conta em PC batata não acumula 300MB de partitions.
+ *   Resultado: mesmo multi-conta em PC low-spec não acumula 300MB de partitions.
  *   O custo é re-download de assets estáticos (mitigado pelo disk-cache-size
  *   global compartilhado na default session).
  *
  * POLÍTICA:
- *   - Modo Batata (RAM <4GB) ou forceBatata → shadow ATIVO para todos os perfis.
+ *   - Modo Low-Spec (RAM <4GB) ou forceLowSpec → shadow ATIVO para todos os perfis.
  *   - Modo normal → persist (comportamento padrão, backwards-compatible).
  *   - Profile pode forçar shadow via profile.shadow=true (power-user opt-in).
  *
@@ -43,17 +43,17 @@ const MAX_SNAPSHOTS_BYTES = 512 * 1024; // 512KB sane limit
 const AUTH_DOMAINS = ['oasgames.com', 'naruto.oasgames.com'];
 
 let _snapshots = null; // profileId -> [cookie, ...]
-let _batataMode = false;
+let _lowSpecMode = false;
 
 /**
  * Set whether shadow (ephemeral) partitions should be the default.
- * Called from memory/guard when Modo Batata toggles.
- * @param {boolean} batata
+ * Called from memory/guard when Modo Low-Spec toggles.
+ * @param {boolean} lowSpec
  */
-function setBatataMode(batata) {
-  _batataMode = !!batata;
+function setLowSpecMode(lowSpec) {
+  _lowSpecMode = !!lowSpec;
   logger.info(
-    'partition: Modo Batata = ' + _batataMode + ' → shadow default = ' + shouldUseShadow(null)
+    'partition: Modo Low-Spec = ' + _lowSpecMode + ' → shadow default = ' + shouldUseShadow(null)
   );
 }
 
@@ -64,7 +64,7 @@ function setBatataMode(batata) {
  */
 function shouldUseShadow(profile) {
   if (profile && profile.shadow === true) return true;
-  if (_batataMode) return true;
+  if (_lowSpecMode) return true;
   return false;
 }
 
@@ -246,7 +246,7 @@ function ensurePartitionDir(profile) {
 }
 
 module.exports = {
-  setBatataMode: setBatataMode,
+  setLowSpecMode: setLowSpecMode,
   shouldUseShadow: shouldUseShadow,
   getPartitionName: getPartitionName,
   snapshotCookies: snapshotCookies,

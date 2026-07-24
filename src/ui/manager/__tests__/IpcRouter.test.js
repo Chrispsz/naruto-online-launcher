@@ -35,7 +35,7 @@ jest.mock('../../../profiles/store', () => ({
 }));
 
 jest.mock('../../../memory/guard', () => ({
-  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 512, isBatata: false, isRamen: false })),
+  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 512, isLowSpecMode: false, isMinimal: false })),
   collect: jest.fn(() => ({ freed: 0 })),
   getWebviewStats: jest.fn(() => []),
   onMemoryUpdate: jest.fn(),

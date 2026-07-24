@@ -133,7 +133,7 @@ Update `flash/manifest.json` so its `version` (Windows) or `linux_version` (Linu
 | File | Purpose |
 |------|---------|
 | `src/flash/plugin.js` | `findFlashPlugin()`, `configureFlash()`, `getFlashVersion()` — the loader |
-| `src/flash/mms.js` | Generates `mms.cfg` for Modo Batata (Low-PC mode) |
+| `src/flash/mms.js` | Generates `mms.cfg` for Modo Low-Spec (Low-PC mode) |
 | `src/main/flags.js` | Applies all other Chromium flags (`--no-sandbox`, `--always-authorize-plugins`, JS heap, etc.) |
 | `src/main.js` | Boot orchestration: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (or shows a Flash-missing prompt — no auto-download) |
 | `flash/manifest*.json` | Version metadata read by `getFlashVersion()` |
@@ -269,7 +269,7 @@ Atualize `flash/manifest.json` para que o campo `version` (Windows) ou `linux_ve
 | Arquivo | Propósito |
 |---------|-----------|
 | `src/flash/plugin.js` | `findFlashPlugin()`, `configureFlash()`, `getFlashVersion()` — o loader |
-| `src/flash/mms.js` | Gera `mms.cfg` para o Modo Batata (Low-PC mode) |
+| `src/flash/mms.js` | Gera `mms.cfg` para o Modo Low-Spec (Low-PC mode) |
 | `src/main/flags.js` | Aplica todos os outros flags Chromium (`--no-sandbox`, `--always-authorize-plugins`, heap JS, etc.) |
 | `src/main.js` | Orquestração de boot: `applyAll(flags)` → `findFlashPlugin()` → `configureFlash()` → `createManagerWindow()` (ou mostra prompt de Flash faltando — sem auto-download) |
 | `flash/manifest*.json` | Metadata de versão lida por `getFlashVersion()` |

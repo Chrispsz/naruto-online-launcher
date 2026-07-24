@@ -1,7 +1,7 @@
 /**
  * Tests for src/profiles/partition.js — Shadow Partition manager
  *
- * Verifies: setBatataMode, shouldUseShadow, getPartitionName,
+ * Verifies: setLowSpecMode, shouldUseShadow, getPartitionName,
  * snapshotCookies, restoreCookies, removeSnapshot, ensurePartitionDir,
  * AUTH_DOMAINS.
  */
@@ -44,15 +44,15 @@ describe('partition.js', function () {
       if (p === 'userData') return tmpDir;
       return '/tmp/naruto-test/' + p;
     });
-    // Reset batata mode before each test
-    partition.setBatataMode(false);
+    // Reset lowSpec mode before each test
+    partition.setLowSpecMode(false);
   });
 
   // ── Exports ──
 
   describe('exports', function () {
-    test('exports setBatataMode as function', function () {
-      expect(typeof partition.setBatataMode).toBe('function');
+    test('exports setLowSpecMode as function', function () {
+      expect(typeof partition.setLowSpecMode).toBe('function');
     });
     test('exports shouldUseShadow as function', function () {
       expect(typeof partition.shouldUseShadow).toBe('function');
@@ -91,30 +91,30 @@ describe('partition.js', function () {
     });
   });
 
-  // ── setBatataMode / shouldUseShadow ──
+  // ── setLowSpecMode / shouldUseShadow ──
 
-  describe('setBatataMode', function () {
+  describe('setLowSpecMode', function () {
     test('enables shadow mode when called with true', function () {
-      partition.setBatataMode(true);
+      partition.setLowSpecMode(true);
       expect(partition.shouldUseShadow(null)).toBe(true);
     });
     test('disables shadow mode when called with false', function () {
-      partition.setBatataMode(true);
-      partition.setBatataMode(false);
+      partition.setLowSpecMode(true);
+      partition.setLowSpecMode(false);
       expect(partition.shouldUseShadow(null)).toBe(false);
     });
     test('coerces truthy value 1 to boolean true', function () {
-      partition.setBatataMode(1);
+      partition.setLowSpecMode(1);
       expect(partition.shouldUseShadow(null)).toBe(true);
     });
     test('coerces falsy value 0 to boolean false', function () {
-      partition.setBatataMode(0);
+      partition.setLowSpecMode(0);
       expect(partition.shouldUseShadow(null)).toBe(false);
     });
   });
 
   describe('shouldUseShadow', function () {
-    test('returns false by default (no batata, no profile.shadow)', function () {
+    test('returns false by default (no lowSpec, no profile.shadow)', function () {
       expect(partition.shouldUseShadow(null)).toBe(false);
     });
     test('returns true when profile.shadow is true', function () {
@@ -123,12 +123,12 @@ describe('partition.js', function () {
     test('returns false when profile.shadow is false', function () {
       expect(partition.shouldUseShadow({ shadow: false, id: 'p1' })).toBe(false);
     });
-    test('returns true when batata mode is on even without profile', function () {
-      partition.setBatataMode(true);
+    test('returns true when lowSpec mode is on even without profile', function () {
+      partition.setLowSpecMode(true);
       expect(partition.shouldUseShadow(null)).toBe(true);
     });
-    test('profile.shadow=true overrides batata mode off', function () {
-      partition.setBatataMode(false);
+    test('profile.shadow=true overrides lowSpec mode off', function () {
+      partition.setLowSpecMode(false);
       expect(partition.shouldUseShadow({ shadow: true, id: 'p1' })).toBe(true);
     });
   });
@@ -148,8 +148,8 @@ describe('partition.js', function () {
       var result = partition.getPartitionName('p_002');
       expect(result).toBe('persist:profile-p_002');
     });
-    test('returns shadow partition when batata mode is on', function () {
-      partition.setBatataMode(true);
+    test('returns shadow partition when lowSpec mode is on', function () {
+      partition.setLowSpecMode(true);
       var result = partition.getPartitionName({ id: 'p_003' });
       expect(result).toBe('partition:profile-p_003');
     });

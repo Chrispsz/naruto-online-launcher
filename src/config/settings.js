@@ -29,14 +29,19 @@ function getConfigPath() {
 function validateConfig(rawConfig) {
   const region = rawConfig && rawConfig.region;
   const hardwareProfile = rawConfig && rawConfig.hardwareProfile;
-  const forceBatata = rawConfig && rawConfig.forceBatata;
+  // Backward-compat: aceita forceLowSpec (novo) ou forceLowSpec (legacy v<=5.x)
+  const forceLowSpec = rawConfig
+    ? rawConfig.forceLowSpec !== undefined
+      ? rawConfig.forceLowSpec
+      : rawConfig.forceLowSpec
+    : undefined;
 
   const optimizationPreset = rawConfig && rawConfig.optimizationPreset;
 
   const validated = {
     region: isValidRegion(region) ? normalizeRegion(region) : getDefaultRegion(),
     hardwareProfile: isValidProfile(hardwareProfile) ? hardwareProfile : getDefaultProfile(),
-    forceBatata: forceBatata === true ? true : forceBatata === false ? false : undefined,
+    forceLowSpec: forceLowSpec === true ? true : forceLowSpec === false ? false : undefined,
     mutedEvents: rawConfig && rawConfig.mutedEvents === true,
     windowBounds: (rawConfig && rawConfig.windowBounds) || null,
     // skip firstBoot setup wizard — defaults are sensible (EN + balanced preset).
@@ -115,7 +120,7 @@ function saveConfig(config) {
       {
         region: config.region,
         hardwareProfile: config.hardwareProfile,
-        forceBatata: config.forceBatata,
+        forceLowSpec: config.forceLowSpec,
         mutedEvents: config.mutedEvents,
         windowBounds: config.windowBounds || null,
         // v3.5

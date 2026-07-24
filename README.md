@@ -43,14 +43,14 @@ Four real Naruto Online server clusters are supported: **BR** (America/Sao_Paulo
 ### Real performance optimizations
 - **Smart optimization** — always on. Curated Chromium flags tuned for Flash PPAPI: background throttling off, hang monitor off, sandbox disabled (required for PPAPI), disk cache sized to RAM.
 - **Force CPU rendering** — for GPUs with driver issues. Appends `--disable-gpu` + `--use-gl=swiftshader` + `--num-raster-threads=<min(CPU_CORES,4)>`. Requires restart.
-- **Low-end PC mode ("Modo Batata")** — auto-enabled on systems with <4 GB RAM, or manually forced. Writes `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` to `mms.cfg` (Flash config). Tighter memory thresholds and preventive GC. Takes effect on next game launch — no restart needed.
+- **Low-end PC mode ("Modo Low-Spec")** — auto-enabled on systems with <4 GB RAM, or manually forced. Writes `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` to `mms.cfg` (Flash config). Tighter memory thresholds and preventive GC. Takes effect on next game launch — no restart needed.
 - **CPU affinity** — Flash is single-threaded for game logic; the renderer process is pinned to P-cores via `taskset` (Linux) or `Set-Process -ProcessorAffinity` (Windows), plus `renice -n -5` / `os.setPriority()` and `oom_score_adj=-500` on Linux.
 
 ### Stall detection + auto-recovery
 If a game window's renderer crashes (OOM, abnormal exit), the launcher auto-reloads after 1.5 s — up to 3 crashes per 10 minutes per profile (loop protection). Clean exits and user kills are skipped. A `StallDetector` also watches sub-resource (SWF) failures via `webRequest.onCompleted`/`onErrorOccurred` and triggers a `reloadWithPreAuth` when 2+ SWFs fail in 60s or 45s pass with zero network activity during loading. After 120s of stable activity the watchdog stops (the game is up).
 
 ### Memory guard
-Flash PPAPI + Chromium 87 has chronic memory leaks — after 1-2h a single game window can exceed 1 GB and stall. The **MemoryGuard** daemon samples RSS every 5 min (2 min in Modo Batata); when total memory crosses 700 MB normal / 450 MB low-spec, the **GcDaemon** triggers a layered GC: idle-session `clearCache()` (never touches partitions with an active game — that caused black screens), V8 `process.gc(true)` on the main process, and on Windows `EmptyWorkingSet` via PowerShell. Manual `F8` also available. The webview-level `window.gc()` was disabled in v4.9.1 because it paused Flash.
+Flash PPAPI + Chromium 87 has chronic memory leaks — after 1-2h a single game window can exceed 1 GB and stall. The **MemoryGuard** daemon samples RSS every 5 min (2 min in Modo Low-Spec); when total memory crosses 700 MB normal / 450 MB low-spec, the **GcDaemon** triggers a layered GC: idle-session `clearCache()` (never touches partitions with an active game — that caused black screens), V8 `process.gc(true)` on the main process, and on Windows `EmptyWorkingSet` via PowerShell. Manual `F8` also available. The webview-level `window.gc()` was disabled in v4.9.1 because it paused Flash.
 
 ### Event timer + notifications
 `EventTimers.js` polls every 30 s for upcoming events across all active regions, computes server-time-to-user-time conversion without a TZ library (DST auto-detected), and fires native `Notification` reminders N minutes before each event starts. Reminders are bilingual (event names have `name_pt` + `name_en`).
@@ -205,7 +205,7 @@ All runtime configuration lives in `src/config/`:
 
 | File | Purpose |
 |------|---------|
-| `settings.js` | Load/save `userData/config.json`. Validates region, hardwareProfile, language, optimizationPreset, forceBatata, mutedEvents, windowBounds. |
+| `settings.js` | Load/save `userData/config.json`. Validates region, hardwareProfile, language, optimizationPreset, forceLowSpec, mutedEvents, windowBounds. |
 | `regions.js` | Valid game-region codes (BR / NA / EU / HK) — the launcher language list (PT / EN / FR / DE / ES / PL) lives here too, used by the server selector. |
 | `i18n.js` | Bilingual string tables (English + Brazilian Portuguese). Every user-facing string has both. |
 | `urls.js` | Game URL builder per region/language/server. |
@@ -294,14 +294,14 @@ Quatro clusters reais de servidores Naruto Online suportados: **BR** (America/Sa
 ### Otimizações reais de performance
 - **Smart optimization** — sempre ligado. Set curado de flags Chromium ajustadas para Flash PPAPI: background-throttling off, hang monitor off, sandbox desabilitado (requerido para PPAPI), disk cache dimensionado à RAM.
 - **Forçar renderização por CPU** — para GPUs com problemas de driver. Adiciona `--disable-gpu` + `--use-gl=swiftshader` + `--num-raster-threads=<min(CPU_CORES,4)>`. Requer restart.
-- **Modo PC modesto ("Modo Batata")** — auto-ativado em sistemas com <4 GB RAM, ou forçado manualmente. Escreve `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` no `mms.cfg` (config do Flash). Thresholds de memória mais apertados e GC preventivo. Faz efeito no próximo launch do jogo — sem restart.
+- **Modo PC modesto ("Modo Low-Spec")** — auto-ativado em sistemas com <4 GB RAM, ou forçado manualmente. Escreve `EnableHardwareAcceleration=0` + `AssetCacheSize=0` + `AutoUpdateDisable=1` no `mms.cfg` (config do Flash). Thresholds de memória mais apertados e GC preventivo. Faz efeito no próximo launch do jogo — sem restart.
 - **Afinidade de CPU** — Flash é single-threaded para lógica do jogo; o processo renderer é fixado em P-cores via `taskset` (Linux) ou `Set-Process -ProcessorAffinity` (Windows), mais `renice -n -5` / `os.setPriority()` e `oom_score_adj=-500` no Linux.
 
 ### Detecção de stall + auto-recuperação
 Se o renderer de uma janela de jogo crashar (OOM, saída anormal), o launcher auto-recarrega após 1,5 s — até 3 crashes por 10 minutos por perfil (proteção contra loop). Saídas limpas e kills do usuário são pulados. Um `StallDetector` também observa falhas de sub-recursos (SWFs) via `webRequest.onCompleted`/`onErrorOccurred` e dispara um `reloadWithPreAuth` quando 2+ SWFs falham em 60s ou 45s passam sem atividade de rede durante o loading. Após 120s de atividade estável o watchdog para (o jogo está no ar).
 
 ### Guardião de memória
-Flash PPAPI + Chromium 87 tem vazamentos crônicos — depois de 1-2h uma janela de jogo pode passar de 1 GB e travar. O daemon **MemoryGuard** amostra o RSS a cada 5 min (2 min no Modo Batata); quando a memória total cruza 700 MB normal / 450 MB low-spec, o **GcDaemon** dispara um GC em camadas: `clearCache()` das sessions ociosas (nunca toca partitions com jogo ativo — isso causava tela preta), `process.gc(true)` no processo main, e no Windows `EmptyWorkingSet` via PowerShell. `F8` manual também disponível. O `window.gc()` no renderer foi desativado em v4.9.1 porque pausava o Flash.
+Flash PPAPI + Chromium 87 tem vazamentos crônicos — depois de 1-2h uma janela de jogo pode passar de 1 GB e travar. O daemon **MemoryGuard** amostra o RSS a cada 5 min (2 min no Modo Low-Spec); quando a memória total cruza 700 MB normal / 450 MB low-spec, o **GcDaemon** dispara um GC em camadas: `clearCache()` das sessions ociosas (nunca toca partitions com jogo ativo — isso causava tela preta), `process.gc(true)` no processo main, e no Windows `EmptyWorkingSet` via PowerShell. `F8` manual também disponível. O `window.gc()` no renderer foi desativado em v4.9.1 porque pausava o Flash.
 
 ### Timer de eventos + notificações
 `EventTimers.js` polla a cada 30 s por eventos próximos em todas as regiões ativas, faz a conversão hora-do-servidor → hora-do-usuário sem library de TZ (DST auto-detectado), e dispara lembretes nativos via `Notification` N minutos antes de cada evento começar. Os lembretes são bilíngues (nomes de evento têm `name_pt` + `name_en`).
@@ -440,7 +440,7 @@ O Shinobi Launcher é dividido em **13 módulos fonte** sob `src/`, cada um com 
 | 6 | Memory | `src/memory/` | `MemoryGuard` (monitor RSS + registry de webviews ativas), `GcDaemon` (GC em camadas: clearCache ocioso + process.gc + EmptyWorkingSet Windows). |
 | 7 | Config | `src/config/` | `settings` (load/save config.json), `regions` (códigos de região válidos), `i18n` (tabelas EN + PT), `urls` (URLs do jogo por região/idioma/servidor), `hardware` (perfis CPU/GPU), `optimization` (presets performance/balanced/quality). |
 | 8 | Utils | `src/utils/` | `logger` (wrapper electron-log), `diagnostics` (export logs+config .zip — nunca credenciais), `EventTimers` (lembretes + math de TZ), `jwt` (decode HS256 do loginKey). |
-| 9 | Flash | `src/flash/` | `plugin` (findFlashPlugin + configureFlash), `mms` (gerador de mms.cfg para Modo Batata). |
+| 9 | Flash | `src/flash/` | `plugin` (findFlashPlugin + configureFlash), `mms` (gerador de mms.cfg para Modo Low-Spec). |
 | 10 | Main | `src/main/` | `flags` (single source of truth dos switches de linha de comando Chromium), `debug` (helpers de debug mode). |
 | 11 | Entry | `src/main.js` + `src/preload.js` | Bootstrap Electron: app.whenReady → applyAll flags → findFlashPlugin → createManagerWindow → start daemons. |
 | 12 | Sub-views UI | `src/ui/loading/`, `src/ui/setup/` | `loading.html` (splash de boot, atualmente não usado pós-remoção do FlashUpdater), `setup.html` (wizard de primeiro boot, atualmente pulado — defaults são sensatos). |
@@ -456,7 +456,7 @@ Toda configuração de runtime vive em `src/config/`:
 
 | Arquivo | Propósito |
 |---------|-----------|
-| `settings.js` | Load/save `userData/config.json`. Valida region, hardwareProfile, language, optimizationPreset, forceBatata, mutedEvents, windowBounds. |
+| `settings.js` | Load/save `userData/config.json`. Valida region, hardwareProfile, language, optimizationPreset, forceLowSpec, mutedEvents, windowBounds. |
 | `regions.js` | Códigos válidos de região do jogo (BR / NA / EU / HK) — a lista de idiomas do launcher (PT / EN / FR / DE / ES / PL) também vive aqui, usada pelo seletor de servidor. |
 | `i18n.js` | Tabelas bilíngues de strings (Inglês + Português brasileiro). Toda string visível ao usuário tem ambas. |
 | `urls.js` | Builder de URL do jogo por região/idioma/servidor. |

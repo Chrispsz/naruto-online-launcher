@@ -24,7 +24,7 @@ There is no third process type. The "loading" window (`src/ui/loading/loading.ht
 ```
 app.whenReady()
    │
-   1. flags.applyAll({ flashPath, flashVersion, hardwareProfile, forceBatata })
+   1. flags.applyAll({ flashPath, flashVersion, hardwareProfile, forceLowSpec })
    │     └─ appends --no-sandbox, --always-authorize-plugins, --ppapi-flash-path,
    │        --ppapi-flash-version, --js-flags=--expose-gc --max-old-space-size=<N>,
    │        --disable-features=..., --enable-features=..., disk-cache-size, etc.
@@ -232,7 +232,7 @@ Two modules, split out of the former `guard.js` god-object in Phase 3f:
 - Maintains a registry of **active game webContents** (`registerGameWebContents(profileId, wc)` / `unregister`). This is the key data structure that lets the GcDaemon know which partitions **must not** have their cache cleared (clearing cache on a partition with an active Flash player causes a black canvas — discovered and fixed in v5.0).
 - Two profiles:
   - **Normal** (>= 4 GB RAM): 5-minute interval, 700 MB threshold, no preventive GC.
-  - **Modo Batata** (< 4 GB RAM or manually forced): 2-minute interval, 450 MB threshold, preventive GC on every tick.
+  - **Modo Low-Spec** (< 4 GB RAM or manually forced): 2-minute interval, 450 MB threshold, preventive GC on every tick.
 - Exposes `onMemoryUpdate(cb)` and `onGC(cb)` listeners — the StateBroadcaster subscribes to both.
 - Records telemetry: `manualGCCount`, `autoGCCount`, `crashCount`.
 - Webview-level `window.gc()` injection is a **NO-OP since v4.9.1** — it paused Flash. The registry is still populated (the GcDaemon uses it for the black-screen fix), but `injectGC()` and `startWebviewGC()` do nothing.
@@ -270,7 +270,7 @@ collect({ manual: bool })
    7. MemoryGuard._recordGC(isManual, result) — fires onGC listeners
 ```
 
-`start()` schedules the interval tick (using `MemoryGuard.getIntervalMs()`). Each tick: `MemoryGuard._notify()` (pushes stats to listeners) and conditionally `collect()` if `totalMB > threshold` OR (batata AND preventive).
+`start()` schedules the interval tick (using `MemoryGuard.getIntervalMs()`). Each tick: `MemoryGuard._notify()` (pushes stats to listeners) and conditionally `collect()` if `totalMB > threshold` OR (lowSpec AND preventive).
 
 `F8` keyboard shortcut calls `collect({ manual: true })` directly — bypasses the threshold check but still respects throttle + anti-reentrance.
 
@@ -414,7 +414,7 @@ Não há um terceiro tipo de processo. A janela de "loading" (`src/ui/loading/lo
 ```
 app.whenReady()
    │
-   1. flags.applyAll({ flashPath, flashVersion, hardwareProfile, forceBatata })
+   1. flags.applyAll({ flashPath, flashVersion, hardwareProfile, forceLowSpec })
    │     └─ adiciona --no-sandbox, --always-authorize-plugins, --ppapi-flash-path,
    │        --ppapi-flash-version, --js-flags=--expose-gc --max-old-space-size=<N>,
    │        --disable-features=..., --enable-features=..., disk-cache-size, etc.
@@ -622,7 +622,7 @@ Dois módulos, separados do antigo god-object `guard.js` na Fase 3f:
 - Mantém um registry de **webContents de jogo ativos** (`registerGameWebContents(profileId, wc)` / `unregister`). Esta é a estrutura-chave que permite ao GcDaemon saber quais partições **não** devem ter o cache limpo (limpar cache em uma partição com Flash player ativo causa canvas preto — descoberto e corrigido em v5.0).
 - Dois perfis:
   - **Normal** (>= 4 GB RAM): intervalo de 5 minutos, threshold 700 MB, sem GC preventivo.
-  - **Modo Batata** (< 4 GB RAM ou forçado manualmente): intervalo de 2 minutos, threshold 450 MB, GC preventivo em todo tick.
+  - **Modo Low-Spec** (< 4 GB RAM ou forçado manualmente): intervalo de 2 minutos, threshold 450 MB, GC preventivo em todo tick.
 - Expõe listeners `onMemoryUpdate(cb)` e `onGC(cb)` — o StateBroadcaster assina ambos.
 - Registra telemetria: `manualGCCount`, `autoGCCount`, `crashCount`.
 - A injeção de `window.gc()` no renderer é **NO-OP desde v4.9.1** — pausava o Flash. O registry ainda é populado (o GcDaemon o usa para o fix de black screen), mas `injectGC()` e `startWebviewGC()` não fazem nada.
@@ -660,7 +660,7 @@ collect({ manual: bool })
    7. MemoryGuard._recordGC(isManual, result) — dispara listeners onGC
 ```
 
-`start()` agenda o tick de interval (usando `MemoryGuard.getIntervalMs()`). Cada tick: `MemoryGuard._notify()` (pusha stats para listeners) e condicionalmente `collect()` se `totalMB > threshold` OU (batata AND preventive).
+`start()` agenda o tick de interval (usando `MemoryGuard.getIntervalMs()`). Cada tick: `MemoryGuard._notify()` (pusha stats para listeners) e condicionalmente `collect()` se `totalMB > threshold` OU (lowSpec AND preventive).
 
 O atalho `F8` chama `collect({ manual: true })` diretamente — bypassa a checagem de threshold mas ainda respeita throttle + anti-reentrância.
 

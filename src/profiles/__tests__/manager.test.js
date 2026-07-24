@@ -32,7 +32,7 @@ jest.mock('../store', function () {
 
 jest.mock('../partition', function () {
   return {
-    setBatataMode: jest.fn(),
+    setLowSpecMode: jest.fn(),
     shouldUseShadow: jest.fn(function () {
       return false;
     }),

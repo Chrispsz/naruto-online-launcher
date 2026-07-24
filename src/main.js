@@ -5,7 +5,7 @@
  *
  *   Multi-região (BR/NA/EU/HK/DE/ES/PL/FR) com idioma por perfil (pt/en/de/es/pl/fr).
  *   Backup criptografado AES-256-GCM + PBKDF2 com senha mestre.
- *   Telemetria removida v4.9.2 — zero tracking, logs ficam no disco.
+ *   Sem tracking — logs locais no disco.
  *   Exportador de diagnóstico em Configurações → Avançado (opt-in explícito).
  *
  * ORDEM DE BOOT (CRÍTICA):
@@ -87,7 +87,7 @@ flags.applyAll({
   flashPath: flashPath,
   flashVersion: flashVersion,
   hardwareProfile: config.hardwareProfile,
-  forceBatata: config.forceBatata === true,
+  forceLowSpec: config.forceLowSpec === true,
   optimizationPreset: config.optimizationPreset
 });
 
@@ -117,11 +117,11 @@ let activeGameWindows = 0;
 // v3.5: Aplica idioma do config ao i18n global
 i18n.setLanguage(config.language || 'pt');
 
-// Aplica Modo Leve (renomeado de Batata — config legacy retrocompatível)
-if (config.forceBatata !== undefined) {
-  memoryGuard.setForceBatata(config.forceBatata === true);
+// Aplica Modo Leve (renomeado de LowSpec — config legacy retrocompatível)
+if (config.forceLowSpec !== undefined) {
+  memoryGuard.setForceLowSpec(config.forceLowSpec === true);
 }
-partition.setBatataMode(memoryGuard.isBatata());
+partition.setLowSpecMode(memoryGuard.isLowSpecMode());
 if (config.mutedEvents) eventTimers.setMuted(true);
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -135,7 +135,7 @@ if (config.mutedEvents) eventTimers.setMuted(true);
  * que o usuário possa dar Play em outras contas simultaneamente (cada perfil
  * já roda em partition/janela isolada — sem conflito de processos). Antes o
  * manager era oculto para liberar ~45MB de RAM; hoje isso é irrelevante em
- * máquinas com ≥4GB e impedia o uso multi-conta. Em Ramen Mode (<2GB RAM)
+ * máquinas com ≥4GB e impedia o uso multi-conta. Em Minimal Mode (<2GB RAM)
  * o comportamento antigo (ocultar) é mantido por necessidade de memória.
  *
  * Fluxo: Play → janela do jogo abre (isolada) → manager continua visível →
@@ -151,11 +151,11 @@ function launchGameForProfile(profileId) {
     profileId,
     function onOpened() {
       activeGameWindows++;
-      // Ramen Mode (PC <2GB): oculta o manager para liberar RAM (comportamento legado).
+      // Minimal Mode (PC <2GB): oculta o manager para liberar RAM (comportamento legado).
       // Caso contrário: manager fica visível → multi-conta simultânea habilitada.
-      if (memoryGuard.isRamen() && uiManager) {
+      if (memoryGuard.isMinimal() && uiManager) {
         uiManager.hideManager();
-        logger.info('Manager oculto (Ramen Mode) — RAM liberada para o jogo');
+        logger.info('Manager oculto (Minimal Mode) — RAM liberada para o jogo');
       } else {
         logger.info('Jogo aberto — manager visível (multi-conta disponível)');
       }
@@ -362,7 +362,7 @@ function _initManagerAndLaunch() {
     /* ignore */
   }
 
-  // UI Manager — skip em Ramen Mode (manager-only economiza 45MB em PCs <2GB)
+  // UI Manager — skip em Minimal Mode (manager-only economiza 45MB em PCs <2GB)
   uiManager = require('./ui/controller');
   uiManager.registerIpcHandlers({
     launchProfile: launchGameForProfile,
@@ -386,17 +386,17 @@ function _initManagerAndLaunch() {
     hasVault: function (profileId) {
       return vault.hasCredentials(profileId);
     },
-    isBatata: function () {
-      return memoryGuard.isBatata();
+    isLowSpecMode: function () {
+      return memoryGuard.isLowSpecMode();
     },
-    isRamen: function () {
-      return memoryGuard.isRamen();
+    isMinimal: function () {
+      return memoryGuard.isMinimal();
     },
-    toggleBatata: function () {
-      memoryGuard.setForceBatata(!memoryGuard.isBatata());
-      partition.setBatataMode(memoryGuard.isBatata());
+    toggleLowSpec: function () {
+      memoryGuard.setForceLowSpec(!memoryGuard.isLowSpecMode());
+      partition.setLowSpecMode(memoryGuard.isLowSpecMode());
       _persistConfig();
-      return memoryGuard.isBatata();
+      return memoryGuard.isLowSpecMode();
     }
   });
 
@@ -516,7 +516,7 @@ app.on('window-all-closed', function () {
   app.quit();
 });
 
-// ── Telemetria de crashes de processos filhos (cron-review-2) ──
+// ── Monitoramento de crashes de processos filhos (cron-review-2) ──
 // Estes eventos NÃO fecham o app principal — apenas logamos para diagnóstico.
 // Cada BrowserWindow de jogo já trata 'render-process-gone' isoladamente
 // (em game-launcher.js), mas eventos de GPU/child-process são globais.
@@ -572,14 +572,14 @@ process.on('unhandledRejection', function (reason) {
 function _persistConfig() {
   try {
     const { saveConfig } = require('./config/settings');
-    // Low-spec machines auto-detect batata mode — don't persist the override
+    // Low-spec machines auto-detect lowSpec mode — don't persist the override
     // since it's auto-detected on every boot. Keep user's explicit choice otherwise.
     if (memoryGuard.IS_LOW_SPEC) {
-      config.forceBatata = undefined;
-    } else if (memoryGuard.isBatata()) {
-      config.forceBatata = true;
+      config.forceLowSpec = undefined;
+    } else if (memoryGuard.isLowSpecMode()) {
+      config.forceLowSpec = true;
     }
-    // else: keep config.forceBatata as-is (user's explicit choice)
+    // else: keep config.forceLowSpec as-is (user's explicit choice)
     config.mutedEvents = eventTimers.isMuted();
     saveConfig(config);
   } catch (e) {
@@ -600,7 +600,7 @@ function _logBanner() {
   logger.info('RAM do sistema: ' + memoryGuard.SYSTEM_RAM_GB + 'GB');
   logger.info(
     'Modo Leve: ' +
-      (memoryGuard.isBatata() ? 'ON' : 'OFF') +
+      (memoryGuard.isLowSpecMode() ? 'ON' : 'OFF') +
       ' (threshold ' +
       memoryGuard.getThreshold() +
       'MB)'

@@ -2,7 +2,7 @@
  * Tests for src/main/flags.js — Electron command-line flags
  *
  * Verifies: exports, applyAll(), flag list, flash path handling,
- * idempotency, heap computation, hardware profile, IS_LOW_SPEC/IS_RAMEN.
+ * idempotency, heap computation, hardware profile, IS_LOW_SPEC/IS_MINIMAL.
  *
  * NOTE: flags.js has module-level _applied flag (idempotent). Once applyAll()
  * runs, it won't re-execute. We test the post-apply state by capturing
@@ -45,9 +45,9 @@ describe('flags.js', () => {
       expect(typeof flags.IS_LOW_SPEC).toBe('boolean');
     });
 
-    test('exports IS_RAMEN as boolean', () => {
+    test('exports IS_MINIMAL as boolean', () => {
       const flags = require('../flags');
-      expect(typeof flags.IS_RAMEN).toBe('boolean');
+      expect(typeof flags.IS_MINIMAL).toBe('boolean');
     });
 
     test('exports SYSTEM_RAM_GB as number', () => {
@@ -194,19 +194,19 @@ describe('flags.js', () => {
     });
   });
 
-  describe('IS_RAMEN', () => {
+  describe('IS_MINIMAL', () => {
     test('is determined by total RAM < 2GB', () => {
       const flags = require('../flags');
       if (flags.SYSTEM_RAM_GB < 2) {
-        expect(flags.IS_RAMEN).toBe(true);
+        expect(flags.IS_MINIMAL).toBe(true);
       } else {
-        expect(flags.IS_RAMEN).toBe(false);
+        expect(flags.IS_MINIMAL).toBe(false);
       }
     });
 
-    test('IS_RAMEN implies IS_LOW_SPEC', () => {
+    test('IS_MINIMAL implies IS_LOW_SPEC', () => {
       const flags = require('../flags');
-      if (flags.IS_RAMEN) {
+      if (flags.IS_MINIMAL) {
         expect(flags.IS_LOW_SPEC).toBe(true);
       }
     });

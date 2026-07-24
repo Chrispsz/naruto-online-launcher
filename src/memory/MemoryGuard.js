@@ -1,8 +1,8 @@
 /**
- * memory/MemoryGuard.js — Telemetria de memória + Modo Leve (low-spec)
+ * memory/MemoryGuard.js — Monitoramento de memória + Modo Leve (low-spec)
  *
  * Responsabilidade ÚNICA (SRP): observar e reportar o estado de memória do
- * processo main + detectar máquinas low-spec (Modo Leve / Ramen).
+ * processo main + detectar máquinas low-spec (Modo Leve / Minimal).
  *
  * NÃO executa GC. O V8 cuida do main process sozinho — um launcher passa 99%
  * do tempo idle, e o jogo roda num processo renderer isolado que o main nunca
@@ -16,27 +16,27 @@ const logger = require('../utils/logger');
 
 const TOTAL_RAM_GB = os.totalmem() / (1024 * 1024 * 1024);
 const IS_LOW_SPEC = TOTAL_RAM_GB < 4; // Modo Leve auto-detect
-const IS_RAMEN = TOTAL_RAM_GB < 2; // Ramen Mode — manager-only (sem UI)
+const IS_MINIMAL = TOTAL_RAM_GB < 2; // Minimal Mode — manager-only (sem UI)
 
 const CONFIG = {
   normal: { thresholdMB: 700 },
-  batata: { thresholdMB: 450 }
+  lowSpec: { thresholdMB: 450 }
 };
-const MODE = IS_LOW_SPEC ? CONFIG.batata : CONFIG.normal;
+const MODE = IS_LOW_SPEC ? CONFIG.lowSpec : CONFIG.normal;
 
 let _thresholdMB = MODE.thresholdMB;
-let _forceBatata = false;
+let _forceLowSpec = false;
 
-// ── Telemetria ──
+// ── Monitoramento ──
 const _startedAt = Date.now();
 let _crashCount = 0;
 
-function isBatata() {
-  return _forceBatata || IS_LOW_SPEC;
+function isLowSpecMode() {
+  return _forceLowSpec || IS_LOW_SPEC;
 }
 
-function isRamen() {
-  return IS_RAMEN;
+function isMinimal() {
+  return IS_MINIMAL;
 }
 
 function getThreshold() {
@@ -47,16 +47,16 @@ function getThreshold() {
  * Força ou desforça o Modo Leve. Recalcula threshold.
  * @param {boolean} force
  */
-function setForceBatata(force) {
-  _forceBatata = !!force;
-  _thresholdMB = isBatata() ? CONFIG.batata.thresholdMB : CONFIG.normal.thresholdMB;
+function setForceLowSpec(force) {
+  _forceLowSpec = !!force;
+  _thresholdMB = isLowSpecMode() ? CONFIG.lowSpec.thresholdMB : CONFIG.normal.thresholdMB;
   try {
     const partition = require('../profiles/partition');
-    partition.setBatataMode(isBatata());
+    partition.setLowSpecMode(isLowSpecMode());
   } catch (_) {
     /* partition module may not be loaded yet — ok */
   }
-  logger.info('MemoryGuard: Modo Leve = ' + isBatata() + ' (threshold ' + _thresholdMB + 'MB)');
+  logger.info('MemoryGuard: Modo Leve = ' + isLowSpecMode() + ' (threshold ' + _thresholdMB + 'MB)');
 }
 
 /**
@@ -77,8 +77,8 @@ function getStats() {
   return {
     totalMB: totalMB,
     thresholdMB: _thresholdMB,
-    isBatata: isBatata(),
-    isRamen: isRamen(),
+    isLowSpecMode: isLowSpecMode(),
+    isMinimal: isMinimal(),
     systemRAM: Math.round(TOTAL_RAM_GB * 10) / 10,
     timestamp: Date.now(),
     uptimeMs: uptimeMs,
@@ -96,15 +96,15 @@ function reportCrash() {
 
 module.exports = {
   // Mantido (não remover): APIs de detecção de low-spec usadas pelo Modo Leve
-  // em máquinas com <4GB de RAM — getStats, isBatata, isRamen, IS_LOW_SPEC,
-  // SYSTEM_RAM_GB, getThreshold, setForceBatata, reportCrash.
+  // em máquinas com <4GB de RAM — getStats, isLowSpecMode, isMinimal, IS_LOW_SPEC,
+  // SYSTEM_RAM_GB, getThreshold, setForceLowSpec, reportCrash.
   getStats: getStats,
-  isBatata: isBatata,
-  isRamen: isRamen,
+  isLowSpecMode: isLowSpecMode,
+  isMinimal: isMinimal,
   getThreshold: getThreshold,
-  setForceBatata: setForceBatata,
+  setForceLowSpec: setForceLowSpec,
   reportCrash: reportCrash,
   IS_LOW_SPEC: IS_LOW_SPEC,
-  IS_RAMEN: IS_RAMEN,
+  IS_MINIMAL: IS_MINIMAL,
   SYSTEM_RAM_GB: Math.round(TOTAL_RAM_GB * 10) / 10
 };

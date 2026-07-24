@@ -95,7 +95,7 @@ git commit -m "feat: v${VERSION} — Multi-perfil + MemoryGuard adaptativo + Tra
 - ProfileStore (profiles/store.js): armazenamento atômico com backup .bak,
   schema validation, export/import JSON para portabilidade Win<->Linux
 - MemoryGuard (memory/guard.js): 2 camadas efetivas (clearCache + OS trim),
-  Modo Batata auto-detectado (RAM < 4GB), throttle anti-thrashing
+  Modo Low-Spec auto-detectado (RAM < 4GB), throttle anti-thrashing
 - EventTimers (utilities/event-timers.js): conversão matematica de fusos
   para BR/NA/EU/HK, mute global, notificacoes nativas
 - main.js v2.1: flags agressivas Chromium (disable-background-networking,
