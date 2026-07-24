@@ -18,10 +18,10 @@ const { DEBUG } = require('./main/debug');
 // Does NOT accept primitives (boolean/string/number) as 2nd argument — only
 // object/function/null. Passar `DEBUG` (boolean) direto crashava o preload
 // inteiro com "TypeError: Error processing argument at index 1, conversion
-// failure from". Consequência: window.__SHINOBI_DEBUG__ ficava undefined E
-// window.narutoLauncher também (a linha de baixo nunca executava) → Dev Tools
+// failure from". Consequence: window.__SHINOBI_DEBUG__ stayed undefined AND
+// window.narutoLauncher too (the line below never executed) → Dev Tools
 // section nunca aparecia + qualquer bridge IPC futuro quebraria.
-// Correção: expor como objeto { enabled: boolean, isDebug: function }.
+// Fix: expose as object { enabled: boolean, isDebug: function }.
 // Renderer adaptado para ler window.__SHINOBI_DEBUG__.enabled (app.js).
 contextBridge.exposeInMainWorld('__SHINOBI_DEBUG__', {
   enabled: DEBUG,

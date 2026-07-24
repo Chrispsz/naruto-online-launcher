@@ -21,8 +21,8 @@
  *   pl — Europe/Warsaw      (UTC+1/+2 DST)
  *   fr — Europe/Paris       (UTC+1/+2 DST)
  *
- * Validação: naruto.narutowebgame.com/{pt|en|de|es|pl|fr}/serverlist — 6 clusters.
- * Legacy codes eu/hk/pt/en são migrados por regions.js (eu→na, hk→na, pt→br, en→na).
+ * Validation: naruto.narutowebgame.com/{pt|en|de|es|pl|fr}/serverlist — 6 clusters.
+ * Legacy codes eu/hk/pt/en are migrated by regions.js (eu→na, hk→na, pt→br, en→na).
  */
 
 'use strict';
@@ -33,7 +33,7 @@ const logger = require('../utils/logger');
 const { normalizeRegion } = require('../config/regions');
 
 // Approximate UTC offsets by region (without TZ libs).
-// DST é auto-detectado comparando o offset atual do Date com o offset base.
+// DST is auto-detected by comparing the current Date offset with the base offset.
 // v1.1.1: flag field uses [XX] text tag (not emoji) — native OS notifications
 // can't render SVG and Windows doesn't render flag emoji. Text tag works everywhere.
 const REGION_TZ = {
@@ -48,17 +48,17 @@ const REGION_TZ = {
 // Event catalog by region (times in SERVER timezone)
 // SOURCE (validado 2025):
 //   - https://narutooasis.fandom.com/wiki/Timed_Events
-//   - Padrões confirmados pela comunidade
+//   - Patterns confirmed by the community
 //
 // ESTRUTURA de cada evento:
-//   id            — identificador único
-//   name_pt       — nome em português
-//   name_en       — nome em inglês
-//   days          — array de weekday (0=Dom, 1=Seg, ..., 6=Sáb). VAZIO = diário
+//   id            — unique identifier
+//   name_pt       — name in Portuguese
+//   name_en       — name in English
+//   days          — weekday array (0=Sun, 1=Mon, ..., 6=Sat). EMPTY = daily
 //   hours         — array de horas (0-23) no fuso do SERVIDOR em que o evento inicia
-//   durationMin   — duração em minutos (default 60)
+//   durationMin   — duration in minutes (default 60)
 //   category      — boss | arena | arena_guild | dungeon | escort | instance | social | reset
-//   remindMin     — minutos antes do início para notificar (default 5; override global via setRemindMin)
+//   remindMin     — minutes before start to notify (default 5; override global via setRemindMin)
 const EVENTS_BY_REGION = {
   // ── Brasil (PT) — 11 events ──
   br: [
@@ -163,7 +163,7 @@ let _globalRemindMin = null; // override; null = use per-event remindMin
 let _lang = 'en'; // 'en' or 'pt' — controls notification language
 
 /**
- * Calcula o offset UTC ATUAL do usuário (incluindo DST local) em horas.
+ * Calculates the user's CURRENT UTC offset (including local DST) in hours.
  */
 function getUserOffsetHours() {
   const now = new Date();
@@ -171,7 +171,7 @@ function getUserOffsetHours() {
 }
 
 /**
- * Calcula o offset UTC ATUAL de uma região de servidor.
+ * Calculates the CURRENT UTC offset of a server region.
  * Legacy codes (eu/hk/pt/en) are normalized to a current cluster first.
  */
 function getServerOffsetHours(region) {
@@ -190,8 +190,8 @@ function serverToUserOffsetHours(region) {
 }
 
 /**
- * Calcula o timestamp (ms) da próxima ocorrência de um evento no fuso do servidor,
- * convertido para o relógio local do usuário.
+ * Calculates the timestamp (ms) of the next occurrence of an event in the server timezone,
+ * converted to the user's local clock.
  * Respeita `days` (dias da semana permitidos); vazio = qualquer dia.
  * @param {string} region
  * @param {number} serverHour 0-23
@@ -218,7 +218,7 @@ function nextOccurrenceMs(region, serverHour, days) {
 }
 
 /**
- * Lista os eventos de uma região com countdown até o próximo disparo.
+ * Lists events for a region with countdown to next trigger.
  * @param {string} region
  * @param {string} [lang] — 'pt' or 'en' (defaults to current set language)
  * @returns {Array}
@@ -353,7 +353,7 @@ function showNotification(event, region, lang) {
         : r.flag + ' ' + name + ' starting now';
     const body =
       useLang === 'pt'
-        ? 'Começa às ' + event.hours.join('h e ') + 'h • ' + (event.durationMin || 60) + 'min'
+        ? 'Starts at ' + event.hours.join('h and ') + 'h • ' + (event.durationMin || 60) + 'min'
         : 'Starts at ' + event.hours.join('h & ') + 'h • ' + (event.durationMin || 60) + 'min';
     const n = new Notification({ title: title, body: body, icon: iconPath, silent: false });
     n.show();
@@ -431,9 +431,9 @@ function startWithProfiles(profiles) {
 }
 
 /**
- * Inicia o loop. Monitora TODAS as regiões ativas (para perfis de regiões diferentes).
+ * Starts the loop. Monitors ALL active regions (for profiles in different regions).
  * A cada 30s checa se algum lembrete deve disparar OU se algum evento ativo acabou de terminar.
- * @param {Array<string>} activeRegions — regiões dos perfis ativos
+ * @param {Array<string>} activeRegions — regions of active profiles
  */
 function start(activeRegions) {
   if (_timer) return;

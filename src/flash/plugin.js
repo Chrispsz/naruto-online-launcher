@@ -2,7 +2,7 @@
  * Flash PPAPI Detection and Configuration
  * v3.0.0 - Clean Flash PPAPI configuration
  *
- * v4.9.3 (Fase 2): findFlashPlugin() procura TAMBÉM no cache on-demand
+ * v4.9.3 (Phase 2): findFlashPlugin() also searches the on-demand cache
  * (userData/flash-cache/) para backward-compat com installs antigas.
  * O binário principal é committed no repo em flash/.
  */

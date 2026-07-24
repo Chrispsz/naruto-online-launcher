@@ -3,19 +3,19 @@
  *
  * Single Responsibility (SRP): intercept keyboard shortcuts in game
  * jogo via webContents 'before-input-event'. Inclui os pendências herdadas:
- *   - F5  → Clear Login (limpa cookies + storage da partition, depois recarrega)
+ *   - F5  → Clear Login (clears cookies + storage from partition, then reloads)
  *   - F12 → toggle DevTools
  *   - Alt+F4 → fecha a janela (kill switch graceful)
- *   - Bloqueia F10/Alt (menu bar Chromium), Ctrl+Shift+I/J (use F12)
+ *   - Blocks F10/Alt (Chromium menu bar), Ctrl+Shift+I/J (use F12)
  *
  * v5.9.7: F5 agora aceita callback `onClearLogin`. Se fornecido, delega pra ele
- * (Launcher passa uma função que faz clear + pré-autenticação via API antes de
- * recarregar — igual ao Play — para não mostrar a tela de login do jogo, evitando
+ * (Launcher passes a function that does clear + pre-authentication via API before
+ * reloading — same as Play — to avoid showing the game login screen, preventing
  * vazar o email). Se `onClearLogin` não é fornecido, mantém o comportamento
  * antigo (clear + reload direto) — backward compat.
  *
- * Histórico: era inline no God Object game-launcher.js (620 linhas). Extraído
- * para isolar a lógica de input. F5/F12 já existiam desde v4.9.1.
+ * History: was inline in the God Object game-launcher.js (620 lines). Extracted
+ * to isolate input logic. F5/F12 existed since v4.9.1.
  */
 
 'use strict';
@@ -25,11 +25,11 @@ const logger = require('../../utils/logger');
 /**
  * Attaches the shortcut handler to a game window's webContents.
  * @param {Electron.BrowserWindow} win
- * @param {string} profileName - para logging
+ * @param {string} profileName - for logging
  * @param {Electron.Session} [ses] - partition session (fallback F5 sem callback)
- * @param {Function} [onClearLogin] - callback invocado no F5 (clear + pré-auth).
- *        Se fornecido, substitui o clear+reload manual — o callback é responsável
- *        por limpar o storage e recarregar com pré-autenticação (igual ao Play).
+ * @param {Function} [onClearLogin] - callback invoked on F5 (clear + pre-auth).
+ *        If provided, replaces the manual clear+reload — the callback is responsible
+ *        for clearing storage and reloading with pre-authentication (same as Play).
  */
 function attach(win, profileName, ses, onClearLogin) {
   if (!win || !win.webContents) return;
@@ -43,14 +43,14 @@ function attach(win, profileName, ses, onClearLogin) {
       return;
     }
     // F5 → Clear Login.
-    // Se onClearLogin fornecido: delega (Launcher faz clear + pré-auth via API).
-    // Senão: fallback antigo (clear storage + reload direto).
+    // If onClearLogin provided: delegates (Launcher does clear + pre-auth via API).
+    // Otherwise: old fallback (clear storage + direct reload).
     if (input.key === 'F5' && !input.control && !input.alt && !input.shift) {
       event.preventDefault();
       logger.info('F5: clear login for ' + profileName);
       if (typeof onClearLogin === 'function') {
         // Delega pro Launcher — ele faz clearStorageData + apiLogin.loginAndInject
-        // ANTES de recarregar, então a tela de login não aparece (email não vaza).
+        // BEFORE reloading, so the login screen doesn't appear (email doesn't leak).
         try {
           onClearLogin();
         } catch (e) {
@@ -59,7 +59,7 @@ function attach(win, profileName, ses, onClearLogin) {
         }
         return;
       }
-      // Fallback (sem callback): clear + reload direto (comportamento pré-v5.9.7).
+      // Fallback (no callback): clear + direct reload (pre-v5.9.7 behavior).
       if (ses) {
         Promise.all([
           ses.clearStorageData({
@@ -87,7 +87,7 @@ function attach(win, profileName, ses, onClearLogin) {
       return;
     }
     // F12 → toggle DevTools (liberado pra debug).
-    // Ctrl+Shift+I continua bloqueado (F12 é mais intuitivo e não conflita com o jogo).
+    // Ctrl+Shift+I remains blocked (F12 is more intuitive and doesn't conflict with the game).
     if (input.key === 'F12' && !input.control && !input.alt && !input.shift) {
       event.preventDefault();
       wc.toggleDevTools();

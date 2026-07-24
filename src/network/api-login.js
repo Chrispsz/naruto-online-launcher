@@ -5,11 +5,11 @@
  * Normal login (HTML form) uses passport.oasgames.com to receive a JWT
  * and set the oas_user cookie on the .narutowebgame.com domain. This module does
  * the same via API, skipping the form — useful for:
- *   - Auto-login mais robusto (sem MutationObserver)
- *   - Login de contas tempmail recém-criadas
+ *   - More robust auto-login (no MutationObserver)
+ *   - Login for newly-created tempmail accounts
  *   - Auto-renewal before JWT expires (2h)
  *
- * Verificado ao vivo: o cookie oas_user=<loginKey> é tudo que o jogo precisa
+ * Verified live: the cookie oas_user=<loginKey> is all the game needs
  * to consider the session logged in. The server validates the JWT HS256.
  *
  * CRITICAL DOMAIN: the cookie MUST go to .narutowebgame.com (not oasgames.com).

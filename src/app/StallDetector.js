@@ -60,7 +60,7 @@ var DEFAULTS = {
  * @param {string} ctx.profileName — nome do perfil (pra logs)
  * @param {Function} ctx.onStall — callback chamado quando stall detectado
  * @param {Object} [ctx.opts] — overrides de thresholds (pra testes)
- * @returns {Object|null} instância com método detach(), ou null se inválido
+ * @returns {Object|null} instance with detach() method, or null if invalid
  */
 function attach(win, ses, ctx) {
   if (!win || !ses) return null;

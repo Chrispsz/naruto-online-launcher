@@ -190,12 +190,12 @@ app.on('second-instance', function () {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// v3.5: ONBOARDING (Setup Window) — primeira execução
+// v3.5: ONBOARDING (Setup Window) — first run
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
  * Shows the initial setup screen (500x400, non-resizable).
- * Ao salvar, atualiza config.firstBoot=false + language + advancedMode.
+ * On save, updates config.firstBoot=false + language + advancedMode.
  * @param {Function} onDone - callback when setup is completed
  */
 function showSetupWindow(onDone) {
@@ -251,7 +251,7 @@ function showSetupWindow(onDone) {
         const jsonStr = title.slice('__SETUP_DONE__'.length);
         const result = JSON.parse(jsonStr);
         logger.info(
-          'Setup concluído: lang=' +
+          'Setup complete: lang=' +
             result.language +
             ' region=' +
             (result.region || 'br') +
@@ -259,7 +259,7 @@ function showSetupWindow(onDone) {
             result.advancedMode
         );
 
-        // Aplica configurações
+        // Apply settings
         config.firstBoot = false;
         config.language = result.language || 'pt';
         config.region = result.region || 'br'; // v4.1: region selector no setup
@@ -302,8 +302,8 @@ function showSetupWindow(onDone) {
 }
 
 app.on('ready', function () {
-  // Flash PPAPI é bundled no repo (flash/libpepflashplayer.so | pepflashplayer.dll).
-  // Se não está acessível, a instalação está corrompida — não há fallback de download.
+  // Flash PPAPI is bundled in the repo (flash/libpepflashplayer.so | pepflashplayer.dll).
+  // If not accessible, the installation is corrupted — there is no download fallback.
   if (!flashPath) {
     _showFlashMissingError();
     return;
@@ -312,7 +312,7 @@ app.on('ready', function () {
   // Subsystems
   profileStore.load();
 
-  // v3.4: EventTimers com perfis completos (respeita notificationsEnabled por perfil)
+  // v3.4: EventTimers with full profiles (respects notificationsEnabled per profile)
   eventTimers.startWithProfiles(profileStore.getAll());
 
   // v3.3: NO TRAY — app exits when all windows close.
@@ -401,7 +401,7 @@ function _initManagerAndLaunch() {
   });
 
   // ── v5.0.0: Optimization IPC handlers (GPU + CPU + presets) ──
-  // gpuDetector já é requerido no top-level (para getEnvVars antes de ready)
+  // gpuDetector is already required at top-level (for getEnvVars before ready)
   const cpuOptimizer = require('./app/CpuOptimizer');
   const { listForUI, getDefaultPreset } = require('./config/optimization');
 

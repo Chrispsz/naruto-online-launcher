@@ -1,32 +1,32 @@
 /**
  * profiles/partition.js — Shadow Partition manager (disruptive RAM saver)
- * v3.0.0 — INOVAÇÃO DISRUPTIVA
+ * v3.0.0 — DISRUPTIVE INNOVATION
  *
  * PROBLEMA QUE RESOLVE:
  *   Cada profile com `persist:profile-<id>` grava ~30-80MB em disco e mantém
  *   cache/localStorage/indexedDB carregados em RAM. Em um PC de 2-4GB com 4
- *   contas, isso é 120-320MB SÓ de partitions — inviável.
+ *   accounts, that is 120-320MB JUST from partitions — unfeasible.
  *
- * SOLUÇÃO — SHADOW PARTITIONS:
+ * SOLUTION — SHADOW PARTITIONS:
  *   Em vez de `persist:` (grava em disco), usar `partition:profile-<id>`
- *   (EPHEMERAL — só existe em RAM enquanto a janela está aberta; wiped on close).
- *   No fechamento, tira um SNAPSHOT apenas dos cookies de autenticação do
- *   domínio do jogo (típicos 2-5KB) e salva em cookie-snapshots.json.
- *   Na próxima abertura, restaura os cookies antes de carregar a página.
+ *   (EPHEMERAL — exists only in RAM while the window is open; wiped on close).
+ *   On close, takes a SNAPSHOT of only the authentication cookies from the
+ *   game domain (typically 2-5KB) and saves to cookie-snapshots.json.
+ *   On next open, restores cookies before loading the page.
  *
- *   Resultado: mesmo multi-conta em PC low-spec não acumula 300MB de partitions.
- *   O custo é re-download de assets estáticos (mitigado pelo disk-cache-size
+ *   Result: even multi-account on low-spec PC doesn't accumulate 300MB of partitions.
+ *   The cost is re-download of static assets (mitigated by disk-cache-size
  *   global compartilhado na default session).
  *
- * POLÍTICA:
+ * POLICY:
  *   - Modo Low-Spec (RAM <4GB) ou forceLowSpec → shadow ATIVO para todos os perfis.
- *   - Modo normal → persist (comportamento padrão, backwards-compatible).
+ *   - Normal mode → persist (default behavior, backwards-compatible).
  *   - Profile pode forçar shadow via profile.shadow=true (power-user opt-in).
  *
  * ISOLAMENTO:
  *   Shadow partitions continuam 100% isoladas entre si pelo Chromium
  *   (cada `partition:name` é um sandbox de session/cookies/storage separado).
- *   A diferença é apenas persistência em disco.
+ *   The difference is only disk persistence.
  */
 
 'use strict';
@@ -39,7 +39,7 @@ const logger = require('../utils/logger');
 const SNAPSHOTS_FILE = 'cookie-snapshots.json';
 const MAX_SNAPSHOTS_BYTES = 512 * 1024; // 512KB sane limit
 
-// Domínios do jogo cujos cookies são preservados no snapshot
+// Game domains whose cookies are preserved in the snapshot
 const AUTH_DOMAINS = ['oasgames.com', 'naruto.oasgames.com'];
 
 let _snapshots = null; // profileId -> [cookie, ...]
@@ -214,19 +214,19 @@ function removeSnapshot(profileId) {
 
 /**
  * Creates the persistent partition directory on disk eagerly.
- * Necessário para que bunshin/clone de um perfil recém-criado não falhe com
+ * Needed so that bunshin/clone of a newly-created profile doesn't fail with
  * "user-data-dir do origem não existe" (o Chromium só cria o dir no primeiro
  * launch — sem isso, operações que dependem do dir antes do primeiro launch
  * quebram).
  *
- * Em shadow mode (partition:profile-<id>), a partition é ephemeral e NÃO tem
+ * In shadow mode (partition:profile-<id>), the partition is ephemeral and has NO
  * dir em disco — este método é no-op.
  *
  * @param {Object|string} profile - profile object ou id
- * @returns {boolean} true se criou ou já existia
+ * @returns {boolean} true if created or already existed
  */
 function ensurePartitionDir(profile) {
-  // Shadow partitions não persistem em disco — nada a fazer.
+  // Shadow partitions don't persist to disk — nothing to do.
   if (shouldUseShadow(profile)) return true;
 
   const id = (profile && profile.id) || profile;

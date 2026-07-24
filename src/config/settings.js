@@ -51,7 +51,7 @@ function validateConfig(rawConfig) {
     // Legacy configs with 'pt' are preserved; invalid values fall back to 'en'.
     language:
       rawConfig && ['pt', 'en'].indexOf(rawConfig.language) !== -1 ? rawConfig.language : 'en',
-    advancedMode: rawConfig && rawConfig.advancedMode === true, // Modo Leve Avançado (Flash low quality)
+    advancedMode: rawConfig && rawConfig.advancedMode === true, // Advanced Light Mode (Flash low quality)
     // optimization preset (performance/balanced/quality) — aplicado em flags.js
     optimizationPreset: isValidPreset(optimizationPreset) ? optimizationPreset : getDefaultPreset()
   };

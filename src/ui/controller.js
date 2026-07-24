@@ -3,14 +3,14 @@
  *
  * Was the God Object (648 lines). Now it's a thin facade that composes:
  *   - manager/ManagerWindow.js    — lifecycle da BrowserWindow
- *   - manager/StateBroadcaster.js — push de estado (perfis/memória/eventos)
+ *   - manager/StateBroadcaster.js — state push (profiles/memory/events)
  *   - manager/IpcRouter.js        — registro dos handlers IPC
  *
- * A facade preserva a API pública histórica (createManagerWindow,
+ * The facade preserves the historical public API (createManagerWindow,
  * getManagerWindow, showManager, hideManager, registerIpcHandlers,
- * launchProfile) para que main.js não precise mudar.
+ * launchProfile) so that main.js doesn't need to change.
  *
- * Para código novo, prefira importar os 3 módulos diretamente.
+ * For new code, prefer importing the 3 modules directly.
  */
 
 'use strict';

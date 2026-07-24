@@ -3,15 +3,15 @@
  *
  * Was the God Object (571 lines). Now it's a thin facade that composes:
  *   - CryptoService.js   — primitivas AES-256-GCM + PBKDF2 puras
- *   - PasswordManager.js — chave de máquina + senha mestre (cache)
+ *   - PasswordManager.js — machine key + master password (cache)
  *   - ProfileVault.js    — CRUD de credenciais + buildAutoLoginScript
  *
- * A facade preserva a API pública histórica (setCredentials/getCredentials/
+ * The facade preserves the historical public API (setCredentials/getCredentials/
  * hasCredentials/removeCredentials/buildAutoLoginScript/encrypt/decrypt/onChange/
  * exportEncryptedBackup/importEncryptedBackup) para que controller.js,
- * game-launcher.js, manager.js e main.js não precisem mudar.
+ * game-launcher.js, manager.js and main.js don't need to change.
  *
- * Para código novo, prefira importar os 3 módulos diretamente.
+ * For new code, prefer importing the 3 modules directly.
  */
 
 'use strict';
@@ -20,7 +20,7 @@ const CryptoService = require('./CryptoService');
 const PasswordManager = require('./PasswordManager');
 const ProfileVault = require('./ProfileVault');
 
-// encrypt/decrypt do facade usam a chave de máquina (compat com vault.encrypt antigo)
+// facade encrypt/decrypt use the machine key (compatible with old vault.encrypt)
 function encrypt(plaintext) {
   return CryptoService.encrypt(plaintext, PasswordManager.getMachineKey());
 }

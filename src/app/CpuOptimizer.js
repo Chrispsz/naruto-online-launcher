@@ -116,8 +116,8 @@ function detectCoreTopology() {
         });
       }
       // NixOS fallback: /sys/devices/system/cpu/cpu*/topology/core_type
-      // NixOS expõe topology diferente de distros padrão. Se cpu_core/cpu_atom
-      // não existem, tenta detectar via core_type (disponível no kernel 5.17+).
+      // NixOS exposes different topology from standard distros. If cpu_core/cpu_atom
+      // don't exist, tries detecting via core_type (available in kernel 5.17+).
       if (pCores.length === 0 && eCores.length === 0) {
         var cpuDir = '/sys/devices/system/cpu';
         try {
@@ -261,8 +261,8 @@ function _applyRenice(pid, priority) {
 
 /**
  * Sets oom_score_adj to -500 (kernel prefers killing other processes on OOM).
- * Escreve diretamente em /proc/<pid>/oom_score_adj (não precisa de root se for
- * o próprio processo ou filho). Em AppImage, o renderer é filho → permitido.
+ * Writes directly to /proc/<pid>/oom_score_adj (doesn't need root if it's
+ * the process itself or child). In AppImage, the renderer is a child → allowed.
  * @param {number} pid
  * @param {number} score - valor de -1000 (nunca matar) a 1000 (sempre matar)
  * @returns {Promise<{ok: boolean, error?: string}>}
@@ -287,7 +287,7 @@ function _applyOomScoreAdj(pid, score) {
 /**
  * Applies CPU affinity on Windows via PowerShell `Set-Process -ProcessorAffinity`.
  * Windows usa bitmask: bit N = core N. cores [0,1,2,3] → 0b1111 = 15.
- * PowerShell é o método mais confiável no Win10/11 (wmic está deprecated).
+ * PowerShell is the most reliable method on Win10/11 (wmic is deprecated).
  * @param {number} pid
  * @param {number[]} cores
  * @returns {Promise<{ok: boolean, mask?: number, error?: string}>}
@@ -337,7 +337,7 @@ function _applyWindowsAffinity(pid, cores) {
  *   -5 → ABOVE_NORMAL (performance preset)
  *    0 → NORMAL (balanced preset)
  *   +5 → BELOW_NORMAL (quality preset)
- * Não usa HIGH/REALTIME (causa instabilidade no sistema — mouse/teclado travam).
+ * Does not use HIGH/REALTIME (causes system instability — mouse/keyboard freeze).
  * @param {number} pid
  * @param {number} niceTarget - valor nice-like (-5 a +5)
  * @returns {Promise<{ok: boolean, priority?: number, error?: string}>}
@@ -357,7 +357,7 @@ function _applyWindowsPriority(pid, niceTarget) {
       logger.info('CpuOptimizer: win priority applied pid=' + pid + ' prio=' + prio);
       resolve({ ok: true, priority: prio });
     } catch (e) {
-      // EPERM se pid pertence a outro user, ou EINVAL se pid não existe mais
+      // EPERM if pid belongs to another user, or EINVAL if pid no longer exists
       logger.debug('CpuOptimizer: win priority failed pid=' + pid + ' — ' + e.message);
       resolve({ ok: false, error: e.message });
     }
@@ -390,7 +390,7 @@ async function optimizeRenderer(pid, opts) {
 
   // Idempotent: if already applied for same PID, skip (but re-applies on reload).
   // Em reload, o PID pode ser reutilizado — checamos o Set antes de pular.
-  // Removido: o renderer PID muda em cada reload (novo processo), então o Set
+  // Removed: the renderer PID changes on each reload (new process), so the Set
   // cresce indefinidamente. Limpar a cada 50 entradas (antes de adicionar a 51ª).
   if (_appliedPids.has(pid)) {
     return {
@@ -407,7 +407,7 @@ async function optimizeRenderer(pid, opts) {
   // Performance: pins to P-cores + 1 E-core reserve (so V8 GC doesn't compete
   // com o thread principal do Flash).
   // Balanced: pins to P-cores only (leaves E-cores free for other apps).
-  // Quality: NÃO aplica affinity (deixa scheduler decidir — melhor pra multi-task).
+  // Quality: does NOT apply affinity (lets scheduler decide — better for multi-task).
   let cores = [];
   if (preset === 'quality') {
     // Sem affinity

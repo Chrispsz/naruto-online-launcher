@@ -92,8 +92,8 @@ function isValidProfile(p) {
   return true;
 }
 
-// Migração automática de perfis v1 (sem language/notificationsEnabled) para v2
-// v4.5: Migração v3 (sem notes/launchCount/totalPlayMs) para v3
+// Automatic migration of v1 profiles (without language/notificationsEnabled) to v2
+// v4.5: v3 migration (without notes/launchCount/totalPlayMs) to v3
 function _migrateProfile(p) {
   if (!p) return p;
   if (p.language === undefined) p.language = 'pt';
@@ -109,9 +109,9 @@ function _migrateProfile(p) {
   return p;
 }
 
-let _profiles = null; // cache em memória
+let _profiles = null; // in-memory cache
 let _listeners = [];
-let _launchLog = null; // cache em memória do log de lançamentos
+let _launchLog = null; // in-memory cache of launch log
 
 function getDir() {
   return path.join(app.getPath('userData'), PROFILES_DIR);
@@ -145,7 +145,7 @@ function load() {
   ensureDir();
 
   // carrega launch log sempre (independente do estado de profiles.json,
-  // para que o cache _launchLog não fique stale entre loads)
+  // so the _launchLog cache doesn't go stale between loads)
   _loadLaunchLog();
 
   const file = getFile();
@@ -183,7 +183,7 @@ function load() {
     return _profiles;
   }
 
-  // Valida cada perfil; descarta inválidos silenciosamente
+  // Validates each profile; silently discards invalid ones
   _profiles = parsed.filter(isValidProfile);
   if (_profiles.length !== parsed.length) {
     logger.warn(
@@ -266,7 +266,7 @@ function _saveToDisk(profiles) {
     return true;
   } catch (e) {
     logger.error('ProfileStore: failed to save: ' + e.message);
-    // Tenta limpar tmp órfão
+    // Tries to clean up orphan tmp
     try {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
     } catch (_) {
@@ -399,7 +399,7 @@ function remove(id) {
   _profiles.splice(idx, 1);
   persist();
 
-  // Wipe da partition (cookies/cache do perfil removido)
+  // Partition wipe (cookies/cache of removed profile)
   try {
     const partDir = path.join(app.getPath('userData'), 'Partitions', 'profile-' + id);
     if (fs.existsSync(partDir)) {
@@ -509,8 +509,8 @@ function getStats(id) {
 }
 
 /**
- * Exporta todos os perfis como JSON string (para portabilidade Win↔Linux).
- * Não inclui cookies (são por partition em disco) — apenas metadados.
+ * Exports all profiles as JSON string (for Win↔Linux portability).
+ * Does not include cookies (they're per-partition on disk) — only metadata.
  * @returns {string}
  */
 function exportJSON() {
@@ -560,7 +560,7 @@ function importJSON(jsonStr) {
       skipped++;
       return;
     }
-    // Novo ID (evita colisão com existentes)
+    // New ID (avoids collision with existing ones)
     const fresh = Object.assign({}, p, {
       id: 'p_' + crypto.randomBytes(6).toString('hex'),
       createdAt: Date.now(),
@@ -578,7 +578,7 @@ function onChange(cb) {
   if (typeof cb === 'function') _listeners.push(cb);
 }
 
-// Helper recursivo para remover diretório
+// Recursive helper to remove directory
 function _rmrf(p) {
   if (fs.existsSync(p)) {
     fs.readdirSync(p).forEach(function (entry) {
@@ -591,7 +591,7 @@ function _rmrf(p) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// Launch log (timeline) — log de lançamentos para gráfico de 7 dias
+// Launch log (timeline) — launch log for 7-day chart
 // Persistido em userData/launch-log.json (arquivo separado de profiles.json).
 // Cada entrada: { id: profileId, ts: number }. Cap em MAX_LAUNCH_LOG_ENTRIES.
 // ──────────────────────────────────────────────────────────────────────────
@@ -605,7 +605,7 @@ function getLaunchLogFile() {
 }
 
 /**
- * Formata um timestamp como 'YYYY-MM-DD' usando hora LOCAL (não UTC).
+ * Formats a timestamp as 'YYYY-MM-DD' using LOCAL time (not UTC).
  * @param {number} ts
  * @returns {string}
  */
@@ -620,7 +620,7 @@ function _formatDate(ts) {
 /**
  * Carrega o launch log do disco. Arquivo ausente → array vazio.
  * JSON malformado → array vazio + warning. Faz cap em MAX_LAUNCH_LOG_ENTRIES.
- * NUNCA lança — captura todas as exceções.
+ * NEVER throws — catches all exceptions.
  * @returns {Array}
  */
 function _loadLaunchLog() {
@@ -630,7 +630,7 @@ function _loadLaunchLog() {
       const raw = fs.readFileSync(file, 'utf8');
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        // Valida cada entrada; descarta inválidas silenciosamente
+        // Validates each entry; silently discards invalid ones
         _launchLog = parsed.filter(function (e) {
           return e && typeof e.id === 'string' && typeof e.ts === 'number' && isFinite(e.ts);
         });
@@ -638,7 +638,7 @@ function _loadLaunchLog() {
           logger.warn(
             'LaunchLog: ' +
               (parsed.length - _launchLog.length) +
-              ' entrada(s) inválida(s) descartada(s)'
+              ' invalid entry(ies) discarded'
           );
         }
       } else {
@@ -646,14 +646,14 @@ function _loadLaunchLog() {
         _launchLog = [];
       }
     } else {
-      // Backward-compat: primeira execução, arquivo não existe → começa vazio
+      // Backward-compat: first run, file doesn't exist → starts empty
       _launchLog = [];
     }
   } catch (e) {
     logger.warn('LaunchLog: corrupted file (' + e.message + ') — starting empty');
     _launchLog = [];
   }
-  // Cap defensivo (normalmente o cap já acontece em recordLaunch)
+  // Defensive cap (normally the cap already happens in recordLaunch)
   if (_launchLog.length > MAX_LAUNCH_LOG_ENTRIES) {
     _launchLog = _launchLog.slice(_launchLog.length - MAX_LAUNCH_LOG_ENTRIES);
   }
@@ -661,7 +661,7 @@ function _loadLaunchLog() {
 }
 
 /**
- * Persiste o launch log no disco (atomic write: tmp → rename). NUNCA lança.
+ * Persists the launch log to disk (atomic write: tmp → rename). NEVER throws.
  */
 function _persistLaunchLog() {
   if (_launchLog === null) return;
@@ -686,9 +686,9 @@ function _persistLaunchLog() {
 }
 
 /**
- * v5.5: Registra um lançamento no log. No-op se o perfil não existir.
+ * v5.5: Records a launch in the log. No-op if the profile doesn't exist.
  * @param {string} profileId
- * @returns {boolean} true se registrou, false caso contrário (id inválido ou perfil inexistente)
+ * @returns {boolean} true if recorded, false otherwise (invalid id or non-existent profile)
  */
 function recordLaunch(profileId) {
   if (_profiles === null) load();
@@ -711,7 +711,7 @@ function recordLaunch(profileId) {
  * v5.5: Retorna timeline de lançamentos dos últimos `days` dias.
  * Array de tamanho `days`, oldest first → newest last.
  * Cada entrada: { date: 'YYYY-MM-DD', count: number, profiles: [{id, name, count}] }
- * Entradas sem lançamentos aparecem com count 0 e profiles vazio.
+ * Entries without launches appear with count 0 and empty profiles.
  * @param {number} [days=7]
  * @returns {Array}
  */
@@ -724,7 +724,7 @@ function getLaunchTimeline(days) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Constrói buckets: índice 0 = (days-1) dias atrás, índice (days-1) = hoje
+  // Builds buckets: index 0 = (days-1) days ago, index (days-1) = today
   const buckets = [];
   const dateToIdx = {};
   for (var i = days - 1; i >= 0; i--) {
@@ -746,7 +746,7 @@ function getLaunchTimeline(days) {
     const p = _profiles.find(function (x) {
       return x.id === entry.id;
     });
-    if (!p) return; // perfil deletado — não conta no profiles array
+    if (!p) return; // profile deleted — doesn't count in profiles array
     if (!b._byId[entry.id]) {
       b._byId[entry.id] = { id: entry.id, name: p.name, count: 0 };
       b.profiles.push(b._byId[entry.id]);
@@ -762,7 +762,7 @@ function getLaunchTimeline(days) {
 }
 
 /**
- * v5.5: Limpa todo o launch log (zera e persiste).
+ * v5.5: Clears the entire launch log (resets and persists).
  */
 function clearLaunchLog() {
   if (_launchLog === null) _loadLaunchLog();
@@ -771,7 +771,7 @@ function clearLaunchLog() {
 }
 
 /**
- * v5.5: Retorna estatísticas do launch log.
+ * v5.5: Returns launch log statistics.
  * @returns {{total:number, oldestTs:number|null, newestTs:number|null}}
  */
 function getLaunchLogStats() {

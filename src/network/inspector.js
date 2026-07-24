@@ -8,9 +8,9 @@
  * session.webRequest.onBeforeRequest / onResponseStarted.
  *
  * This module registers listeners on the profile's session and captures:
- *   - URLs chamadas (com método, tipo, timestamp)
+ *   - URLs called (with method, type, timestamp)
  *   - Captured oas_user cookies (decoded JWT)
- *   - Endpoints conhecidos (passport, odp3, game backend)
+ *   - Known endpoints (passport, odp3, game backend)
  *   - Aggregated statistics (requests/min, domains hit, etc.)
  *
  * DevTools (Ctrl+Shift+I) is blocked in the game for security. This inspector

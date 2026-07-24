@@ -6,7 +6,7 @@
  * and returns a structured list for the launcher to render.
  *
  * COMO FUNCIONA:
- *   1. Faz GET para naruto.narutowebgame.com/{lang}/serverlist
+ *   1. Makes GET to naruto.narutowebgame.com/{lang}/serverlist
  *   2. Extrai links /serverlist/sNNN do HTML
  *   3. Retorna array de { id, number, url } ordenado por número
  *
@@ -118,7 +118,7 @@ function fetchServers(region) {
           try {
             request.cancel();
           } catch (_) {
-            /* ignore — socket pode já estar fechado */
+            /* ignore — socket may already be closed */
           }
           logger.warn('server-selector: timeout for ' + region);
           resolve([]);

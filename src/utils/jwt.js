@@ -3,10 +3,10 @@
  * v1.0.0 — v4.9: tempmail + API login + dev inspector
  *
  * O passport.oasgames.com retorna um loginKey (JWT HS256) de 2h. Esse JWT
- * vai parar no cookie oas_user (domínio .narutowebgame.com) e é o que
- * mantém a sessão logada no jogo.
+ * will end up in the oas_user cookie (domain .narutowebgame.com) and is what
+ * keeps the session logged in to the game.
  *
- * Este módulo decodifica SEM validar a assinatura (o servidor valida).
+ * This module decodes WITHOUT validating the signature (the server validates).
  * Usado pelo Inspector de Rede pra mostrar o payload do JWT capturado.
  */
 

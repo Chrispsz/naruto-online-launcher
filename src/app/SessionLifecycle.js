@@ -6,7 +6,7 @@
  * close, closed, ready-to-show) a uma BrowserWindow de jogo. Inclui CSS
  * injection, FB mock, e auto-login via vault.
  *
- * Histórico: era inline no God Object game-launcher.js (620 linhas). Extraído
+ * History: was inline in the God Object game-launcher.js (620 lines). Extracted
  * para isolar o lifecycle do launch/orchestration.
  */
 
@@ -20,7 +20,7 @@ const StallDetector = require('./StallDetector');
 /**
  * Loads the game page with pre-authentication via API when possible.
  * Se o perfil tem credenciais no vault, chama apiLogin.loginAndInject() ANTES
- * de loadURL — assim o cookie oas_user já está setado e o servidor redireciona
+ * from loadURL — so the oas_user cookie is already set and the server redirects
  * direto pro jogo, sem mostrar a tela de login do Naruto Online.
  * Fallback: se API login falha, carrega a URL normalmente (form-injection auto-login
  * via MutationObserver cuida do login depois).
@@ -186,8 +186,8 @@ function attach(win, ctx) {
       logger.debug('render-process-gone: reportCrash(profile) failed: ' + e.message);
     }
 
-    // Auto-recovery: reload se webContents ainda válido e dentro do backoff.
-    // Causas recuperáveis: oom, crashed, abnormal-exit (não recupera 'clean-exit').
+    // Auto-recovery: reload if webContents still valid and within backoff.
+    // Recoverable causes: oom, crashed, abnormal-exit (doesn't recover 'clean-exit').
     if (win.isDestroyed()) return;
     if (win.webContents.isDestroyed()) return;
     var reason = details && details.reason;
@@ -274,8 +274,8 @@ function attach(win, ctx) {
     ses.cookies.flushStore().catch(function () {});
 
     // ── v5.0.0: CPU optimization (cross-platform) ──
-    // Aplicado aqui (e não no ready-to-show) porque getOSProcessId() só retorna
-    // valor válido após o renderer process spawn — que acontece no loadURL.
+    // Applied here (not in ready-to-show) because getOSProcessId() only returns
+    // a valid value after the renderer process spawn — which happens on loadURL.
     // LINUX: taskset (affinity) + renice (priority) + oom_score_adj (OOM protection).
     // WINDOWS: PowerShell (affinity) + os.setPriority (priority).
     // macOS: no-op.
@@ -322,15 +322,15 @@ function attach(win, ctx) {
       .catch(function () {});
 
     // LAYER 2: clean fullscreen — hides header/footer/sidebars and makes
-    // o #oas-player preencher a janela (experiência imersiva só do jogo).
+    // #oas-player to fill the window (immersive game-only experience).
     //
-    // Usa MutationObserver + polling (mesmo padrão robusto do auto-login)
-    // em vez de um check único no did-finish-load. O Naruto Online carrega o
+    // Uses MutationObserver + polling (same robust pattern as auto-login)
+    // instead of a single check on did-finish-load. Naruto Online loads the
     // embed #oas-player ASYNC via JS — no did-finish-load ele geralmente ainda
-    // não existe no DOM, então o check único falhava e o CSS não injetava.
-    // Resultado: a top bar às vezes sumia (numa sub-navegação onde #oas-player
-    // já existia) e às vezes ficava visível — inconsistente. Agora o observer
-    // detecta #oas-player assim que ele aparece e injeta o CSS de forma confiável.
+    // doesn't exist in the DOM, so the single check failed and the CSS didn't inject.
+    // Result: the top bar sometimes disappeared (on a sub-navigation where #oas-player
+    // already existed) and sometimes stayed visible — inconsistent. Now the observer
+    // detects #oas-player as soon as it appears and injects CSS reliably.
     win.webContents
       .executeJavaScript(
         '(function(){' +
@@ -564,7 +564,7 @@ function attach(win, ctx) {
     // Clean up reload race guard for this window
     _reloadingWindows.delete(win.id);
     _windowStallDetectors.delete(win);
-    // gameWindows.delete é responsabilidade do Launcher (que possui o Map)
+    // gameWindows.delete is the responsibility of Launcher (which owns the Map)
     _sendWindowStatus(profileId, false);
     logger.info('Profile closed: ' + profile.name);
     if (onClosed) onClosed();
@@ -670,18 +670,18 @@ function attach(win, ctx) {
 /**
  * Reloads the game page with pre-authentication (same flow as Play).
  *
- * Diferente de um reload cru, este método:
+ * Unlike a raw reload, this method:
  *   1. Limpa cookies + localStorage + sessionStorage + cache da partition
- *   2. Pré-autentica via apiLogin.loginAndInject() ANTES de recarregar
- *      → o cookie oas_user já vem setado → servidor redireciona direto pro jogo,
- *        sem mostrar a tela de login do Naruto Online (email ficaria visível).
+ *   2. Pre-authenticates via apiLogin.loginAndInject() BEFORE reloading
+ *      → the oas_user cookie comes already set → server redirects straight to the game,
+ *        without showing the Naruto Online login screen (email would be visible).
  *
- * Se o perfil NÃO tem credenciais no vault, faz só o reload direto (não há como
- * pré-autenticar). Se o apiLogin falha, faz fallback pro loadURL simples (o
+ * If the profile does NOT have credentials in the vault, does just a direct reload (no way to
+ * pre-authenticate). If apiLogin fails, falls back to simple loadURL (the
  * form-injection auto-login via did-finish-load cuida do login depois).
  *
- * ANTI-RACE: se já existe um reload em andamento para esta janela, ignora.
- * Evita que F5 múltiplo rápido cause clearStorageData concorrente + loadURL duplo.
+ * ANTI-RACE: if a reload is already in progress for this window, ignores.
+ * Prevents rapid multiple F5 from causing concurrent clearStorageData + double loadURL.
  *
  * @param {string} profileId
  * @param {Object} profile
@@ -700,14 +700,14 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
   if (!win || win.isDestroyed()) return Promise.resolve();
   if (win.webContents.isDestroyed()) return Promise.resolve();
   if (!ses) {
-    // Sem session: não há o que limpar, só recarrega.
+    // No session: nothing to clear, just reloads.
     if (!win.webContents.isDestroyed()) {
       win.webContents.reload();
     }
     return Promise.resolve();
   }
 
-  // Anti-race: se já tem um reload em andamento pra esta janela, skip.
+  // Anti-race: if a reload is already in progress for this window, skip.
   var winId = win.id;
   if (_reloadingWindows.has(winId)) {
     logger.debug('F5 reloadWithPreAuth: reload already in progress (win ' + winId + ') — skip');
@@ -716,8 +716,8 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
   _reloadingWindows.add(winId);
 
   // P2 FIX: desanexa StallDetector ANTES do reload. O antigo guard liberava
-  // após 3s fixo, mas did-finish-load (que cria um novo StallDetector) pode
-  // demorar mais que 3s em conexões lentas. Resultado: o StallDetector antigo
+  // after a fixed 3s, but did-finish-load (which creates a new StallDetector) can
+  // take longer than 3s on slow connections. Result: the old StallDetector
   // detectava "inatividade" durante o reload e disparava um segundo reload
   // concorrente → loop de reloads.
   var sd = _windowStallDetectors.get(win);
@@ -751,9 +751,9 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
       logger.info('F5 reloadWithPreAuth: login cleared, pre-authenticating — ' + profile.name);
       // Reutiliza o MESMO fluxo do Play (apiLogin.loginAndInject antes de loadURL).
       _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl);
-      // O guard _reloadingWindows é liberado em did-finish-load (após o novo
-      // StallDetector ser anexado). Timeout de segurança de 30s como fallback
-      // caso did-finish-load nunca dispare (janela destruída, etc).
+      // The _reloadingWindows guard is released in did-finish-load (after the new
+      // StallDetector is attached). 30s safety timeout as fallback
+      // in case did-finish-load never fires (window destroyed, etc).
       const t = setTimeout(function () {
         _reloadingWindows.delete(winId);
       }, 30000);

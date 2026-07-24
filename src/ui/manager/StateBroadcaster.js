@@ -1,13 +1,13 @@
 /**
- * ui/manager/StateBroadcaster.js — Push de estado para a UI (Fase 3c split)
+ * ui/manager/StateBroadcaster.js — State push to UI (Phase 3c split)
  *
  * Single Responsibility (SRP): push state snapshots (profiles, memory,
- * eventos) para o renderer do manager via IPC, em intervalos e em resposta a
- * mudanças. Não cria janelas nem registra handlers de ação — isso é papel do
+ * events) to the manager renderer via IPC, at intervals and in response to
+ * changes. Does not create windows or register action handlers — that is the role of
  * ManagerWindow e IpcRouter.
  *
- * Histórico: era parte do God Object controller.js. Split: este módulo cuida
- * só do broadcast de estado.
+ * History: was part of the God Object controller.js. Split: this module handles
+ * only state broadcast.
  */
 
 'use strict';
@@ -18,7 +18,7 @@ const vault = require('../../profiles/vault');
 const partition = require('../../profiles/partition');
 const ManagerWindow = require('./ManagerWindow');
 
-// Guards anti-duplicação de listeners (v3.6.2)
+// Anti-duplication guards for listeners (v3.6.2)
 let _remindCb = null;
 let _pushTimer = null;
 let _storeChangeCb = null;
@@ -57,9 +57,9 @@ function pushAll() {
 }
 
 /**
- * Registra listeners de mudança de estado (event remind, store changes)
- * e inicia o timer de refresh periódico (30s).
- * Idempotente — seguro chamar múltiplas vezes.
+ * Registers state-change listeners (event remind, store changes)
+ * and starts the periodic refresh timer (30s).
+ * Idempotent — safe to call multiple times.
  */
 function startAutoRefresh() {
   if (_started) return;

@@ -5,22 +5,22 @@
  * REPLACES the old crash-reporter (local-only, removed in v4.9.2).
  * Philosophy: zero tracking, zero auto-send. The user clicks
  * "Export diagnostics" and gets a .zip to attach to a GitHub Issue
- * — se quiser. Nada é enviado automaticamente.
+ * — if desired. Nothing is sent automatically.
  *
- * CONTEÚDO DO .zip:
- *   - system-info.json   → versão, Electron, Node, SO, RAM, CPU (sanitizado)
+ * ZIP CONTENTS:
+ *   - system-info.json   → version, Electron, Node, OS, RAM, CPU (sanitized)
  *   - config.json        → config do launcher (sanitizada: sem senhas, sem paths)
- *   - profiles.json      → perfis (sanitizado: nome + região + servidor, sem creds)
- *   - logs/main.log      → log principal do electron-log (últimas 500 linhas)
+ *   - profiles.json      → profiles (sanitized: name + region + server, no creds)
+ *   - logs/main.log      → main electron-log (last 500 lines)
  *   - logs/old-*.log     → logs rotacionados (se existirem)
  *   - crash-reports.json → se existir do v4.7 (legacy, pode estar vazio)
  *
- * SANITIZAÇÃO:
+ * SANITIZATION:
  *   - Remove paths absolutos (/home/user, C:\Users\user)
  *   - Remove tokens (40+ hex chars)
  *   - Remove emails
- *   - Não inclui credenciais do vault (jamais)
- *   - Não inclui cookies do jogo (jamais)
+ *   - Does not include vault credentials (never)
+ *   - Does not include game cookies (never)
  *
  * USO:
  *   const diag = require('./utils/diagnostics');
@@ -40,7 +40,7 @@ const logger = require('./logger');
 
 function _sanitize(str) {
   if (typeof str !== 'string') return String(str || '');
-  // Paths absolutos de usuário
+  // Absolute user paths
   str = str.replace(/\/(?:home|Users)\/[^/\s]+/g, '/home/[user]');
   str = str.replace(/[A-Z]:\\Users\\[^\\\s]+/g, 'C:\\Users\\[user]');
   // Tokens (40+ hex chars — JWT, etc)
@@ -64,7 +64,7 @@ function _sanitizeObj(obj, depth) {
     const out = {};
     for (const k in obj) {
       if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
-      // Nunca incluir campos sensíveis por nome
+      // Never include sensitive fields by name
       const lk = k.toLowerCase();
       if (
         lk === 'pass' ||
@@ -135,7 +135,7 @@ function _collectProfiles() {
   try {
     const store = require('../profiles/store');
     const profiles = store.getAll();
-    // Só nome + região + servidor + stats — JAMAIS creds
+    // Only name + region + server + stats — NEVER creds
     return profiles.map(function (p) {
       return {
         id: p.id,
@@ -180,7 +180,7 @@ function _readLogs() {
       try {
         const stat = fs.statSync(full);
         if (stat.size > 2 * 1024 * 1024) {
-          // >2MB: lê só últimas 500 linhas
+          // >2MB: reads only last 500 lines
           const buf = fs.readFileSync(full, 'utf8');
           const lines = buf.split('\n');
           out[f] = lines.slice(-500).join('\n');
@@ -213,7 +213,7 @@ function _readLegacyCrashReports() {
 
 // ── Minimalist ZIP writer (no dependencies) ────────────────────────────
 // ZIP format: simple structure, deflate. Inline implementation to
-// adicionar dependência (adm-zip/jszip) ao launcher.
+// add dependency (adm-zip/jszip) to the launcher.
 
 function _crc32(buf) {
   let crc = 0xffffffff;
@@ -294,7 +294,7 @@ function _makeZipFile(entries) {
   return Buffer.concat([Buffer.concat(localParts), centralBuf, end]);
 }
 
-// ── API pública ──────────────────────────────────────────────────────────
+// ── Public API ──────────────────────────────────────────────────────────
 
 /**
  * Generates the diagnostic .zip package and opens save dialog.
@@ -357,7 +357,7 @@ async function exportZip(parentWindow) {
 
     const zipBuf = _makeZipFile(entries);
 
-    // Diálogo de salvamento
+    // Save dialog
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const defaultName = 'shinobi-diag-' + stamp + '.zip';
 

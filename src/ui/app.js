@@ -127,11 +127,11 @@ ipcRenderer.on('auto-login:result', (_e, data) => {
   });
   var name = p ? p.name : data.profileId;
   if (data.result === 'filled') {
-    toast('Auto-login: credenciais injetadas (' + name + ')', 'ok');
+    toast('Auto-login: credentials injected (' + name + ')', 'ok');
   } else if (data.result === 'clicked') {
-    toast('Auto-login: botão clicado (' + name + ')', 'ok');
+    toast('Auto-login: button clicked (' + name + ')', 'ok');
   } else if (data.result === 'error') {
-    toast('Auto-login: erro (' + name + ')', 'err');
+    toast('Auto-login: error (' + name + ')', 'err');
   }
 });
 // v4.5: Real-time status updates for auto-login and window open state.
@@ -448,7 +448,7 @@ document.getElementById('autoCreateBtn').onclick = async function () {
   var btn = document.getElementById('autoCreateBtn');
   var originalText = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Criando…';
+  btn.textContent = 'Creating…';
   try {
     var result = await window.api.createTempmail({
       name: name,
@@ -566,10 +566,10 @@ async function loadOptimization() {
           'ok'
         );
       } else {
-        toast('Erro: ' + (res && res.error ? res.error : 'falha'), 'err');
+        toast('Error: ' + (res && res.error ? res.error : 'failed'), 'err');
       }
     } catch (e) {
-      toast('Erro: ' + e.message, 'err');
+      toast('Error: ' + e.message, 'err');
     }
   });
 })();
@@ -597,10 +597,10 @@ async function loadOptimization() {
           'ok'
         );
       } else {
-        toast('Erro: ' + (res && res.error ? res.error : 'falha'), 'err');
+        toast('Error: ' + (res && res.error ? res.error : 'failed'), 'err');
       }
     } catch (e) {
-      toast('Erro: ' + e.message, 'err');
+      toast('Error: ' + e.message, 'err');
     }
   });
 })();
@@ -617,46 +617,46 @@ document.getElementById('advBackupExport').onclick = async function () {
   var pwd = prompt('Digite uma senha para criptografar o backup (mín. 6 caracteres):');
   if (!pwd) return;
   if (pwd.length < 6) {
-    toast('Senha muito curta', 'err');
+    toast('Password too short', 'err');
     return;
   }
   this.disabled = true;
-  this.textContent = 'Exportando...';
+  this.textContent = 'Exporting...';
   try {
     var res = await ipcRenderer.invoke('profiles:export-encrypted', pwd);
     if (res && res.ok) {
-      toast('Backup salvo: ' + res.count + ' perfis', 'ok');
+      toast('Backup saved: ' + res.count + ' profiles', 'ok');
     } else if (res && res.canceled) {
       // user canceled save dialog
     } else {
-      toast('Erro: ' + (res && res.error ? res.error : 'falha'), 'err');
+      toast('Error: ' + (res && res.error ? res.error : 'failed'), 'err');
     }
   } catch (e) {
-    toast('Erro: ' + e.message, 'err');
+    toast('Error: ' + e.message, 'err');
   }
   this.disabled = false;
-  this.textContent = 'Exportar';
+  this.textContent = 'Export';
 };
 
 document.getElementById('advBackupImport').onclick = async function () {
   var pwd = prompt('Digite a senha do backup:');
   if (!pwd) return;
   this.disabled = true;
-  this.textContent = 'Importando...';
+  this.textContent = 'Importing...';
   try {
     var res = await ipcRenderer.invoke('profiles:import-encrypted', pwd);
     if (res && res.ok) {
-      toast('Importados: ' + res.imported + ' | Ignorados: ' + res.skipped, 'ok');
+      toast('Imported: ' + res.imported + ' | Skipped: ' + res.skipped, 'ok');
     } else if (res && res.canceled) {
       // user canceled open dialog
     } else {
-      toast('Erro: ' + (res && res.error ? res.error : 'falha'), 'err');
+      toast('Error: ' + (res && res.error ? res.error : 'failed'), 'err');
     }
   } catch (e) {
-    toast('Erro: ' + e.message, 'err');
+    toast('Error: ' + e.message, 'err');
   }
   this.disabled = false;
-  this.textContent = 'Importar';
+  this.textContent = 'Import';
 };
 
 // v4.9.2: Export diagnostics zip — controller handles save dialog + success/error toast
@@ -667,7 +667,7 @@ document.getElementById('advExportDiag').onclick = async function () {
   try {
     await window.api.exportDiag();
   } catch (e) {
-    toast('Erro ao exportar diagnóstico: ' + e.message, 'err');
+    toast('Failed to export diagnostics: ' + e.message, 'err');
   }
   this.disabled = false;
   this.textContent = 'Exportar .zip';
@@ -737,7 +737,7 @@ document.getElementById('setRemind').onchange = async function () {
     await ipcRenderer.invoke('events:set-remind', min);
     toast(
       currentLang === 'pt'
-        ? 'Lembrete definido para ' + min + ' min antes'
+        ? 'Reminder set to ' + min + ' min before'
         : 'Reminder set to ' + min + ' min before',
       'ok'
     );
@@ -771,7 +771,7 @@ document.getElementById('btnPickServer').onclick = async () => {
         ' ' + (currentLang === 'pt' ? 'servidores total' : 'servers total') + '</span>';
     }
   } catch (e) {
-    hint.textContent = 'Erro: ' + e.message;
+    hint.textContent = 'Error: ' + e.message;
   }
   btn.disabled = false;
   btn.textContent = 'Buscar';
@@ -876,11 +876,11 @@ function populateDevProfileSelects() {
     .map(p => '<option value="' + p.id + '">' + p.name + ' (' + p.username + ')</option>')
     .join('');
   document.getElementById('devApiLoginProfile').innerHTML =
-    opts || '<option>(nenhum perfil)</option>';
+    opts || '<option>(no profile)</option>';
   document.getElementById('devInspectorProfile').innerHTML =
-    opts || '<option>(nenhum perfil)</option>';
+    opts || '<option>(no profile)</option>';
   document.getElementById('devSourceProfile').innerHTML =
-    opts || '<option>(nenhum perfil)</option>';
+    opts || '<option>(no profile)</option>';
 }
 
 function initDevTools() {
@@ -890,21 +890,21 @@ function initDevTools() {
   document.getElementById('devTempmailCreate').onclick = async function () {
     const btn = this;
     btn.disabled = true;
-    btn.textContent = 'Criando...';
+    btn.textContent = 'Creating...';
     const out = document.getElementById('devTempmailResult');
     out.style.display = 'block';
-    out.textContent = 'Criando conta tempmail + registrando no Naruto Online...';
+    out.textContent = 'Creating tempmail account + registering on Naruto Online...';
     try {
       const r = await window.api.createTempmail();
       if (r.ok) {
         const d = r.data;
         out.textContent =
-          '✓ CONTA CRIADA\n' +
+          '✓ ACCOUNT CREATED\n' +
           '═══════════════════════════════════\n' +
           'Email:    ' +
           d.tempmail.address +
           '\n' +
-          'Senha:    ' +
+          'Password: ' +
           d.tempmail.password +
           '\n' +
           'PlayerID: ' +
@@ -913,20 +913,20 @@ function initDevTools() {
           'Nickname: ' +
           d.game.nickname +
           '\n' +
-          'JWT expira: ' +
+          'JWT expires: ' +
           new Date(d.game.expiresAt).toLocaleString('pt-BR') +
           '\n' +
           '═══════════════════════════════════\n' +
           'LoginKey (JWT):\n' +
           d.game.loginKey;
       } else {
-        out.textContent = '✗ ERRO: ' + r.error;
+        out.textContent = '✗ ERROR: ' + r.error;
       }
     } catch (e) {
-      out.textContent = '✗ ERRO: ' + e.message;
+      out.textContent = '✗ ERROR: ' + e.message;
     }
     btn.disabled = false;
-    btn.textContent = 'Criar conta tempmail';
+    btn.textContent = 'Create tempmail account';
   };
 
   // API login
@@ -936,20 +936,20 @@ function initDevTools() {
     const pwd = document.getElementById('devApiLoginPass').value;
     const out = document.getElementById('devApiLoginResult');
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
     if (!email || !pwd) {
-      toast('Email e senha obrigatórios', 'error');
+      toast('Email and password required', 'error');
       return;
     }
     out.style.display = 'block';
-    out.textContent = 'Autenticando via passport.oasgames.com...';
+    out.textContent = 'Authenticating via passport.oasgames.com...';
     try {
       const r = await window.api.apiLogin(pid, email, pwd);
       if (r.ok) {
         out.textContent =
-          '✓ LOGIN OK — cookie oas_user injetado\n' +
+          '✓ LOGIN OK — cookie oas_user injected\n' +
           '═══════════════════════════════════\n' +
           'PlayerID: ' +
           r.data.playerId +
@@ -957,16 +957,16 @@ function initDevTools() {
           'Nickname: ' +
           r.data.nickname +
           '\n' +
-          'Expira em: ' +
+          'Expires in: ' +
           new Date(r.data.expiresAt).toLocaleString('pt-BR') +
           '\n' +
           '═══════════════════════════════════\n' +
-          'Agora clique Play no perfil — a sessão já estará autenticada.';
+          'Now click Play on the profile — the session is already authenticated.';
       } else {
-        out.textContent = '✗ ERRO: ' + r.error;
+        out.textContent = '✗ ERROR: ' + r.error;
       }
     } catch (e) {
-      out.textContent = '✗ ERRO: ' + e.message;
+      out.textContent = '✗ ERROR: ' + e.message;
     }
   };
 
@@ -975,35 +975,35 @@ function initDevTools() {
     const pid = document.getElementById('devApiLoginProfile').value;
     const out = document.getElementById('devApiLoginResult');
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
     out.style.display = 'block';
-    out.textContent = 'Verificando cookie oas_user...';
+    out.textContent = 'Checking cookie oas_user...';
     try {
       const r = await window.api.checkSession(pid);
       if (r.ok && r.data.valid) {
         const p = r.data.jwtDecoded.payload;
         out.textContent =
-          '✓ SESSÃO VÁLIDA\n' +
+          '✓ VALID SESSION\n' +
           'PlayerID: ' +
           p.playerId +
           '\n' +
           'Nickname: ' +
           p.nickname +
           '\n' +
-          'Expira em: ' +
+          'Expires in: ' +
           r.data.expiresInSeconds +
           's (' +
           Math.round(r.data.expiresInSeconds / 60) +
           ' min)';
       } else if (r.ok) {
-        out.textContent = '✗ Sem sessão válida (cookie ausente ou JWT expirado)';
+        out.textContent = '✗ No valid session (cookie missing or JWT expired)';
       } else {
-        out.textContent = '✗ ERRO: ' + r.error;
+        out.textContent = '✗ ERROR: ' + r.error;
       }
     } catch (e) {
-      out.textContent = '✗ ERRO: ' + e.message;
+      out.textContent = '✗ ERROR: ' + e.message;
     }
   };
 
@@ -1020,7 +1020,7 @@ function initDevTools() {
       const s = r.data.stats;
       statsEl.style.display = 'block';
       statsEl.textContent =
-        'Requisições: ' +
+        'Requests: ' +
         s.totalRequests +
         ' (' +
         s.requestsPerMin.toFixed(1) +
@@ -1028,7 +1028,7 @@ function initDevTools() {
         'Uptime: ' +
         s.uptime +
         's\n' +
-        'JWTs capturados: ' +
+        'Captured JWTs: ' +
         s.capturedJwts.length +
         '\n' +
         'Por tipo: auth=' +
@@ -1082,19 +1082,19 @@ function initDevTools() {
         .join('');
     } else {
       entriesEl.style.display = 'block';
-      entriesEl.textContent = '(nenhuma captura ainda — abra o jogo neste perfil)';
+      entriesEl.textContent = '(no captures yet — open the game in this profile)';
     }
   }
 
   document.getElementById('devInspectorEnable').onclick = async function () {
     const pid = document.getElementById('devInspectorProfile').value;
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
     const r = await window.api.inspectorEnable(pid);
     if (r.ok) {
-      toast('Inspector ativo — abra o jogo', 'info');
+      toast('Inspector active — open the game', 'info');
       document.getElementById('devInspectorEnable').disabled = true;
       document.getElementById('devInspectorDisable').disabled = false;
       refreshInspector();
@@ -1113,7 +1113,7 @@ function initDevTools() {
     }
     document.getElementById('devInspectorEnable').disabled = false;
     document.getElementById('devInspectorDisable').disabled = true;
-    toast('Inspector desativado', 'info');
+    toast('Inspector disabled', 'info');
   };
 
   document.getElementById('devInspectorRefresh').onclick = refreshInspector;
@@ -1133,10 +1133,10 @@ function initDevTools() {
   document.getElementById('devExtractSource').onclick = async function () {
     const pid = document.getElementById('devSourceProfile').value;
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
-    showSrc('Extraindo fonte da página...');
+    showSrc('Extracting page source...');
     try {
       const r = await window.api.getPageSource(pid);
       if (r.ok) {
@@ -1152,20 +1152,20 @@ function initDevTools() {
             (r.data.size > 8000 ? '\n... (truncado, ' + r.data.size + ' chars total)' : '')
         );
       } else {
-        showSrc('✗ ERRO: ' + r.error);
+        showSrc('✗ ERROR: ' + r.error);
       }
     } catch (e) {
-      showSrc('✗ ERRO: ' + e.message);
+      showSrc('✗ ERROR: ' + e.message);
     }
   };
 
   document.getElementById('devListCookies').onclick = async function () {
     const pid = document.getElementById('devSourceProfile').value;
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
-    showSrc('Listando cookies...');
+    showSrc('Listing cookies...');
     try {
       const r = await window.api.getCookies(pid);
       if (r.ok) {
@@ -1192,42 +1192,42 @@ function initDevTools() {
               .join('\n')
         );
       } else {
-        showSrc('✗ ERRO: ' + r.error);
+        showSrc('✗ ERROR: ' + r.error);
       }
     } catch (e) {
-      showSrc('✗ ERRO: ' + e.message);
+      showSrc('✗ ERROR: ' + e.message);
     }
   };
 
   document.getElementById('devReloadGame').onclick = async function () {
     const pid = document.getElementById('devSourceProfile').value;
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
     const r = await window.api.reloadGame(pid);
-    toast(r.ok ? 'Sessão Flash recarregada (F5)' : 'Erro: ' + r.error, r.ok ? 'ok' : 'error');
+    toast(r.ok ? 'Flash session reloaded (F5)' : 'Error: ' + r.error, r.ok ? 'ok' : 'error');
   };
 
   document.getElementById('devToggleDt').onclick = async function () {
     const pid = document.getElementById('devSourceProfile').value;
     if (!pid) {
-      toast('Selecione um perfil', 'error');
+      toast('Select a profile', 'error');
       return;
     }
     const r = await window.api.toggleDevTools(pid);
-    if (!r.ok) toast('Erro: ' + r.error, 'error');
+    if (!r.ok) toast('Error: ' + r.error, 'error');
   };
 }
 
 // ── SHINOBI_DEBUG feature flag ──
-// v5.9.3: Ativação APENAS via env var (boot-time), lida pelo preload.
-// O atalho Ctrl+Shift+D e o toggle localStorage foram REMOVIDOS — debug
-// agora é opt-in via scripts/debug.sh (abre terminal + seta SHINOBI_DEBUG=1).
-// Zero complexidade de UI em launches normais.
-// v5.9.9: preload agora expõe __SHINOBI_DEBUG__ como objeto { enabled, isDebug }
-// (Electron 11 não aceita boolean primitivo em exposeInMainWorld). Fallback
-// para boolean direto mantém compat com builds antigas em cache.
+// v5.9.3: Activation ONLY via env var (boot-time), handled by preload.
+// The Ctrl+Shift+D shortcut and localStorage toggle were REMOVED — debug
+// is now opt-in via scripts/debug.sh (opens terminal + sets SHINOBI_DEBUG=1).
+// Zero UI complexity in normal launches.
+// v5.9.9: preload now exposes __SHINOBI_DEBUG__ as an object { enabled, isDebug }
+// (Electron 11 doesn't accept primitive boolean in exposeInMainWorld). Fallback
+// to direct boolean maintains compat with cached old builds.
 function isDebugActive() {
   var d = window.__SHINOBI_DEBUG__;
   if (d && typeof d === 'object') return d.enabled === true;
@@ -1243,9 +1243,9 @@ function initDebugFlag() {
 }
 
 // ── v5.0: Notification Badge on Events ──
-// v5.9.12: badge agora mostra eventos ATIVOS no momento (dentro da janela de
-// duração), em vez de contagem de activity log. Muito menos confuso — o número
-// no botão Eventos significa "X eventos estão rodando agora".
+// v5.9.12: badge now shows ACTIVE events at the moment (within the duration
+// window), instead of activity log count. Much less confusing — the number
+// on the Events button means "X events are running now".
 // Usa lastEventsByRegion (preenchido pelo IPC events:update).
 var lastEventsByRegion = {};
 
@@ -1279,7 +1279,7 @@ function updateEventBadge() {
 function decodeJWT(token) {
   var parts = token.trim().split('.');
   if (parts.length !== 3)
-    return { error: 'Token inválido — JWT deve ter 3 partes separadas por ponto.' };
+    return { error: 'Invalid token — JWT must have 3 dot-separated parts.' };
   try {
     var header = JSON.parse(atob(parts[0].replace(/-/g, '+').replace(/_/g, '/')));
     var payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
@@ -1287,7 +1287,7 @@ function decodeJWT(token) {
     var iat = payload.iat ? new Date(payload.iat * 1000) : null;
     return { header: header, payload: payload, exp: exp, iat: iat };
   } catch (e) {
-    return { error: 'Falha ao decodificar: ' + e.message };
+    return { error: 'Decode failed: ' + e.message };
   }
 }
 
@@ -1311,7 +1311,7 @@ document.getElementById('jwtDecodeBtn').onclick = function () {
   var output = document.getElementById('jwtOutput');
   if (!token) {
     output.className = 'jwt-output show';
-    output.innerHTML = '<div class="jwt-error">Cole um token JWT para decodificar.</div>';
+    output.innerHTML = '<div class="jwt-error">Paste a JWT token to decode.</div>';
     return;
   }
   var result = decodeJWT(token);
@@ -1324,10 +1324,10 @@ document.getElementById('jwtDecodeBtn').onclick = function () {
   var isExpired = result.exp && result.exp.getTime() < now;
   var expiryHtml = '';
   if (result.exp) {
-    var label = isExpired ? 'Expirado' : 'Válido';
+    var label = isExpired ? 'Expired' : 'Valid';
     var cls = isExpired ? 'expired' : 'valid';
     var relExp = formatRelativeTime(result.exp);
-    var timeLeft = isExpired ? 'expirou ' + relExp.label : 'expira em ' + relExp.label;
+    var timeLeft = isExpired ? 'expired ' + relExp.label : 'expires in ' + relExp.label;
     expiryHtml =
       '<div class="jwt-expiry ' +
       cls +
@@ -1362,7 +1362,7 @@ document.getElementById('jwtDecodeBtn').onclick = function () {
     btn.onclick = function () {
       var text = btn.getAttribute('data-copy');
       clipboardWrite(text);
-      toast('Copiado!', 'ok');
+      toast('Copied!', 'ok');
     };
   });
 };
@@ -1389,10 +1389,10 @@ function initCopyButtons() {
     if (box.querySelector('.copy-float')) return;
     var btn = document.createElement('button');
     btn.className = 'copy-float';
-    btn.textContent = 'Copiar';
+    btn.textContent = 'Copy';
     btn.onclick = function () {
       clipboardWrite(box.textContent || '');
-      toast('Conteúdo copiado!', 'ok');
+      toast('Content copied!', 'ok');
     };
     box.style.position = 'relative';
     box.insertBefore(btn, box.firstChild);
@@ -1485,7 +1485,7 @@ function initDragDrop() {
     });
     ipcRenderer.send('profile:reorder', order);
     renderProfiles();
-    toast('Perfil reposicionado', 'ok');
+    toast('Profile reordered', 'ok');
   });
 }
 
@@ -1641,7 +1641,7 @@ renderEventsSingle = function (list) {
 };
 
 // v5.13.0: SVG icons per event category (inline for self-containment)
-// v5.17.0: Added escort + instance categories (Escolta, Instância Ninja, Treinamento)
+// v5.17.0: Added escort + instance categories (Escort, Ninja Instance, Training)
 function getEventIconSvg(category) {
   switch (category) {
     case 'boss':
@@ -1669,7 +1669,7 @@ function getEventIconSvg(category) {
 // v5.9.12: Local formatCountdown for the event renderer (EventTimers.js has
 // its own in the backend, but the renderer needs one too).
 function formatCountdown(ms) {
-  if (ms < 0) return 'agora';
+  if (ms < 0) return 'now';
   var totalMin = Math.floor(ms / 60000);
   var h = Math.floor(totalMin / 60);
   var m = totalMin % 60;
@@ -1681,7 +1681,7 @@ function formatCountdown(ms) {
 }
 
 function formatRelativeTime(ts) {
-  if (!ts || ts <= 0) return { label: 'nunca', recent: false };
+  if (!ts || ts <= 0) return { label: 'never', recent: false };
   var diff = Date.now() - ts;
   if (diff < 0) diff = 0;
   var sec = Math.floor(diff / 1000);
@@ -1689,13 +1689,13 @@ function formatRelativeTime(ts) {
   var hr = Math.floor(min / 60);
   var day = Math.floor(hr / 24);
   var label;
-  if (sec < 60) label = 'agora';
-  else if (min < 60) label = min + 'min atrás';
-  else if (hr < 24) label = hr + 'h atrás';
-  else if (day === 1) label = 'ontem';
-  else if (day < 7) label = day + 'd atrás';
-  else if (day < 30) label = Math.floor(day / 7) + 'sem atrás';
-  else label = Math.floor(day / 30) + 'mês atrás';
+  if (sec < 60) label = 'now';
+  else if (min < 60) label = min + 'min ago';
+  else if (hr < 24) label = hr + 'h ago';
+  else if (day === 1) label = 'yesterday';
+  else if (day < 7) label = day + 'd ago';
+  else if (day < 30) label = Math.floor(day / 7) + 'w ago';
+  else label = Math.floor(day / 30) + 'mo ago';
   return { label: label, recent: min < 30 };
 }
 

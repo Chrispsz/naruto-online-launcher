@@ -2,16 +2,16 @@
  * app/Launcher.js — Orchestrates game window launches per profile (Phase 3d split)
  *
  * Single Responsibility (SRP): create an isolated BrowserWindow per profile
- * (partition própria, network layer, loading screen, loadURL) e delegar o
- * lifecycle ao SessionLifecycle + atalhos ao KeyboardShortcuts. Mantém o
+ * (own partition, network layer, loading screen, loadURL) and delegate the
+ * lifecycle to SessionLifecycle + shortcuts to KeyboardShortcuts. Maintains the
  * registry de janelas abertas (gameWindows Map).
  *
- * Histórico: era o God Object game-launcher.js (620 linhas). Split em 3:
+ * History: was the God Object game-launcher.js (620 lines). Split into 3:
  *   - Launcher.js          (este) — orchestration + window registry
  *   - SessionLifecycle.js  — hooks de evento (load/fail/close/crash/auto-login)
  *   - KeyboardShortcuts.js — F5/F12/Alt+F4 antes do input do Chromium
  *
- * game-launcher.js permanece como facade re-exportando este módulo.
+ * game-launcher.js remains as facade re-exporting this module.
  */
 
 'use strict';
@@ -44,7 +44,7 @@ const urlConfig = require('../config/urls');
 const LAUNCHER_PARAMS = urlConfig.getLauncherParams();
 
 /**
- * Retorna URL do jogo para um perfil (região + idioma + servidor).
+ * Returns the game URL for a profile (region + language + server).
  * @param {Object} [profile]
  * @returns {string}
  */
@@ -54,7 +54,7 @@ function getGameUrl(profile) {
 }
 
 /**
- * Há alguma janela de jogo aberta? (usado pelo ManagerWindow close behavior)
+ * Is there a game window open? (used by ManagerWindow close behavior)
  * @returns {boolean}
  */
 function hasOpenWindows() {

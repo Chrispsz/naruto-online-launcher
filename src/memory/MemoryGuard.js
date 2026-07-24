@@ -2,9 +2,9 @@
  * memory/MemoryGuard.js — Memory monitoring + Light Mode (low-spec)
  *
  * Single Responsibility (SRP): observe and report memory state do
- * processo main + detectar máquinas low-spec (Modo Leve / Minimal).
+ * main process + detect low-spec machines (Light Mode / Minimal).
  *
- * NÃO executa GC. O V8 cuida do main process sozinho — um launcher passa 99%
+ * Does NOT run GC. V8 handles the main process alone — a launcher spends 99%
  * do tempo idle, e o jogo roda num processo renderer isolado que o main nunca
  * touch. Forced GC in main of 50-100MB is a useless optimization (removed in v1.1.2).
  */
@@ -44,7 +44,7 @@ function getThreshold() {
 }
 
 /**
- * Força ou desforça o Modo Leve. Recalcula threshold.
+ * Forces or unforces Light Mode. Recalculates threshold.
  * @param {boolean} force
  */
 function setForceLowSpec(force) {
@@ -60,7 +60,7 @@ function setForceLowSpec(force) {
 }
 
 /**
- * Retorna snapshot do estado de memória do processo main.
+ * Returns a snapshot of the main process memory state.
  * @returns {Object} stats
  */
 function getStats() {
@@ -96,7 +96,7 @@ function reportCrash() {
 
 module.exports = {
   // Maintained (do not remove): low-spec detection APIs used by Light Mode
-  // em máquinas com <4GB de RAM — getStats, isLowSpecMode, isMinimal, IS_LOW_SPEC,
+  // on machines with <4GB RAM — getStats, isLowSpecMode, isMinimal, IS_LOW_SPEC,
   // SYSTEM_RAM_GB, getThreshold, setForceLowSpec, reportCrash.
   getStats: getStats,
   isLowSpecMode: isLowSpecMode,

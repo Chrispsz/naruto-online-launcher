@@ -7,7 +7,7 @@
 
 const logger = require('../utils/logger');
 
-// Idempotência: sessions já configuradas (onBeforeRequest substitui, mas
+// Idempotency: sessions already configured (onBeforeRequest replaces, but
 // evitamos trabalho redundante em reabertura de perfis)
 const _configuredSessions = new WeakSet();
 
@@ -61,9 +61,9 @@ const BLOCKED_DOMAINS = new Set([
 
 // URL path patterns to block (for telemetry that runs on the SAME domain
 // do jogo, onde bloquear por hostname quebraria o jogo). Caso constatado no F12:
-// oss_report.fcgi?uin=...&role_id=...&svr_id=... é o iMSDK da Tencent reportando
+// oss_report.fcgi?uin=...&role_id=...&svr_id=... is the iMSDK from Tencent reporting
 // server_id + role_id + uin pra telemetria, no mesmo host naruto-pl.oasgames.com.
-// Bloquear o PATH (não o domínio) preserva o jogo e corta o vazamento.
+// Blocking the PATH (not the domain) preserves the game and cuts the leak.
 const BLOCKED_PATH_PATTERNS = [
   /\/oss_report\.fcgi\b/i, // Tencent iMSDK telemetry (server_id, role_id, uin)
   /\/crossdomain\.xml$/i // Flash security policy — always fails (404/timeout), only generates noise
@@ -116,7 +116,7 @@ function shouldBlock(url) {
 
 /**
  * Setup request blocker on a session.
- * Idempotente (cron-review-1): skipa se já configurada.
+ * Idempotent (cron-review-1): skips if already configured.
  * @param {Electron.Session} session - Browser session
  * @returns {boolean} true se configurou agora
  */

@@ -2,15 +2,15 @@
  * ui/manager/ManagerWindow.js — Lifecycle da BrowserWindow do manager (Fase 3c split)
  *
  * Single Responsibility (SRP): create, focus, show, hide and destroy the
- * janela de gerenciamento (dashboard de contas). Não registra IPC nem faz
- * push de estado — isso é papel do IpcRouter e StateBroadcaster.
+ * management window (account dashboard). Does not register IPC or do
+ * state push — that is the role of IpcRouter and StateBroadcaster.
  *
- * Histórico: era parte do God Object controller.js (648 linhas). Split em 3:
+ * History: was part of the God Object controller.js (648 lines). Split into 3:
  *   - ManagerWindow.js   (este) — lifecycle da BrowserWindow
  *   - IpcRouter.js       — registro dos handlers IPC
- *   - StateBroadcaster.js — push de estado (perfis/memória/eventos) pra UI
+ *   - StateBroadcaster.js — state push (profiles/memory/events) to UI
  *
- * controller.js permanece como facade re-exportando os 3 (API preservada).
+ * controller.js remains as facade re-exporting the 3 (API preserved).
  */
 
 'use strict';
@@ -23,7 +23,7 @@ let managerWindow = null;
 
 /**
  * Cria a janela de gerenciamento.
- * @param {Object} [opts] - { onReady: Function } chamado em ready-to-show
+ * @param {Object} [opts] - { onReady: Function } called on ready-to-show
  * @returns {Electron.BrowserWindow}
  */
 function createManagerWindow(opts) {
@@ -43,7 +43,7 @@ function createManagerWindow(opts) {
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
-      nodeIntegration: true, // UI interna confiável (só carrega index.html local)
+      nodeIntegration: true, // Trusted internal UI (only loads local index.html)
       contextIsolation: false,
       backgroundThrottling: false
     }
@@ -64,8 +64,8 @@ function createManagerWindow(opts) {
   });
 
   // v3.3: NO TRAY — intelligent close behavior.
-  // Se há janelas de jogo abertas: hide (não quit, jogo ainda roda).
-  // Se não há jogo: permite close → window-all-closed → app.quit().
+  // If game windows are open: hide (don't quit, game is still running).
+  // If no game: allows close → window-all-closed → app.quit().
   managerWindow.on('close', function (e) {
     const gameLauncher = require('../game-launcher');
     if (gameLauncher.hasOpenWindows()) {
@@ -88,7 +88,7 @@ function getManagerWindow() {
 
 /**
  * Mostra (ou recria) a janela do manager.
- * @param {Function} [onShown] - chamado após mostrar (p/ex: pushAll)
+ * @param {Function} [onShown] - called after showing (e.g.: pushAll)
  */
 function showManager(onShown) {
   if (managerWindow && !managerWindow.isDestroyed()) {
@@ -107,7 +107,7 @@ function hideManager() {
 }
 
 /**
- * Envia uma mensagem IPC ao renderer do manager (se a janela existir).
+ * Sends an IPC message to the manager renderer (if the window exists).
  * @param {string} channel
  * @param {*} payload
  */

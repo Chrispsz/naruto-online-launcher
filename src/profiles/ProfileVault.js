@@ -3,14 +3,14 @@
  *
  * Single Responsibility (SRP): persist encrypted credentials (user/pass)
  * em vault.json e gerar o script de auto-login injetado no jogo. Delega a
- * criptografia ao CryptoService e a derivação de chave ao PasswordManager.
+ * cryptography to CryptoService and key derivation to PasswordManager.
  *
- * Histórico: era parte do God Object vault.js (571 linhas). Split em 3:
+ * History: was part of the God Object vault.js (571 lines). Split into 3:
  *   - CryptoService.js   — primitivas cripto puras
- *   - PasswordManager.js — chave de máquina + senha mestre
+ *   - PasswordManager.js — machine key + master password
  *   - ProfileVault.js    (este) — CRUD + buildAutoLoginScript
  *
- * vault.js permanece como facade re-exportando os 3 módulos (API preservada).
+ * vault.js remains as facade re-exporting the 3 modules (API preserved).
  */
 
 'use strict';
@@ -34,7 +34,7 @@ function _getVaultPath() {
 }
 
 /**
- * Encrypt com a chave de máquina (conveniência sobre CryptoService.encrypt).
+ * Encrypt with the machine key (convenience over CryptoService.encrypt).
  * @param {string} plaintext
  * @returns {string}
  */
@@ -48,7 +48,7 @@ function _encryptWithMachineKey(plaintext) {
 }
 
 /**
- * Decrypt com a chave de máquina.
+ * Decrypt with the machine key.
  * @param {string} payload
  * @returns {string}
  */

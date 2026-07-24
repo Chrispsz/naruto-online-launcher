@@ -1,15 +1,15 @@
 /**
- * profiles/PasswordManager.js — Chave de máquina + senha mestre (Fase 3e split)
+ * profiles/PasswordManager.js — Machine key + master password (Phase 3e split)
  *
  * Single Responsibility (SRP): derive and cache the symmetric key usada pelo
- * CryptoService para criptografar credenciais em repouso. A chave é derivada de
- * um identificador de máquina (hostname + username + userDataPath) + salt
- * aleatório persistido, via PBKDF2.
+ * CryptoService to encrypt credentials at rest. The key is derived from
+ * a machine identifier (hostname + username + userDataPath) + salt
+ * random persisted salt, via PBKDF2.
  *
- * Modelo de ameaça: protege contra leitura offline do vault.json em outra
- * máquina/usuário. NÃO protege contra attacker com acesso ao processo rodando.
+ * Threat model: protects against offline reading of vault.json on another
+ * machine/user. Does NOT protect against an attacker with access to the running process.
  *
- * Histórico: era parte do God Object vault.js. Split: este módulo cuida só de
+ * History: was part of the God Object vault.js. Split: this module handles only
  * chaves; CryptoService cuida das primitivas; ProfileVault cuida do CRUD.
  */
 
@@ -33,8 +33,8 @@ function _getSaltPath() {
 }
 
 /**
- * Carrega (ou gera+persiste) o salt aleatório de 32 bytes único por instalação.
- * Helper interno de getMachineKey (não exportado).
+ * Loads (or generates+persists) the random 32-byte salt unique per installation.
+ * Internal helper of getMachineKey (not exported).
  * @returns {Buffer}
  */
 function _loadSalt() {
@@ -56,8 +56,8 @@ function _loadSalt() {
 }
 
 /**
- * Deriva a chave de máquina (PBKDF2-SHA512, 100k iters).
- * Cacheada em memória após primeira chamada.
+ * Derives the machine key (PBKDF2-SHA512, 100k iters).
+ * Cached in memory after first call.
  * @returns {Buffer} chave de 32 bytes
  */
 function getMachineKey() {

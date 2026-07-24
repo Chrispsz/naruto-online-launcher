@@ -2,7 +2,7 @@
  * main/flags.js — Single source of truth: Chromium 87 command-line flags (v4.0.0)
  *
  * Consolidado e enxugado de v3.6.2.
- * Merge único de disable-features, enable-features e js-flags.
+ * Single merge of disable-features, enable-features and js-flags.
  */
 
 'use strict';
@@ -61,8 +61,8 @@ function applyAll(opts) {
   // Background throttling off
   // NOTE: disable-background-networking, disable-component-update, disable-default-apps,
   // disable-extensions, disable-translate, disable-domain-reliability, disable-client-side-
-  // phishing-detection são PLACEBO para Flash PPAPI (não afetam o plugin), mas são
-  // harmlessness e reduzem ruído de rede/processos. Mantidos.
+  // phishing-detection are PLACEBO for Flash PPAPI (don't affect the plugin), but are
+  // harmless and reduce network/process noise. Kept.
   [
     'disable-background-timer-throttling',
     'disable-renderer-backgrounding',
@@ -114,7 +114,7 @@ function applyAll(opts) {
     if (opts.flashVersion) app.commandLine.appendSwitch('ppapi-flash-version', opts.flashVersion);
   }
 
-  // Merge único
+  // Single merge
   app.commandLine.appendSwitch('disable-features', Array.from(_disabled).join(','));
   app.commandLine.appendSwitch('enable-features', Array.from(_enabled).join(','));
   app.commandLine.appendSwitch('js-flags', _jsFlags.join(' '));

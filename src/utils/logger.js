@@ -8,7 +8,7 @@
 const log = require('electron-log');
 
 // Configure electron-log
-// v5.0 (Fase 3, Decisão B): quando SHINOBI_DEBUG=1, sobe console level pra debug.
+// v5.0 (Phase 3, Decision B): when SHINOBI_DEBUG=1, raises console level to debug.
 const __SHINOBI_DEBUG = process.env.SHINOBI_DEBUG === '1' || process.env.SHINOBI_DEBUG === 'true';
 log.transports.file.level = 'info';
 log.transports.console.level = (

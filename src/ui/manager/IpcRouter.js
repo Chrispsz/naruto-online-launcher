@@ -2,11 +2,11 @@
  * ui/manager/IpcRouter.js — Registro dos handlers IPC (Fase 3c split)
  *
  * Single Responsibility (SRP): register ipcMain.on/handle handlers que
- * conectam o renderer (index.html) aos subsistemas (store, vault, memory,
- * events, tempmail, inspector, etc.). Um método por domínio.
+ * connect the renderer (index.html) to subsystems (store, vault, memory,
+ * events, tempmail, inspector, etc.). One method per domain.
  *
- * Histórico: era parte do God Object controller.js (648 linhas). Split: este
- * módulo cuida só do roteamento IPC; ManagerWindow cuida da janela;
+ * History: was part of the God Object controller.js (648 lines). Split: this
+ * module handles only IPC routing; ManagerWindow handles the window;
  * StateBroadcaster cuida do push de estado.
  */
 
@@ -25,7 +25,7 @@ const StateBroadcaster = require('./StateBroadcaster');
 
 let _handlers = {};
 let _inspectors = new Map(); // profileId -> inspector instance
-// v4.5: Mapa profileId -> launchStartTime (ms) para tracking de tempo de jogo
+// v4.5: Map profileId -> launchStartTime (ms) for play-time tracking
 const _launchTimes = new Map();
 let _registered = false;
 
@@ -56,7 +56,7 @@ function _getWin() {
  */
 function registerIpcHandlers(handlers) {
   _handlers = handlers || {};
-  if (_registered) return; // v3.6.2: anti-duplicação
+  if (_registered) return; // v3.6.2: anti-duplication guard
   _registered = true;
 
   ipcMain.on('manager:ready', function () {
@@ -152,7 +152,7 @@ function registerIpcHandlers(handlers) {
       _send('profile:toast', { type: 'error', msg: 'Profile not found (invalid id)' });
       return;
     }
-    // P2 FIX: não permite deletar perfil com jogo aberto — store.remove()
+    // P2 FIX: prevents deleting profile with open game — store.remove()
     // chama _rmrf na partition dir, o que crasharia o Flash PPAPI em uso.
     try {
       const gameLauncher = require('../../app/Launcher');
@@ -164,7 +164,7 @@ function registerIpcHandlers(handlers) {
         return;
       }
     } catch (_) {
-      // gameLauncher não disponível (dev mode sem Electron) — prossegue
+      // gameLauncher not available (dev mode without Electron) — proceeds
     }
     // Limpa inspector se existir (evita leak no Map _inspectors)
     var insp = _inspectors.get(id);
@@ -327,9 +327,9 @@ function registerIpcHandlers(handlers) {
       opts = opts || {};
       const result = await tempmail.createNarutoAccount(opts);
 
-      // Fase 3g (pendência herdada): auto-criar Profile + guardar creds no vault.
-      // Antes o tempmail criava o JWT mas não o Profile — o usuário tinha que
-      // criar o perfil manualmente e colar as credenciais. Agora é automático.
+      // Phase 3g (inherited debt): auto-create Profile + store creds in vault.
+      // Previously tempmail created the JWT but not the Profile — the user had to
+      // create the profile manually and paste credentials. Now it is automatic.
       const profile = store.create({
         name: opts.name || 'Player ' + result.game.nickname,
         server: opts.server || '',
@@ -439,7 +439,7 @@ function registerIpcHandlers(handlers) {
     const insp = _inspectors.get(profileId);
     if (insp) {
       insp.disable();
-      _inspectors.delete(profileId); // libera memória (entries[], JWTs, cookies)
+      _inspectors.delete(profileId); // frees memory (entries[], JWTs, cookies)
     }
     return { ok: true };
   });
@@ -731,12 +731,12 @@ function registerIpcHandlers(handlers) {
     }
   });
 
-  // Inicia o broadcast periódico de estado (listeners + timer 30s)
+  // Starts periodic state broadcast (listeners + 30s timer)
   StateBroadcaster.startAutoRefresh();
 }
 
 /**
- * Lança o jogo para um perfil (delegado ao game-launcher) com tracking de
+ * Launches the game for a profile (delegated to game-launcher) with tracking of
  * launchCount + totalPlayMs via store.
  * @param {string} profileId
  * @param {Function} [onOpened]
@@ -748,7 +748,7 @@ function launchProfile(profileId, onOpened, onClosed) {
     profileId,
     function () {
       store.incrementLaunch(profileId);
-      // registra no launch log para timeline (não pode quebrar o launch)
+      // registers in launch log for timeline (must not break the launch)
       try {
         store.recordLaunch(profileId);
       } catch (e) {

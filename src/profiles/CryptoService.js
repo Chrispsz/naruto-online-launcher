@@ -2,12 +2,12 @@
  * profiles/CryptoService.js — Primitivas de criptografia PURAS (Fase 3e split)
  *
  * Single Responsibility (SRP): AES-256-GCM + PBKDF2-SHA512. Nenhuma
- * dependência de Electron, disco, ou estado de máquina. Tudo é função pura
- * que recebe a chave/salt como parâmetro.
+ * dependency on Electron, disk, or machine state. Everything is a pure function
+ * that receives the key/salt as a parameter.
  *
- * Histórico: era parte do God Object vault.js (571 linhas). Split em 3:
+ * History: was part of the God Object vault.js (571 lines). Split into 3:
  *   - CryptoService.js   (este) — primitivas cripto puras
- *   - PasswordManager.js — derivação/cache da chave de máquina + senha mestre
+ *   - PasswordManager.js — machine key derivation/caching + master password
  *   - ProfileVault.js    — CRUD de credenciais + buildAutoLoginScript
  */
 
@@ -120,7 +120,7 @@ function exportEncryptedBackup(profiles, credentialsMap, password) {
  * @param {string} encryptedBase64
  * @param {string} password
  * @returns {{profiles:Array, credentials:Object, exportedAt:number}}
- * @throws {Error} se senha incorreta, arquivo corrompido, ou versão incompatível
+ * @throws {Error} if incorrect password, corrupted file, or incompatible version
  */
 function importEncryptedBackup(encryptedBase64, password) {
   if (!encryptedBase64 || !password) {

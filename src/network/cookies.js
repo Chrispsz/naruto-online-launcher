@@ -71,16 +71,16 @@ function isTrackingDomain(hostname) {
  * Resolves 'changed' listener leak accumulated on profile reopen.
  *
  * BUG FIX (cron-review-1): previously, callers (e.g.: game-launcher.js) registered
- * um SEGUNDO onHeadersReceived para CSP, que sobrescrevia este handler
- * → cookie extension ficava morta. Agora CSP é mesclado AQUI no mesmo handler.
+ * a SECOND onHeadersReceived for CSP, which overwrote this handler
+ * → cookie extension was dead. Now CSP is merged HERE in the same handler.
  *
  * @param {Electron.Session} session - Browser session
  * @param {Object} [options]
  * @param {string} [options.csp] - Content-Security-Policy header to inject
- * @returns {boolean} true se configurou agora, false se já estava configurado
+ * @returns {boolean} true if configured now, false if already configured
  */
 function setupPersistentCookies(session, options) {
-  // Idempotência: não re-registrar listeners na mesma session
+  // Idempotency: do not re-register listeners on the same session
   if (_configuredSessions.has(session)) {
     logger.debug('Cookies: session already configured — skip (idempotent)');
     return false;
@@ -192,7 +192,7 @@ function setupPersistentCookies(session, options) {
 
 /**
  * Resets the idempotency state of a session (for tests or explicit reset).
- * NÃO remove os listeners já registrados — use session.cookies.removeAllListeners('changed')
+ * Does NOT remove already-registered listeners — use session.cookies.removeAllListeners('changed')
  * se precisar de limpeza profunda.
  * @param {Electron.Session} session
  */
