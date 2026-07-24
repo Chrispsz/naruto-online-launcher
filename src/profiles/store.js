@@ -197,16 +197,24 @@ function load() {
   let migrated = 0;
   let regionMigrated = 0;
   _profiles.forEach(function (p) {
-    const before = JSON.stringify({ l: p.language, n: p.notificationsEnabled, r: p.region });
+    // Performance: capture the 3 fields before mutation, then compare directly.
+    // Avoids 2× JSON.stringify per profile on every load() (startup + reset).
+    var beforeLang = p.language;
+    var beforeNotif = p.notificationsEnabled;
+    var beforeRegion = p.region;
     _migrateProfile(p);
     // Normalize legacy region codes (eu→na, hk→na, pt→br, en→na)
     if (p.region && !isCurrentRegion(p.region)) {
-      const oldRegion = p.region;
       p.region = normalizeRegion(p.region);
-      if (oldRegion !== p.region) regionMigrated++;
     }
-    const after = JSON.stringify({ l: p.language, n: p.notificationsEnabled, r: p.region });
-    if (before !== after) migrated++;
+    if (beforeRegion !== p.region) regionMigrated++;
+    if (
+      beforeLang !== p.language ||
+      beforeNotif !== p.notificationsEnabled ||
+      beforeRegion !== p.region
+    ) {
+      migrated++;
+    }
   });
   if (regionMigrated > 0) {
     logger.info(

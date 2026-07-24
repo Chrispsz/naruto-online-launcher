@@ -27,7 +27,8 @@ jest.mock('../../memory/guard', () => ({
 }));
 
 jest.mock('../../network/api-login', () => ({
-  renewIfNeeded: jest.fn(() => Promise.resolve({ renewed: false }))
+  renewIfNeeded: jest.fn(() => Promise.resolve({ renewed: false })),
+  loginAndInject: jest.fn(() => Promise.resolve())
 }));
 
 const SessionLifecycle = require('../SessionLifecycle');
@@ -1168,6 +1169,219 @@ describe('SessionLifecycle.js', () => {
 
       // Segunda chamada não deve causar problemas
       jest.useRealTimers();
+    });
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Frente B coverage gaps — crypto + session
+  // Foco: branches de login API (success/fail/destroyed), hooks de auditoria,
+  // default status em _sendAutoLoginResult, e edge cases de lifecycle.
+  // ───────────────────────────────────────────────────────────────────────────
+  describe('Frente B coverage gaps — crypto + session', () => {
+    describe('_sendAutoLoginResult — default status', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      test('result desconhecido (e.g. "unknown") cai no default status=idle', () => {
+        SessionLifecycle._sendAutoLoginResult('p1', 'unknown-value');
+        expect(ManagerWindow.send).toHaveBeenCalledWith('auto-login:status', {
+          profileId: 'p1',
+          status: 'idle',
+          result: 'unknown-value'
+        });
+      });
+
+      test('result undefined também cai no default status=idle (defensive)', () => {
+        SessionLifecycle._sendAutoLoginResult('p1', undefined);
+        expect(ManagerWindow.send).toHaveBeenCalledWith('auto-login:status', {
+          profileId: 'p1',
+          status: 'idle',
+          result: undefined
+        });
+      });
+    });
+
+    describe('_loadGameWithPreAuth — API login flow', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+        vault.hasCredentials.mockReturnValue(false);
+        vault.getCredentials.mockReturnValue(null);
+      });
+
+      test('hasCredentials=true mas getCredentials=null → cai no path direto (sem API login)', () => {
+        vault.hasCredentials.mockReturnValue(true);
+        vault.getCredentials.mockReturnValue(null);
+        var apiLogin = require('../../network/api-login');
+        var win = { loadURL: jest.fn(), isDestroyed: jest.fn(() => false) };
+        var profile = { id: 'p_001', name: 'Test' };
+        var getGameUrl = jest.fn(() => 'https://game.url');
+
+        SessionLifecycle._loadGameWithPreAuth('p_001', profile, win, {}, getGameUrl);
+
+        expect(apiLogin.loginAndInject).not.toHaveBeenCalled();
+        expect(win.loadURL).toHaveBeenCalledWith('https://game.url');
+      });
+
+      test('API login sucesso (resolve) → win.loadURL chamado após login', async () => {
+        vault.hasCredentials.mockReturnValue(true);
+        vault.getCredentials.mockReturnValue({ user: 'u@x.com', pass: 'secret' });
+        var apiLogin = require('../../network/api-login');
+        apiLogin.loginAndInject.mockResolvedValueOnce();
+        var win = { loadURL: jest.fn(), isDestroyed: jest.fn(() => false) };
+        var profile = { id: 'p_001', name: 'Test' };
+        var getGameUrl = jest.fn(() => 'https://game.url');
+
+        SessionLifecycle._loadGameWithPreAuth('p_001', profile, win, {}, getGameUrl);
+
+        // Flush thenable chain: microtask + setImmediate fallback
+        await new Promise(function (r) {
+          setImmediate(r);
+        });
+        expect(apiLogin.loginAndInject).toHaveBeenCalledWith({}, 'u@x.com', 'secret');
+        expect(win.loadURL).toHaveBeenCalledWith('https://game.url');
+      });
+
+      test('API login falha (reject) → fallback para win.loadURL', async () => {
+        vault.hasCredentials.mockReturnValue(true);
+        vault.getCredentials.mockReturnValue({ user: 'u@x.com', pass: 'secret' });
+        var apiLogin = require('../../network/api-login');
+        apiLogin.loginAndInject.mockRejectedValueOnce(new Error('api down'));
+        var win = { loadURL: jest.fn(), isDestroyed: jest.fn(() => false) };
+        var profile = { id: 'p_001', name: 'Test' };
+        var getGameUrl = jest.fn(() => 'https://game.url');
+
+        SessionLifecycle._loadGameWithPreAuth('p_001', profile, win, {}, getGameUrl);
+
+        await new Promise(function (r) {
+          setImmediate(r);
+        });
+        expect(apiLogin.loginAndInject).toHaveBeenCalled();
+        expect(win.loadURL).toHaveBeenCalledWith('https://game.url');
+      });
+
+      test('API login sucesso mas win destruído no then → NÃO chama loadURL', async () => {
+        vault.hasCredentials.mockReturnValue(true);
+        vault.getCredentials.mockReturnValue({ user: 'u@x.com', pass: 'secret' });
+        var apiLogin = require('../../network/api-login');
+        apiLogin.loginAndInject.mockResolvedValueOnce();
+        var win = { loadURL: jest.fn(), isDestroyed: jest.fn(() => false) };
+        var profile = { id: 'p_001', name: 'Test' };
+        var getGameUrl = jest.fn(() => 'https://game.url');
+
+        SessionLifecycle._loadGameWithPreAuth('p_001', profile, win, {}, getGameUrl);
+        // Simulate window destroyed after apiLogin resolves but before .then runs
+        win.isDestroyed.mockReturnValue(true);
+
+        await new Promise(function (r) {
+          setImmediate(r);
+        });
+        expect(apiLogin.loginAndInject).toHaveBeenCalled();
+        expect(win.loadURL).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('attach — auditor hooks (Phase 2 instrumentation)', () => {
+      test('ready-to-show chama auditor.sessionStart quando auditor fornecido', () => {
+        jest.useFakeTimers();
+        try {
+          var { win, handlers } = makeMockWin();
+          var auditor = {
+            sessionStart: jest.fn(),
+            sessionEnd: jest.fn(),
+            recordCrash: jest.fn(),
+            recordReload: jest.fn(),
+            recordStall: jest.fn()
+          };
+          var ctx = makeCtx({ auditor: auditor });
+          SessionLifecycle.attach(win, ctx);
+
+          handlers['ready-to-show']();
+          expect(auditor.sessionStart).toHaveBeenCalledTimes(1);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      test('render-process-gone invoca auditor.recordCrash + recordReload quando auditor fornecido', () => {
+        jest.useFakeTimers();
+        try {
+          var { win, wcHandlers } = makeMockWin();
+          var auditor = {
+            sessionStart: jest.fn(),
+            sessionEnd: jest.fn(),
+            recordCrash: jest.fn(),
+            recordReload: jest.fn(),
+            recordStall: jest.fn()
+          };
+          var ctx = makeCtx({ auditor: auditor });
+          SessionLifecycle.attach(win, ctx);
+
+          wcHandlers['render-process-gone']({}, { reason: 'oom', exitCode: 1 });
+          expect(auditor.recordCrash).toHaveBeenCalledWith('oom');
+          expect(auditor.recordReload).toHaveBeenCalledTimes(1);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      test('auditor hook silencia exceções (auditor.recordCrash lançando não quebra handler)', () => {
+        jest.useFakeTimers();
+        try {
+          var { win, wcHandlers } = makeMockWin();
+          var auditor = {
+            sessionStart: jest.fn(),
+            sessionEnd: jest.fn(),
+            recordCrash: jest.fn(function () {
+              throw new Error('auditor broken');
+            }),
+            recordReload: jest.fn(),
+            recordStall: jest.fn()
+          };
+          var ctx = makeCtx({ auditor: auditor });
+          SessionLifecycle.attach(win, ctx);
+
+          expect(function () {
+            wcHandlers['render-process-gone']({}, { reason: 'oom', exitCode: 1 });
+          }).not.toThrow();
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+    });
+
+    describe('attach — render-process-gone edge cases', () => {
+      test('não chama reload quando webContents.isDestroyed() retorna true', () => {
+        jest.useFakeTimers();
+        try {
+          var { win, wcHandlers } = makeMockWin();
+          win.webContents.isDestroyed.mockReturnValue(true);
+          var ctx = makeCtx();
+          SessionLifecycle.attach(win, ctx);
+
+          wcHandlers['render-process-gone']({}, { reason: 'crashed', exitCode: 1 });
+          jest.advanceTimersByTime(1500);
+          expect(win.webContents.reload).not.toHaveBeenCalled();
+        } finally {
+          jest.useRealTimers();
+        }
+      });
+
+      test('reason "abnormal-exit" é recuperável (agenda reload, não é clean-exit/killed)', () => {
+        jest.useFakeTimers();
+        try {
+          var { win, wcHandlers } = makeMockWin();
+          var ctx = makeCtx();
+          SessionLifecycle.attach(win, ctx);
+
+          wcHandlers['render-process-gone']({}, { reason: 'abnormal-exit', exitCode: 1 });
+          expect(win.webContents.reload).not.toHaveBeenCalled();
+          jest.advanceTimersByTime(1500);
+          expect(win.webContents.reload).toHaveBeenCalledTimes(1);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
     });
   });
 });

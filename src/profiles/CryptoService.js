@@ -24,6 +24,7 @@ const BACKUP_VERSION = 1;
 
 /**
  * Derives AES-256 key from password using PBKDF2-SHA512.
+ * @security 200k iters (OWASP 2023 min 100k), 32-byte salt, key NEVER serialized.
  * @param {string} password
  * @param {Buffer} salt
  * @returns {Buffer} 32-byte key
@@ -65,6 +66,8 @@ function decrypt(payload, key) {
 
 /**
  * Exporta perfis + credenciais em arquivo criptografado com senha mestre.
+ * @security AES-256-GCM, random 12-byte IV per call, 200k PBKDF2-SHA512 iters,
+ *   32-byte salt. Envelope stores salt+iv+ct+tag but NEVER the derived key.
  * @param {Array} profiles
  * @param {Object} credentialsMap - { profileId: { user, pass } }
  * @param {string} password - master password

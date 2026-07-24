@@ -456,7 +456,8 @@ function start(activeRegions) {
           const key = region + ':' + ev.id + ':' + occ;
           let state = fired.get(key);
           if (!state) {
-            state = { reminded: false, endFired: false };
+            // Performance: cache occ so cleanup compares timestamps directly (no key parsing).
+            state = { reminded: false, endFired: false, occ: occ };
             fired.set(key, state);
           }
           // Fire reminder if we're in the 0-60s window after fireAt and haven't yet
@@ -482,17 +483,9 @@ function start(activeRegions) {
     // (2) Delete entries whose occurrence was >3h ago (missed end window).
     if (fired.size > 200) {
       var cutoff = now - 3 * 60 * 60 * 1000;
+      // Performance: use cached state.occ instead of parsing the key each tick.
       for (const [k, s] of fired.entries()) {
-        if (s.endFired) {
-          fired.delete(k);
-        } else {
-          // key ends with ':' + occ timestamp — extract and compare
-          var lastColon = k.lastIndexOf(':');
-          if (lastColon > 0) {
-            var occTs = Number(k.slice(lastColon + 1));
-            if (!isNaN(occTs) && occTs < cutoff) fired.delete(k);
-          }
-        }
+        if (s.endFired || (s.occ && s.occ < cutoff)) fired.delete(k);
       }
     }
   }, 30000);

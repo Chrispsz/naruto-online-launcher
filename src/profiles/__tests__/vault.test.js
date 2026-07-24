@@ -16,6 +16,8 @@ jest.mock('../PasswordManager', () => ({
 }));
 
 const vault = require('../vault');
+const PasswordManager = require('../PasswordManager');
+const CryptoService = require('../CryptoService');
 
 describe('vault.js facade', () => {
   describe('encrypt', () => {
@@ -67,6 +69,47 @@ describe('vault.js facade', () => {
     test('exportEncryptedBackup e importEncryptedBackup são exportados', () => {
       expect(typeof vault.exportEncryptedBackup).toBe('function');
       expect(typeof vault.importEncryptedBackup).toBe('function');
+    });
+  });
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Frente B coverage gaps — crypto + session
+  // Foco: verificar delegação efetiva da facade para PasswordManager + CryptoService,
+  // e que o round-trip através da facade preserva propriedades de segurança.
+  // ───────────────────────────────────────────────────────────────────────────
+  describe('Frente B coverage gaps — crypto + session', () => {
+    describe('facade delega para PasswordManager.getMachineKey', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      test('vault.encrypt invoca PasswordManager.getMachineKey exatamente 1 vez', () => {
+        vault.encrypt('hello');
+        expect(PasswordManager.getMachineKey).toHaveBeenCalledTimes(1);
+      });
+
+      test('vault.decrypt invoca PasswordManager.getMachineKey exatamente 1 vez', () => {
+        // Provide a valid encrypted payload (using the mocked key) so decrypt
+        // actually tries to use the machine key.
+        const key = Buffer.alloc(32, 'x');
+        const payload = CryptoService.encrypt('hello', key);
+        vault.decrypt(payload);
+        expect(PasswordManager.getMachineKey).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('facade — round-trip + aleatoriedade', () => {
+      test('facade: ciphertexts diferentes a cada chamada (IV aleatório propagado)', () => {
+        var a = vault.encrypt('same-content');
+        var b = vault.encrypt('same-content');
+        expect(a).not.toBe(b);
+      });
+
+      test('facade: round-trip preserva caracteres Unicode (PT-BR + emoji)', () => {
+        var plaintext = 'senhação 🍥 açúcar — 漢字';
+        var enc = vault.encrypt(plaintext);
+        expect(vault.decrypt(enc)).toBe(plaintext);
+      });
     });
   });
 });

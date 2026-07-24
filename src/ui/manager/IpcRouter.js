@@ -52,6 +52,8 @@ function _getWin() {
 
 /**
  * Registers ALL IPC handlers. Idempotent (guard _registered).
+ * @security Every handler MUST validate input (type+length+shape) before
+ *   delegating to subsystems. See SECURITY_AUDIT.md for the per-handler matrix.
  * @param {Object} handlers - { launchProfile, getMemoryStats, forceGC, ... }
  */
 function registerIpcHandlers(handlers) {
@@ -278,8 +280,15 @@ function registerIpcHandlers(handlers) {
     if (typeof id !== 'string') return null;
     return vault.getCredentials(id);
   });
+  // @security input validation: type + length cap to prevent abuse (huge strings).
   ipcMain.handle('vault:set', function (_e, id, user, pass) {
-    if (typeof id !== 'string' || typeof user !== 'string' || typeof pass !== 'string')
+    if (
+      typeof id !== 'string' ||
+      typeof user !== 'string' ||
+      typeof pass !== 'string' ||
+      user.length > 10240 ||
+      pass.length > 10240
+    )
       return false;
     return vault.setCredentials(id, user, pass);
   });
@@ -324,6 +333,10 @@ function registerIpcHandlers(handlers) {
 
   ipcMain.handle('tempmail:create', async function (_e, opts) {
     try {
+      // @security reject non-object / array opts to prevent shape abuse.
+      if (opts !== undefined && (typeof opts !== 'object' || Array.isArray(opts))) {
+        return { ok: false, error: 'Invalid options' };
+      }
       opts = opts || {};
       const result = await tempmail.createNarutoAccount(opts);
 
@@ -365,7 +378,13 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('tempmail:login', async function (_e, profileId, email, password) {
-    if (typeof email !== 'string' || typeof password !== 'string') {
+    // @security length caps prevent DOS via oversized payloads.
+    if (
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      email.length > 512 ||
+      password.length > 1024
+    ) {
       return { ok: false, error: 'Invalid params' };
     }
     try {
@@ -403,6 +422,7 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('session:check', async function (_e, profileId) {
+    if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const profile = store.get(profileId);
       if (!profile) return { ok: false, error: 'Profile not found' };
@@ -467,10 +487,13 @@ function registerIpcHandlers(handlers) {
 
   // ── Server Selector ──
   const serverSelector = require('../server-selector');
+  // @security region is normalized to string|undefined before reaching the selector.
   ipcMain.handle('servers:fetch', function (_e, region) {
+    if (region !== undefined && typeof region !== 'string') region = 'br';
     return serverSelector.fetchServers(region || 'br');
   });
   ipcMain.handle('servers:clear-cache', function (_e, region) {
+    if (region !== undefined && typeof region !== 'string') region = undefined;
     serverSelector.clearCache(region);
     return { ok: true };
   });
@@ -494,6 +517,7 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('dev:get-cookies', async function (_e, profileId) {
+    if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const profile = store.get(profileId);
       if (!profile) return { ok: false, error: 'Profile not found' };
@@ -601,8 +625,8 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('profiles:export-encrypted', async function (_e, password) {
-    if (typeof password !== 'string' || password.length < 8) {
-      return { ok: false, error: 'Password must be at least 8 characters' };
+    if (typeof password !== 'string' || password.length < 8 || password.length > 1024) {
+      return { ok: false, error: 'Password must be at least 8 characters (max 1024)' };
     }
     const win = _getWin();
     if (!win) return { ok: false, error: 'Manager window closed' };
@@ -635,8 +659,8 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('profiles:import-encrypted', async function (_e, password) {
-    if (typeof password !== 'string') {
-      return { ok: false, error: 'Password required' };
+    if (typeof password !== 'string' || password.length > 1024) {
+      return { ok: false, error: 'Password required (max 1024 chars)' };
     }
     const win = _getWin();
     if (!win) return { ok: false, error: 'Manager window closed' };

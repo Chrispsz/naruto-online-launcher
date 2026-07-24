@@ -121,6 +121,8 @@ function _persist() {
 
 /**
  * Save credentials for a profile (encrypted at rest).
+ * @security AES-256-GCM via machine key; vault.json holds only ciphertext.
+ *   Atomic write (tmp+rename). Vault capped at MAX_VAULT_BYTES (256KB).
  * @param {string} profileId
  * @param {string} user
  * @param {string} pass
