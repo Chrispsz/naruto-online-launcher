@@ -18,8 +18,8 @@
  *     restoreCookies() antes de loadURL, snapshotCookies() no fechamento.
  *   - Coordenação com vault.js para auto-login: se o perfil tem credenciais,
  *     game-launcher injeta no formulário após did-finish-load.
- *   - Registro de webContents no MemoryGuard (para injeção periódica de
- *     window.gc() a cada 10min em cada webview ativa).
+ *   - Registro de webContents no MemoryGuard (para observação de métricas
+ *     de memória em cada webview ativa).
  *   - Tratamento de crash: render-process-gone de uma partition NÃO derruba
  *     as outras. Cada janela é independente.
  *

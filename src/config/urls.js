@@ -53,9 +53,6 @@ const REGION_GAME_CODES = {
 // Parâmetros de identificação do launcher (reconhecimento pelo servidor)
 const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes&launcher=shinobi';
 
-// URL base (para construção de links de servidor)
-const BASE_URL = 'https://naruto.narutowebgame.com';
-
 /**
  * Constrói a URL do jogo para um perfil específico.
  *
@@ -116,9 +113,6 @@ function getLauncherParams() {
 }
 
 module.exports = {
-  REGION_URLS: REGION_URLS,
-  REGION_GAME_CODES: REGION_GAME_CODES,
-  BASE_URL: BASE_URL,
   LAUNCHER_PARAMS: LAUNCHER_PARAMS,
   getGameUrl: getGameUrl,
   getServerlistUrl: getServerlistUrl,

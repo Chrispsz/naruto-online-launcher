@@ -23,8 +23,6 @@ const HARDWARE_PROFILES = {
   }
 };
 
-const PROFILE_CODES = Object.keys(HARDWARE_PROFILES);
-
 /**
  * Check if a hardware profile code is valid
  * @param {string} code - Profile code
@@ -44,7 +42,6 @@ function getDefaultProfile() {
 
 module.exports = {
   HARDWARE_PROFILES: HARDWARE_PROFILES,
-  PROFILE_CODES: PROFILE_CODES,
   isValidProfile: isValidProfile,
   getDefaultProfile: getDefaultProfile
 };

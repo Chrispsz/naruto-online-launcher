@@ -35,8 +35,6 @@ const REGIONS = {
   fr: { name: 'France', name_en: 'France', flag: '[FR]', language: 'fr' }
 };
 
-const REGION_CODES = Object.keys(REGIONS);
-
 // Legacy region codes that are accepted but auto-migrated to a current cluster.
 const LEGACY_MIGRATION = {
   eu: 'na', // EU was a redundant EN cluster sharing NA servers
@@ -93,8 +91,6 @@ function getDefaultRegion() {
 
 module.exports = {
   REGIONS: REGIONS,
-  REGION_CODES: REGION_CODES,
-  LEGACY_MIGRATION: LEGACY_MIGRATION,
   isValidRegion: isValidRegion,
   isCurrentRegion: isCurrentRegion,
   normalizeRegion: normalizeRegion,

@@ -197,6 +197,5 @@ module.exports = {
   getLanguage: getLanguage,
   t: t,
   tl: tl,
-  getAll: getAll,
-  SUPPORTED: ['en', 'pt']
+  getAll: getAll
 };

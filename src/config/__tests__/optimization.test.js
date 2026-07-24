@@ -47,16 +47,6 @@ describe('config/optimization.js', function () {
     });
   });
 
-  describe('PRESET_CODES', function () {
-    test('returns array of 3 codes', function () {
-      expect(Array.isArray(opt.PRESET_CODES)).toBe(true);
-      expect(opt.PRESET_CODES.length).toBe(3);
-      expect(opt.PRESET_CODES).toContain('performance');
-      expect(opt.PRESET_CODES).toContain('balanced');
-      expect(opt.PRESET_CODES).toContain('quality');
-    });
-  });
-
   describe('isValidPreset', function () {
     test('returns true for valid codes', function () {
       expect(opt.isValidPreset('performance')).toBe(true);

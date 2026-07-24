@@ -22,7 +22,7 @@ const _disabled = new Set([
   'BackForwardCache'
 ]);
 const _enabled = new Set(['VizDisplayCompositor']);
-const _jsFlags = ['--expose-gc'];
+const _jsFlags = [];
 let _applied = false;
 
 /**

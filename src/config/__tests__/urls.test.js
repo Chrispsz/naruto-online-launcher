@@ -73,15 +73,4 @@ describe('urls.js', () => {
       expect(urls.getLauncherParams()).toContain('launcher=shinobi');
     });
   });
-
-  describe('exports', () => {
-    test('REGION_URLS tem 8 regiões', () => {
-      expect(Object.keys(urls.REGION_URLS).length).toBe(8);
-    });
-
-    test('LAUNCHER_PARAMS é string não-vazia', () => {
-      expect(typeof urls.LAUNCHER_PARAMS).toBe('string');
-      expect(urls.LAUNCHER_PARAMS.length).toBeGreaterThan(0);
-    });
-  });
 });

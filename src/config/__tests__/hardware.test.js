@@ -4,7 +4,6 @@
 
 const {
   HARDWARE_PROFILES,
-  PROFILE_CODES,
   isValidProfile,
   getDefaultProfile
 } = require('../hardware');
@@ -36,15 +35,6 @@ describe('hardware.js', () => {
         expect(profile).toHaveProperty('description');
         expect(profile).toHaveProperty('icon');
       });
-    });
-  });
-
-  describe('PROFILE_CODES', () => {
-    test('retorna array de códigos', () => {
-      expect(Array.isArray(PROFILE_CODES)).toBe(true);
-      expect(PROFILE_CODES).toContain('modern');
-      expect(PROFILE_CODES).toContain('legacy');
-      expect(PROFILE_CODES).toContain('cpu');
     });
   });
 

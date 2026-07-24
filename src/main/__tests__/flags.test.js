@@ -114,12 +114,11 @@ describe('flags.js', () => {
       expect(hasFlag).toBe(true);
     });
 
-    test('applies js-flags with --expose-gc and --max-old-space-size', () => {
+    test('applies js-flags with --max-old-space-size', () => {
       const jsFlagsCall = switchCalls.find(function (c) {
         return c[0] === 'js-flags';
       });
       expect(jsFlagsCall).toBeDefined();
-      expect(jsFlagsCall[1]).toContain('--expose-gc');
       expect(jsFlagsCall[1]).toContain('--max-old-space-size=');
     });
 
@@ -243,11 +242,10 @@ describe('flags.js', () => {
       expect(snap.enabled).toContain('VizDisplayCompositor');
     });
 
-    test('jsFlags contains --expose-gc and --max-old-space-size', () => {
+    test('jsFlags contains --max-old-space-size', () => {
       const flags = require('../flags');
       var snap = flags.getAppliedSnapshot();
       var joined = snap.jsFlags.join(' ');
-      expect(joined).toContain('--expose-gc');
       expect(joined).toContain('--max-old-space-size=');
     });
   });

@@ -4,8 +4,6 @@
 
 const {
   REGIONS,
-  REGION_CODES,
-  LEGACY_MIGRATION,
   isValidRegion,
   isCurrentRegion,
   normalizeRegion,
@@ -44,37 +42,6 @@ describe('regions.js', () => {
         expect(region).toHaveProperty('flag');
         expect(region).toHaveProperty('language');
       });
-    });
-  });
-
-  describe('REGION_CODES', () => {
-    test('retorna array de 6 códigos de cluster', () => {
-      expect(Array.isArray(REGION_CODES)).toBe(true);
-      expect(REGION_CODES.length).toBe(6);
-      expect(REGION_CODES).toContain('br');
-      expect(REGION_CODES).toContain('na');
-      expect(REGION_CODES).toContain('de');
-      expect(REGION_CODES).toContain('es');
-      expect(REGION_CODES).toContain('pl');
-      expect(REGION_CODES).toContain('fr');
-    });
-  });
-
-  describe('LEGACY_MIGRATION', () => {
-    test('mapeia eu → na (redundant EN cluster)', () => {
-      expect(LEGACY_MIGRATION['eu']).toBe('na');
-    });
-
-    test('mapeia hk → na (DNS-dead zh cluster)', () => {
-      expect(LEGACY_MIGRATION['hk']).toBe('na');
-    });
-
-    test('mapeia pt → br (legacy language code)', () => {
-      expect(LEGACY_MIGRATION['pt']).toBe('br');
-    });
-
-    test('mapeia en → na (legacy language code)', () => {
-      expect(LEGACY_MIGRATION['en']).toBe('na');
     });
   });
 

@@ -578,12 +578,14 @@ process.on('unhandledRejection', function (reason) {
 function _persistConfig() {
   try {
     const { saveConfig } = require('./config/settings');
-    config.forceBatata =
-      memoryGuard.isBatata() && !memoryGuard.IS_LOW_SPEC
-        ? memoryGuard.isBatata()
-        : memoryGuard.IS_LOW_SPEC
-          ? undefined
-          : config.forceBatata;
+    // Low-spec machines auto-detect batata mode — don't persist the override
+    // since it's auto-detected on every boot. Keep user's explicit choice otherwise.
+    if (memoryGuard.IS_LOW_SPEC) {
+      config.forceBatata = undefined;
+    } else if (memoryGuard.isBatata()) {
+      config.forceBatata = true;
+    }
+    // else: keep config.forceBatata as-is (user's explicit choice)
     config.mutedEvents = eventTimers.isMuted();
     saveConfig(config);
   } catch (e) {

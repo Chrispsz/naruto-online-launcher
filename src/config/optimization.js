@@ -87,7 +87,6 @@ function listForUI() {
 
 module.exports = {
   PRESETS: PRESETS,
-  PRESET_CODES: PRESET_CODES,
   isValidPreset: isValidPreset,
   getDefaultPreset: getDefaultPreset,
   listForUI: listForUI
