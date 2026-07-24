@@ -55,7 +55,7 @@ function _regionToLocale(region) {
 function _parseServersFromHtml(html, locale) {
   const servers = [];
   const seen = new Set();
-  // Match: /pt/serverlist/s799 ou /en/serverlist/s1234
+  // Match: /pt/serverlist/s799 or /en/serverlist/s1234
   const regex = new RegExp('/' + locale + '/serverlist/s(\\d+)', 'g');
   let match;
   while ((match = regex.exec(html)) !== null) {

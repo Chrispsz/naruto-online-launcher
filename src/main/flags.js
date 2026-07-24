@@ -49,7 +49,7 @@ function applyAll(opts) {
 
   const low = !!opts.forceLowSpec || TOTAL_RAM_GB < 4;
 
-  // Sandbox (global — PPAPI precisa)
+  // Sandbox (global — required by PPAPI)
   app.commandLine.appendSwitch('no-sandbox');
   app.commandLine.appendSwitch('disable-gpu-sandbox');
   app.commandLine.appendSwitch('disable-setuid-sandbox');

@@ -650,7 +650,7 @@ describe('IpcRouter.js', () => {
 
       expect(store.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'Test (cópia)',
+          name: 'Test (copy)',
           server: 's1',
           region: 'br'
         })

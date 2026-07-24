@@ -42,7 +42,7 @@ const partition = require('./partition');
 const vault = require('./vault');
 const gameLauncher = require('../ui/game-launcher');
 
-// ── Estado runtime ──
+// ── Runtime state ──
 // Map: profileId -> { openedAt, lastSeenMb, crashCount }
 const _runtime = new Map();
 
@@ -104,7 +104,7 @@ function update(id, updates) {
  * @returns {boolean}
  */
 function remove(id) {
-  // 1. Fecha a janela se aberta
+  // 1. Closes the window if open
   try {
     gameLauncher.closeProfile(id);
   } catch (_) {
@@ -125,10 +125,10 @@ function remove(id) {
     /* ignore */
   }
 
-  // 4. Remove do store (store.remove também wipe a partition dir em disco)
+  // 4. Remove from store (store.remove also wipes partition dir on disk)
   const ok = store.remove(id);
 
-  // 5. Limpa estado runtime
+  // 5. Clear runtime state
   _runtime.delete(id);
 
   if (ok) _notify();
@@ -155,15 +155,15 @@ function launch(profileId, onOpened, onClosed) {
     return false;
   }
 
-  // Marca último uso
+  // Mark last use
   store.touch(profileId);
 
-  // Estado runtime
+  // Runtime state
   const rt = _runtime.get(profileId) || { crashCount: 0 };
   rt.openedAt = Date.now();
   _runtime.set(profileId, rt);
 
-  // Pré-restore de cookies (apenas shadow partitions)
+  // Pre-restore cookies (shadow partitions only)
   const partName = partition.getPartitionName(profile);
   if (partition.shouldUseShadow(profile)) {
     partition.restoreCookies(partName, profileId).catch(function (e) {
@@ -171,7 +171,7 @@ function launch(profileId, onOpened, onClosed) {
     });
   }
 
-  // Despacha para o game-launcher
+  // Dispatches to the game-launcher
   try {
     gameLauncher.launchProfile(
       profileId,
@@ -179,7 +179,7 @@ function launch(profileId, onOpened, onClosed) {
         if (onOpened) onOpened();
       },
       function onClosedInternal() {
-        // Snapshot de cookies antes de fechar (apenas shadow)
+        // Cookie snapshot before closing (shadow only)
         if (partition.shouldUseShadow(profile)) {
           partition.snapshotCookies(partName, profileId).catch(function () {
             /* ignore */
@@ -221,7 +221,7 @@ function reportCrash(profileId) {
   }
 }
 
-// ── Vault (credenciais) ──
+// ── Vault (credentials) ──
 
 /**
  * Returns decrypted credentials (for the renderer to validate/inject).
@@ -286,7 +286,7 @@ function importAll(jsonStr) {
   return result;
 }
 
-// ── Estado runtime / observabilidade ──
+// ── Runtime state / observability ──
 
 /**
  * Returns manager statistics (for the dashboard).

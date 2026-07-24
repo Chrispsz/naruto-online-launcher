@@ -13,7 +13,7 @@ const COOKIE_EXPIRY = 365 * 86400; // 1 year in seconds
 // BUG FIX (cron-review-1): previously, each call to setupPersistentCookies()
 // registered a NEW listener on session.cookies.on('changed'). Since sessions
 // persist:profile-<id> are cached by Electron, reopening a profile
-// duplicava os listeners → cada cookie change disparava N cookies.set()
+// duplicated the listeners → each cookie change triggered N cookies.set()
 // → cumulative performance degradation. Now skipped if already configured.
 const _configuredSessions = new WeakSet();
 
@@ -159,7 +159,7 @@ function setupPersistentCookies(session, options) {
 
     const responseHeaders = Object.assign({}, details.responseHeaders);
 
-    // 1. CSP injection (se passado pelo caller)
+    // 1. CSP injection (if passed by the caller)
     if (csp && (details.url.startsWith('http:') || details.url.startsWith('https:'))) {
       responseHeaders['Content-Security-Policy'] = [csp];
     }

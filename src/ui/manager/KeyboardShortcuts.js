@@ -49,7 +49,7 @@ function attach(win, profileName, ses, onClearLogin) {
       event.preventDefault();
       logger.info('F5: clear login for ' + profileName);
       if (typeof onClearLogin === 'function') {
-        // Delega pro Launcher — ele faz clearStorageData + apiLogin.loginAndInject
+        // Delegates to Launcher — it does clearStorageData + apiLogin.loginAndInject
         // BEFORE reloading, so the login screen doesn't appear (email doesn't leak).
         try {
           onClearLogin();
@@ -86,14 +86,14 @@ function attach(win, profileName, ses, onClearLogin) {
       }
       return;
     }
-    // F12 → toggle DevTools (liberado pra debug).
+    // F12 → toggle DevTools (enabled for debug).
     // Ctrl+Shift+I remains blocked (F12 is more intuitive and doesn't conflict with the game).
     if (input.key === 'F12' && !input.control && !input.alt && !input.shift) {
       event.preventDefault();
       wc.toggleDevTools();
       return;
     }
-    // Bloqueia F10 (menu bar do Chromium), Alt (menu toggle)
+    // Blocks F10 (Chromium menu bar), Alt (menu toggle)
     if (
       input.key === 'F10' ||
       (input.alt && !input.control && !input.shift && input.key !== 'F4')
@@ -101,7 +101,7 @@ function attach(win, profileName, ses, onClearLogin) {
       event.preventDefault();
       return;
     }
-    // Bloqueia Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console) — use F12
+    // Blocks Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console) — use F12
     if (input.control && input.shift && (input.key === 'I' || input.key === 'J')) {
       event.preventDefault();
       return;

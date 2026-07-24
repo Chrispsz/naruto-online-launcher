@@ -16,13 +16,13 @@ const { DEBUG } = require('./main/debug');
 
 // v5.9.9 (fix preload crash): contextBridge.exposeInMainWorld no Electron 11
 // Does NOT accept primitives (boolean/string/number) as 2nd argument — only
-// object/function/null. Passar `DEBUG` (boolean) direto crashava o preload
-// inteiro com "TypeError: Error processing argument at index 1, conversion
+// object/function/null. Passing `DEBUG` (boolean) directly crashed the preload
+// integer with "TypeError: Error processing argument at index 1, conversion
 // failure from". Consequence: window.__SHINOBI_DEBUG__ stayed undefined AND
 // window.narutoLauncher too (the line below never executed) → Dev Tools
-// section nunca aparecia + qualquer bridge IPC futuro quebraria.
+// section never appeared + any future IPC bridge would break.
 // Fix: expose as object { enabled: boolean, isDebug: function }.
-// Renderer adaptado para ler window.__SHINOBI_DEBUG__.enabled (app.js).
+// Renderer adapted to read window.__SHINOBI_DEBUG__.enabled (app.js).
 contextBridge.exposeInMainWorld('__SHINOBI_DEBUG__', {
   enabled: DEBUG,
   isDebug: function () {

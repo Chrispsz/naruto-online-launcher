@@ -195,7 +195,7 @@ function launchProfile(profileId, onOpened, onClosed) {
     reloadWithPreAuth(profileId);
   });
 
-  // Loading screen (spinner SVG/CSS, sem emoji — fontconfig-safe)
+  // Loading screen (spinner SVG/CSS, no emoji — fontconfig-safe)
   win.loadURL(
     'data:text/html,' +
       encodeURIComponent(

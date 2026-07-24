@@ -3,8 +3,8 @@
  * v3.0.0 - Clean Flash PPAPI configuration
  *
  * v4.9.3 (Phase 2): findFlashPlugin() also searches the on-demand cache
- * (userData/flash-cache/) para backward-compat com installs antigas.
- * O binário principal é committed no repo em flash/.
+ * (userData/flash-cache/) for backward-compat with old installs.
+ * The main binary is committed in the repo under flash/.
  */
 
 'use strict';
@@ -66,7 +66,7 @@ function findFlashPlugin() {
   const pluginName = FLASH_PLUGIN_NAMES[platform];
 
   // Robust search paths for ASAR, portable, dev modes, AND on-demand cache.
-  // v4.9.3: userData/flash-cache/ mantido para backward-compat (installs antigas).
+  // v4.9.3: userData/flash-cache/ kept for backward-compat (old installs).
   const searchPaths = [
     path.join(process.resourcesPath, 'flash', pluginName),
     path.join(path.dirname(app.getPath('exe')), 'flash', pluginName),

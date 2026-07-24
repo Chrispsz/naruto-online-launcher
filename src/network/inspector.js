@@ -79,7 +79,7 @@ var KNOWN_PATH_SIGNATURES = [
 function create(session, profileId) {
   var entries = []; // last N captures
   var stats = {
-    // agregados
+    // aggregated
     totalRequests: 0,
     byDomain: {},
     // added 'telemetry' type (oss_report.fcgi, crossdomain.xml)

@@ -46,16 +46,16 @@ const REGION_TZ = {
 };
 
 // Event catalog by region (times in SERVER timezone)
-// SOURCE (validado 2025):
+// SOURCE (validated 2025):
 //   - https://narutooasis.fandom.com/wiki/Timed_Events
 //   - Patterns confirmed by the community
 //
-// ESTRUTURA de cada evento:
+// STRUCTURE of each event:
 //   id            — unique identifier
 //   name_pt       — name in Portuguese
 //   name_en       — name in English
 //   days          — weekday array (0=Sun, 1=Mon, ..., 6=Sat). EMPTY = daily
-//   hours         — array de horas (0-23) no fuso do SERVIDOR em que o evento inicia
+//   hours         — array of hours (0-23) in the SERVER timezone when the event starts
 //   durationMin   — duration in minutes (default 60)
 //   category      — boss | arena | arena_guild | dungeon | escort | instance | social | reset
 //   remindMin     — minutes before start to notify (default 5; override global via setRemindMin)
@@ -440,7 +440,7 @@ function start(activeRegions) {
   const regions = Array.isArray(activeRegions) && activeRegions.length > 0 ? activeRegions : ['br'];
   logger.info('EventTimers: started — monitored regions: ' + regions.join(', '));
 
-  // Estado: map region+eventId+occ → flags {reminded:bool, endFired:bool}
+  // State: map region+eventId+occ → flags {reminded:bool, endFired:bool}
   const fired = new Map();
 
   _timer = setInterval(function () {

@@ -37,9 +37,9 @@ const BACKUP_FILE = 'profiles.json.bak';
 const MAX_PROFILES = 10;
 const MAX_FILE_BYTES = 1024 * 1024; // 1MB sane limit
 
-// Launch log (timeline) — persisted separado de profiles.json para
+// Launch log (timeline) — persisted separately from profiles.json to
 // avoid interfering with profile schema migrations. Limit of 5000 entries
-// previne crescimento ilimitado (~6 meses de uso intensivo).
+// prevents unlimited growth (~6 months of intensive use).
 const LAUNCH_LOG_FILE = 'launch-log.json';
 const MAX_LAUNCH_LOG_ENTRIES = 5000;
 
@@ -72,15 +72,15 @@ function isValidProfile(p) {
     (typeof p.launchCount !== 'number' || p.launchCount < 0 || !isFinite(p.launchCount))
   )
     return false;
-  // v4.5: totalPlayMs opcional (number, >= 0)
+  // v4.5: totalPlayMs optional (number, >= 0)
   if (
     p.totalPlayMs !== undefined &&
     (typeof p.totalPlayMs !== 'number' || p.totalPlayMs < 0 || !isFinite(p.totalPlayMs))
   )
     return false;
-  // v4.6: favorite opcional (boolean)
+  // v4.6: favorite optional (boolean)
   if (p.favorite !== undefined && typeof p.favorite !== 'boolean') return false;
-  // tags opcional (array de strings, max 5 tags, cada max 20 chars)
+  // tags optional (array of strings, max 5 tags, each max 20 chars)
   if (p.tags !== undefined) {
     if (!Array.isArray(p.tags)) return false;
     if (p.tags.length > 5) return false;
@@ -98,7 +98,7 @@ function _migrateProfile(p) {
   if (!p) return p;
   if (p.language === undefined) p.language = 'pt';
   if (p.notificationsEnabled === undefined) p.notificationsEnabled = true;
-  // v4.5: novos campos com defaults seguros
+  // v4.5: new fields with safe defaults
   if (p.notes === undefined) p.notes = '';
   if (p.launchCount === undefined) p.launchCount = 0;
   if (p.totalPlayMs === undefined) p.totalPlayMs = 0;
@@ -144,14 +144,14 @@ function ensureDir() {
 function load() {
   ensureDir();
 
-  // carrega launch log sempre (independente do estado de profiles.json,
+  // always loads launch log (regardless of profiles.json state,
   // so the _launchLog cache doesn't go stale between loads)
   _loadLaunchLog();
 
   const file = getFile();
   const backup = getBackupFile();
 
-  // Tenta arquivo principal
+  // Try main file
   let parsed = null;
   try {
     if (fs.existsSync(file)) {
@@ -165,7 +165,7 @@ function load() {
     }
   } catch (e) {
     logger.error('ProfileStore: main JSON corrupted: ' + e.message);
-    // Tenta backup
+    // Try backup
     try {
       if (fs.existsSync(backup)) {
         logger.warn('ProfileStore: recovering from .bak backup');
@@ -192,7 +192,7 @@ function load() {
         ' invalid profile(s) discarded'
     );
   }
-  // v3.4: migra perfis v1 (sem language/notificationsEnabled) para v2
+  // v3.4: migrate v1 profiles (without language/notificationsEnabled) to v2
   // v1.1.0: migra region codes legacy (eu/hk/pt/en) para clusters atuais
   let migrated = 0;
   let regionMigrated = 0;
@@ -251,7 +251,7 @@ function _saveToDisk(profiles) {
       return false;
     }
 
-    // Backup do atual antes de sobrescrever
+    // Backup of current before overwriting
     try {
       if (fs.existsSync(file)) {
         fs.copyFileSync(file, backup);
@@ -328,7 +328,7 @@ function create(opts) {
     language: ['pt', 'en', 'de', 'es', 'pl', 'fr'].includes(opts.language) ? opts.language : 'pt',
     notificationsEnabled:
       typeof opts.notificationsEnabled === 'boolean' ? opts.notificationsEnabled : true,
-    // v4.5: novos campos
+    // v4.5: new fields
     notes: typeof opts.notes === 'string' ? opts.notes.slice(0, 200) : '',
     launchCount: 0,
     totalPlayMs: 0,
@@ -480,7 +480,7 @@ function addPlayTime(id, ms) {
     return x.id === id;
   });
   if (!p) return false;
-  // Sanity check: 0 <= ms <= 24h (evita overflow por bug de timer)
+  // Sanity check: 0 <= ms <= 24h (prevents overflow from timer bug)
   const clamped = Math.max(0, Math.min(24 * 60 * 60 * 1000, Number(ms) || 0));
   p.totalPlayMs = (p.totalPlayMs || 0) + clamped;
   persist();
@@ -552,7 +552,7 @@ function importJSON(jsonStr) {
       skipped++;
       return;
     }
-    // Dedup por nome+server
+    // Dedup by name+server
     const dup = _profiles.find(function (x) {
       return x.name === p.name && x.server === p.server;
     });
@@ -592,7 +592,7 @@ function _rmrf(p) {
 
 // ──────────────────────────────────────────────────────────────────────────
 // Launch log (timeline) — launch log for 7-day chart
-// Persistido em userData/launch-log.json (arquivo separado de profiles.json).
+// Persisted in userData/launch-log.json (separate file from profiles.json).
 // Cada entrada: { id: profileId, ts: number }. Cap em MAX_LAUNCH_LOG_ENTRIES.
 // ──────────────────────────────────────────────────────────────────────────
 
@@ -699,7 +699,7 @@ function recordLaunch(profileId) {
   });
   if (!p) return false;
   _launchLog.push({ id: profileId, ts: Date.now() });
-  // Cap em MAX_LAUNCH_LOG_ENTRIES (drop oldest)
+  // Cap at MAX_LAUNCH_LOG_ENTRIES (drop oldest)
   if (_launchLog.length > MAX_LAUNCH_LOG_ENTRIES) {
     _launchLog = _launchLog.slice(_launchLog.length - MAX_LAUNCH_LOG_ENTRIES);
   }
@@ -736,7 +736,7 @@ function getLaunchTimeline(days) {
     dateToIdx[dateStr] = idx;
   }
 
-  // Agrega launch log por data local
+  // Aggregates launch log by local date
   _launchLog.forEach(function (entry) {
     const dateStr = _formatDate(entry.ts);
     const idx = dateToIdx[dateStr];
@@ -754,7 +754,7 @@ function getLaunchTimeline(days) {
     b._byId[entry.id].count++;
   });
 
-  // Remove helper interno antes de retornar
+  // Remove internal helper before returning
   buckets.forEach(function (b) {
     delete b._byId;
   });

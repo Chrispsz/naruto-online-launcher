@@ -98,7 +98,7 @@ if (!gotTheLock) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// SUBSISTEMAS (lazy require para evitar circular)
+// SUBSYSTEMS (lazy require to avoid circular deps)
 // ═══════════════════════════════════════════════════════════════════════════
 
 const memoryGuard = require('./memory/guard');
@@ -243,7 +243,7 @@ function showSetupWindow(onDone) {
     logger.info('Setup window shown (firstBoot)');
   });
 
-  // Intercepta o "close" — setup.html sinaliza via document.title '__SETUP_DONE__{json}'
+  // Intercepts "close" — setup.html signals via document.title '__SETUP_DONE__{json}'
   setupWindow.on('page-title-updated', function (e, title) {
     if (typeof title === 'string' && title.indexOf('__SETUP_DONE__') === 0) {
       e.preventDefault();
@@ -265,10 +265,10 @@ function showSetupWindow(onDone) {
         config.region = result.region || 'br'; // v4.1: region selector no setup
         config.advancedMode = result.advancedMode === true;
 
-        // Sincroniza i18n
+        // Sync i18n
         i18n.setLanguage(config.language);
 
-        // Persiste
+        // Persists
         _persistConfig();
 
         // Recreate mms.cfg with Advanced Light Mode if enabled
@@ -279,7 +279,7 @@ function showSetupWindow(onDone) {
           /* ignore */
         }
 
-        // Fecha setup e chama callback
+        // Closes setup and calls callback
         setupWindow.destroy();
         setupWindow = null;
         if (onDone) onDone();
@@ -362,7 +362,7 @@ function _initManagerAndLaunch() {
     /* ignore */
   }
 
-  // UI Manager — skip em Minimal Mode (manager-only economiza 45MB em PCs <2GB)
+  // UI Manager — skip in Minimal Mode (manager-only saves 45MB on PCs <2GB)
   uiManager = require('./ui/controller');
   uiManager.registerIpcHandlers({
     launchProfile: launchGameForProfile,

@@ -300,7 +300,7 @@ function attach(win, ctx) {
     // LAYER 1: light cleanup (ads, cookies, popups, game site clutter)
     // Uses executeJavaScript with idempotency guard — insertCSS() adds
     // um novo <style> a CADA chamada (incluindo sub-frame loads do Flash),
-    // acumulando estilos duplicados. Com o guard, injeta exatamente uma vez.
+    // accumulating duplicate styles. With the guard, injects exactly once.
     win.webContents
       .executeJavaScript(
         '(function(){' +
@@ -525,7 +525,7 @@ function attach(win, ctx) {
       }
       _stallDetector = null;
     }
-    // JWT auto-renewal timer cleanup (setTimeout recursivo)
+    // JWT auto-renewal timer cleanup (recursive setTimeout)
     if (_renewTimer) {
       clearTimeout(_renewTimer);
       _renewTimer = null;
@@ -692,8 +692,8 @@ function attach(win, ctx) {
  */
 var _reloadingWindows = new Set();
 // Module-level WeakMap: BrowserWindow -> StallDetector instance.
-// Permite reloadWithPreAuth (module-level) desanexar o detector antes do reload,
-// sem precisar que _stallDetector esteja no escopo (ele vive dentro attach()).
+// Allows reloadWithPreAuth (module-level) to detach the detector before reload,
+// without needing _stallDetector to be in scope (it lives inside attach()).
 var _windowStallDetectors = new WeakMap();
 
 function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
@@ -715,10 +715,10 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
   }
   _reloadingWindows.add(winId);
 
-  // P2 FIX: desanexa StallDetector ANTES do reload. O antigo guard liberava
+  // P2 FIX: detaches StallDetector BEFORE reload. The old guard released
   // after a fixed 3s, but did-finish-load (which creates a new StallDetector) can
   // take longer than 3s on slow connections. Result: the old StallDetector
-  // detectava "inatividade" durante o reload e disparava um segundo reload
+  // detected "inactivity" during reload and triggered a second reload
   // concorrente → loop de reloads.
   var sd = _windowStallDetectors.get(win);
   if (sd) {
@@ -732,7 +732,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
 
   logger.info('F5 reloadWithPreAuth: clearing login + pre-authenticating "' + profile.name + '"');
 
-  // Limpa onbeforeunload/onunload antes (igual ao reload antigo fazia).
+  // Clears onbeforeunload/onunload beforehand (same as the old reload did).
   var clearJs = win.webContents
     .executeJavaScript('window.onbeforeunload = null; window.onunload = null;')
     .catch(function () {});
@@ -749,7 +749,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
         return;
       }
       logger.info('F5 reloadWithPreAuth: login cleared, pre-authenticating — ' + profile.name);
-      // Reutiliza o MESMO fluxo do Play (apiLogin.loginAndInject antes de loadURL).
+      // Reuses the SAME Play flow (apiLogin.loginAndInject before loadURL).
       _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl);
       // The _reloadingWindows guard is released in did-finish-load (after the new
       // StallDetector is attached). 30s safety timeout as fallback
@@ -771,7 +771,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
 module.exports = {
   attach: attach,
   reloadWithPreAuth: reloadWithPreAuth,
-  // expostos p/ testes
+  // exposed for tests
   _sendWindowStatus: _sendWindowStatus,
   _sendAutoLoginResult: _sendAutoLoginResult,
   _loadGameWithPreAuth: _loadGameWithPreAuth

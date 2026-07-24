@@ -405,7 +405,7 @@ async function optimizeRenderer(pid, opts) {
   const topology = opts.topology || detectCoreTopology();
 
   // Performance: pins to P-cores + 1 E-core reserve (so V8 GC doesn't compete
-  // com o thread principal do Flash).
+  // with the main Flash thread).
   // Balanced: pins to P-cores only (leaves E-cores free for other apps).
   // Quality: does NOT apply affinity (lets scheduler decide — better for multi-task).
   let cores = [];

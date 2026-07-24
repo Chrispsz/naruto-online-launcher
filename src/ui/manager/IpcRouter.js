@@ -153,7 +153,7 @@ function registerIpcHandlers(handlers) {
       return;
     }
     // P2 FIX: prevents deleting profile with open game — store.remove()
-    // chama _rmrf na partition dir, o que crasharia o Flash PPAPI em uso.
+    // calls _rmrf on the partition dir, which would crash the in-use Flash PPAPI.
     try {
       const gameLauncher = require('../../app/Launcher');
       if (gameLauncher.isProfileOpen(id)) {
@@ -166,7 +166,7 @@ function registerIpcHandlers(handlers) {
     } catch (_) {
       // gameLauncher not available (dev mode without Electron) — proceeds
     }
-    // Limpa inspector se existir (evita leak no Map _inspectors)
+    // Clears inspector if it exists (prevents leak in Map _inspectors)
     var insp = _inspectors.get(id);
     if (insp) {
       try {
@@ -233,7 +233,7 @@ function registerIpcHandlers(handlers) {
     const src = store.get(id);
     if (!src) return { ok: false, error: 'Profile not found' };
     const copy = store.create({
-      name: String(src.name) + ' (cópia)',
+      name: String(src.name) + ' (copy)',
       server: src.server,
       region: src.region,
       language: src.language,

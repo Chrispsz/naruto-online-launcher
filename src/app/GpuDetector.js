@@ -169,9 +169,9 @@ function _listGpusLinuxLspci() {
     const gpus = [];
     const lines = out.split('\n');
     for (const line of lines) {
-      // Display controller ou VGA compatible controller
+      // Display controller or VGA compatible controller
       if (!/VGA compatible controller|Display controller|3D controller/i.test(line)) continue;
-      // Formato -nn -mm: "00:02.0 "VGA compatible controller" "Intel" "HD Graphics" [-device -vendor]"
+      // Format -nn -mm: "00:02.0 "VGA compatible controller" "Intel" "HD Graphics" [-device -vendor]"
       const m = line.match(/"([^"]+)"\s+"([^"]+)"\s+"([^"]*)"(?:\s+\[([0-9a-f]+):([0-9a-f]+)\])?/i);
       if (!m) continue;
       const vendorName = m[2].toLowerCase();
@@ -367,7 +367,7 @@ function detect() {
 /**
  * Returns GPU-specific environment variables.
  * These are applied TO THE ELECTRON PROCESS BEFORE Chromium starts the
- * GPU process — portanto devem ser setadas em main.js top-level ou flags.js.
+ * GPU process — therefore must be set in main.js top-level or flags.js.
  *
  * @param {string} preset - 'performance'|'balanced'|'quality'
  * @returns {Object} env vars to set
@@ -391,13 +391,13 @@ function getEnvVars(preset) {
     if (!_isNvidiaProprietary()) {
       logger.info('GpuDetector: nouveau detected — __GL_* vars skipped (placebo with nouveau)');
     } else {
-      // Threaded optimizations: driver NVIDIA cria threads auxiliares para
-      // upload de texturas e command buffer building. OFF por default em alguns
+      // Threaded optimizations: NVIDIA driver creates auxiliary threads for
+      // texture upload and command buffer building. OFF by default on some
       // drivers. ON = real FPS gain in Flash (which is CPU-bound on the renderer).
       env.__GL_THREADED_OPTIMIZATIONS = '1';
 
       // Vsync controlled by Chromium (not by the driver). Performance preset
-      // desabilita vsync do driver pra reduzir input lag.
+      // disables driver vsync to reduce input lag.
       if (preset === 'performance') {
         env.__GL_SYNC_TO_VBLANK = '0';
       }
@@ -417,7 +417,7 @@ function getEnvVars(preset) {
     env.RADEONSI_ZERO_VRAM = '1';
     // RADEONSI_CLEAR_DB_SHADER_CACHE removed — is not a recognized env var
     // by Mesa radeonsi. Setting it was placebo. The DB shader cache is
-    // gerenciado automaticamente pelo driver (limpo em context destroy).
+    // managed automatically by the driver (cleared on context destroy).
 
     // MESA_SHADER_CACHE: keeps cache enabled in all presets (default).
     // Disabling (MESA_SHADER_CACHE_DISABLE=1) only helps in synthetic benchmarks

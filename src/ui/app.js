@@ -225,7 +225,7 @@ function renderProfiles() {
     var serverText = p.server ? esc(p.server.toUpperCase()) : (currentLang === 'pt' ? 'sem servidor' : 'no server');
     var statusDotHtml = '';
     if (openWindows[p.id]) {
-      // Window open → green dot + "aberta" label inline.
+      // Window open → green dot + "open" label inline.
       statusDotHtml =
         '<span class="card-status open"><span class="dot"></span>' + openLabel + '</span>';
     } else if (p.hasVault && autoLoginStatus[p.id] && autoLoginStatus[p.id] !== 'idle') {
@@ -614,7 +614,7 @@ document.getElementById('btnRestartForPreset').onclick = function () {
 
 // v4.7: Encrypted backup (uses existing IPC handlers from controller.js)
 document.getElementById('advBackupExport').onclick = async function () {
-  var pwd = prompt('Digite uma senha para criptografar o backup (mín. 6 caracteres):');
+  var pwd = prompt(currentLang === 'pt' ? 'Digite uma senha para criptografar o backup (mín. 6 caracteres):' : 'Enter a password to encrypt the backup (min. 6 characters):');
   if (!pwd) return;
   if (pwd.length < 6) {
     toast('Password too short', 'err');
@@ -639,7 +639,7 @@ document.getElementById('advBackupExport').onclick = async function () {
 };
 
 document.getElementById('advBackupImport').onclick = async function () {
-  var pwd = prompt('Digite a senha do backup:');
+  var pwd = prompt(currentLang === 'pt' ? 'Digite a senha do backup:' : 'Enter the backup password:');
   if (!pwd) return;
   this.disabled = true;
   this.textContent = 'Importing...';
@@ -663,14 +663,14 @@ document.getElementById('advBackupImport').onclick = async function () {
 // (emitted via profile:toast IPC). Here we only guard the button state + catch unexpected errors.
 document.getElementById('advExportDiag').onclick = async function () {
   this.disabled = true;
-  this.textContent = 'Gerando .zip...';
+  this.textContent = currentLang === 'pt' ? 'Gerando .zip...' : 'Generating .zip...';
   try {
     await window.api.exportDiag();
   } catch (e) {
     toast('Failed to export diagnostics: ' + e.message, 'err');
   }
   this.disabled = false;
-  this.textContent = 'Exportar .zip';
+  this.textContent = currentLang === 'pt' ? 'Exportar .zip' : 'Export .zip';
 };
 
 // v4.7: Open GitHub repo  ·  v5.26.0: also wire the "Report issue" link
@@ -774,7 +774,7 @@ document.getElementById('btnPickServer').onclick = async () => {
     hint.textContent = 'Error: ' + e.message;
   }
   btn.disabled = false;
-  btn.textContent = 'Buscar';
+  btn.textContent = currentLang === 'pt' ? 'Buscar' : 'Search';
 };
 
 // ── Keyboard ──
@@ -1246,7 +1246,7 @@ function initDebugFlag() {
 // v5.9.12: badge now shows ACTIVE events at the moment (within the duration
 // window), instead of activity log count. Much less confusing — the number
 // on the Events button means "X events are running now".
-// Usa lastEventsByRegion (preenchido pelo IPC events:update).
+// Uses lastEventsByRegion (populated by the IPC events:update).
 var lastEventsByRegion = {};
 
 function updateEventBadge() {

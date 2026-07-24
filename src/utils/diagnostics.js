@@ -159,7 +159,7 @@ function _collectProfiles() {
 function _readLogs() {
   const out = {};
   try {
-    // electron-log salva em app.getPath('logs') ou app.getPath('userData')/logs
+    // electron-log saves to app.getPath('logs') or app.getPath('userData')/logs
     let logsDir = null;
     try {
       logsDir = app.getPath('logs');
@@ -311,7 +311,7 @@ async function exportZip(parentWindow) {
     const logs = _readLogs();
     const legacyCrash = _readLegacyCrashReports();
 
-    // Monta entradas do zip
+    // Build zip entries
     const entries = [];
     entries.push({
       name: 'system-info.json',
@@ -332,7 +332,7 @@ async function exportZip(parentWindow) {
     Object.keys(logs).forEach(function (fname) {
       entries.push({ name: 'logs/' + fname, data: Buffer.from(logs[fname], 'utf8') });
     });
-    // README explicativo
+    // Explanatory README
     const readme = [
       '# Shinobi Launcher Diagnostics v' + sysInfo.app.version,
       '',

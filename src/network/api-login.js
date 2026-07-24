@@ -39,7 +39,7 @@ async function loginAndInject(session, email, password, opts) {
   opts = opts || {};
   logger.info('ApiLogin: authenticating ' + email);
 
-  // 1. Login via passport API → recebe loginKey (JWT)
+  // 1. Login via passport API → receives loginKey (JWT)
   const auth = await tempmail.login(email, password, opts.remember);
 
   // 2. Injects the oas_user cookie on the .narutowebgame.com domain
