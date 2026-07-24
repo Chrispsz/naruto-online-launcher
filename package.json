@@ -42,7 +42,7 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.61.1",
+    "@playwright/test": "^1.62.0",
     "electron": "11.5.0",
     "electron-builder": "22.14.13",
     "eslint": "^8.56.0",
