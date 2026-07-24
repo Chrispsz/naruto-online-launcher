@@ -133,9 +133,6 @@ describe('manager.js', function () {
   // ── Exports ──
 
   describe('exports', function () {
-    test('exports setMemoryGuard as function', function () {
-      expect(typeof manager.setMemoryGuard).toBe('function');
-    });
     test('exports list as function', function () {
       expect(typeof manager.list).toBe('function');
     });
@@ -177,20 +174,6 @@ describe('manager.js', function () {
     });
     test('exports MAX_PROFILES from store', function () {
       expect(manager.MAX_PROFILES).toBe(10);
-    });
-  });
-
-  // ── setMemoryGuard ──
-
-  describe('setMemoryGuard', function () {
-    test('stores memory guard reference', function () {
-      var mg = {
-        reportCrash: jest.fn(),
-        registerGameWebContents: jest.fn(),
-        unregisterGameWebContents: jest.fn()
-      };
-      manager.setMemoryGuard(mg);
-      // Can verify indirectly through launch (which uses mg)
     });
   });
 
@@ -372,50 +355,6 @@ describe('manager.js', function () {
       expect(result).toBe(false);
     });
 
-    test('registers webContents with memory guard on opened callback', function () {
-      var profile = { id: 'p_mg', name: 'MG', server: 's1', region: 'br' };
-      store.get.mockReturnValue(profile);
-      var mockWC = { executeJavaScript: jest.fn() };
-      gameLauncher.getWebContents.mockReturnValue(mockWC);
-      var mg = {
-        registerGameWebContents: jest.fn(),
-        unregisterGameWebContents: jest.fn()
-      };
-      manager.setMemoryGuard(mg);
-
-      // Simulate launch with onOpened callback
-      gameLauncher.launchProfile.mockImplementation(function (id, onOpened) {
-        if (onOpened) onOpened();
-      });
-
-      manager.launch('p_mg');
-      expect(mg.registerGameWebContents).toHaveBeenCalledWith('p_mg', mockWC);
-    });
-
-    test('snapshots cookies and unregisters from MG on closed callback (shadow)', function () {
-      var profile = { id: 'p_close', name: 'Close', server: 's1', region: 'br' };
-      store.get.mockReturnValue(profile);
-      partition.shouldUseShadow.mockReturnValue(true);
-      partition.getPartitionName.mockReturnValue('partition:profile-p_close');
-      var mg = {
-        registerGameWebContents: jest.fn(),
-        unregisterGameWebContents: jest.fn()
-      };
-      manager.setMemoryGuard(mg);
-
-      // Launch to set up runtime state, then simulate close
-      gameLauncher.launchProfile.mockImplementation(function (id, onOpened, onClosed) {
-        if (onClosed) onClosed();
-      });
-
-      manager.launch('p_close');
-      expect(partition.snapshotCookies).toHaveBeenCalledWith(
-        'partition:profile-p_close',
-        'p_close'
-      );
-      expect(mg.unregisterGameWebContents).toHaveBeenCalledWith('p_close');
-    });
-
     test('calls onOpened and onClosed callbacks when provided', function () {
       var profile = { id: 'p_cb', name: 'CB', server: 's1', region: 'br' };
       store.get.mockReturnValue(profile);
@@ -595,28 +534,6 @@ describe('manager.js', function () {
       store.getAll.mockReturnValue([{ id: 'p_no_rt', name: 'N', server: 's1', region: 'br' }]);
       var stats = manager.getStats();
       expect(stats.crashes).toBe(0);
-    });
-  });
-
-  describe('getOpenProfileIds', function () {
-    test('retorna IDs dos perfis abertos', function () {
-      var profiles = [
-        { id: 'p_open', name: 'O', server: 's1', region: 'br' },
-        { id: 'p_closed', name: 'X', server: 's2', region: 'na' }
-      ];
-      store.getAll.mockReturnValue(profiles);
-      gameLauncher.isProfileOpen.mockImplementation(function (id) {
-        return id === 'p_open';
-      });
-
-      var result = manager.getOpenProfileIds();
-      expect(result).toEqual(['p_open']);
-    });
-
-    test('retorna array vazio quando nenhum perfil está aberto', function () {
-      store.getAll.mockReturnValue([{ id: 'p_x', name: 'X', server: 's1', region: 'br' }]);
-      var result = manager.getOpenProfileIds();
-      expect(result).toEqual([]);
     });
   });
 });

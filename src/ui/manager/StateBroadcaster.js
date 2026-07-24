@@ -13,16 +13,13 @@
 'use strict';
 
 const store = require('../../profiles/store');
-const mg = require('../../memory/guard');
 const et = require('../../utils/EventTimers');
 const vault = require('../../profiles/vault');
 const partition = require('../../profiles/partition');
 const ManagerWindow = require('./ManagerWindow');
 
 // Guards anti-duplicação de listeners (v3.6.2)
-let _memCb = null,
-  _gcCb = null,
-  _remindCb = null;
+let _remindCb = null;
 let _pushTimer = null;
 let _storeChangeCb = null;
 let _started = false;
@@ -45,10 +42,6 @@ function pushProfiles() {
   ManagerWindow.send('profiles:updated', list);
 }
 
-function pushMemory() {
-  ManagerWindow.send('memory:update', mg.getStats());
-}
-
 function pushEvents(region) {
   const regions = region ? [region] : _activeRegions();
   const all = {};
@@ -60,31 +53,18 @@ function pushEvents(region) {
 
 function pushAll() {
   pushProfiles();
-  pushMemory();
   pushEvents();
 }
 
 /**
- * Registra listeners de mudança de estado (memory guard, GC, event remind,
- * store changes) e inicia o timer de refresh periódico (30s).
+ * Registra listeners de mudança de estado (event remind, store changes)
+ * e inicia o timer de refresh periódico (30s).
  * Idempotente — seguro chamar múltiplas vezes.
  */
 function startAutoRefresh() {
   if (_started) return;
   _started = true;
 
-  if (!_memCb) {
-    _memCb = function () {
-      pushMemory();
-    };
-    mg.onMemoryUpdate(_memCb);
-  }
-  if (!_gcCb) {
-    _gcCb = function () {
-      pushMemory();
-    };
-    mg.onGC(_gcCb);
-  }
   if (!_remindCb) {
     _remindCb = function () {
       pushEvents();
@@ -95,7 +75,6 @@ function startAutoRefresh() {
   if (_pushTimer) clearInterval(_pushTimer);
   _pushTimer = setInterval(function () {
     pushEvents();
-    pushMemory();
   }, 30000);
   if (_pushTimer.unref) _pushTimer.unref();
 
@@ -117,7 +96,6 @@ function stopAutoRefresh() {
 
 module.exports = {
   pushProfiles: pushProfiles,
-  pushMemory: pushMemory,
   pushEvents: pushEvents,
   pushAll: pushAll,
   startAutoRefresh: startAutoRefresh,

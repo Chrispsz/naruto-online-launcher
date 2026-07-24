@@ -17,7 +17,6 @@ const fs = require('fs');
 const logger = require('../../utils/logger');
 const { isValidRegion, normalizeRegion } = require('../../config/regions');
 const store = require('../../profiles/store');
-const mg = require('../../memory/guard');
 const et = require('../../utils/EventTimers');
 const vault = require('../../profiles/vault');
 const partition = require('../../profiles/partition');
@@ -293,16 +292,7 @@ function registerIpcHandlers(handlers) {
     return vault.hasCredentials(id);
   });
 
-  // ── Memory ──
-  ipcMain.handle('memory:stats', function () {
-    return mg.getStats();
-  });
-  ipcMain.handle('memory:force-gc', function () {
-    return mg.collect({ manual: true });
-  });
-  ipcMain.handle('memory:webview-stats', function () {
-    return mg.getWebviewStats();
-  });
+  // ── Memory (removido em v1.1.2: GC forçado em main de 50MB é otimização inútil) ──
 
   // ── Diagnostics exporter (v4.9.2) ──
   const diagnostics = require('../../utils/diagnostics');

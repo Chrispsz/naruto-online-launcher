@@ -185,11 +185,6 @@ function attach(win, ctx) {
     } catch (e) {
       logger.debug('render-process-gone: reportCrash(profile) falhou: ' + e.message);
     }
-    try {
-      require('../memory/guard').reportCrash();
-    } catch (e) {
-      logger.debug('render-process-gone: reportCrash(memory) falhou: ' + e.message);
-    }
 
     // Auto-recovery: reload se webContents ainda válido e dentro do backoff.
     // Causas recuperáveis: oom, crashed, abnormal-exit (não recupera 'clean-exit').

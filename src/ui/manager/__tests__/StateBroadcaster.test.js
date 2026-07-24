@@ -1,10 +1,10 @@
 /**
  * Tests for src/ui/manager/StateBroadcaster.js (Fase 3c split)
  *
- * Verifies: exports, pushProfiles/pushMemory/pushEvents/pushAll,
+ * Verifies: exports, pushProfiles/pushEvents/pushAll,
  * startAutoRefresh/stopAutoRefresh, listener registration.
  *
- * NOTE: StateBroadcaster uses module-level state (_started, _memCb, etc.)
+ * NOTE: StateBroadcaster uses module-level state (_started, _remindCb, etc.)
  * that persists across tests. The startAutoRefresh() is idempotent — once
  * started, subsequent calls are no-ops. We test accordingly.
  */
@@ -18,9 +18,7 @@ jest.mock('../../../profiles/store', () => ({
 }));
 
 jest.mock('../../../memory/guard', () => ({
-  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 700, isBatata: false })),
-  onMemoryUpdate: jest.fn(),
-  onGC: jest.fn()
+  getStats: jest.fn(() => ({ totalMB: 100, thresholdMB: 700, isBatata: false }))
 }));
 
 jest.mock('../../../utils/EventTimers', () => ({
@@ -43,7 +41,6 @@ jest.mock('../ManagerWindow', () => ({
 
 const StateBroadcaster = require('../StateBroadcaster');
 const store = require('../../../profiles/store');
-const mg = require('../../../memory/guard');
 const et = require('../../../utils/EventTimers');
 const vault = require('../../../profiles/vault');
 const partition = require('../../../profiles/partition');
@@ -57,10 +54,6 @@ describe('StateBroadcaster.js', () => {
   describe('exports', () => {
     test('exports pushProfiles as function', () => {
       expect(typeof StateBroadcaster.pushProfiles).toBe('function');
-    });
-
-    test('exports pushMemory as function', () => {
-      expect(typeof StateBroadcaster.pushMemory).toBe('function');
     });
 
     test('exports pushEvents as function', () => {
@@ -147,34 +140,6 @@ describe('StateBroadcaster.js', () => {
     });
   });
 
-  describe('pushMemory', () => {
-    test('sends memory:update via ManagerWindow.send with mg.getStats()', () => {
-      const stats = { totalMB: 250, thresholdMB: 700, isBatata: false };
-      mg.getStats.mockReturnValue(stats);
-
-      StateBroadcaster.pushMemory();
-
-      expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', stats);
-    });
-
-    test('passes through whatever getStats returns', () => {
-      const stats = { totalMB: 500, isRamen: true, crashCount: 2 };
-      mg.getStats.mockReturnValue(stats);
-
-      StateBroadcaster.pushMemory();
-
-      expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', stats);
-    });
-
-    test('handles empty stats object', () => {
-      mg.getStats.mockReturnValue({});
-
-      StateBroadcaster.pushMemory();
-
-      expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', {});
-    });
-  });
-
   describe('pushEvents', () => {
     test('sends events:update with byRegion and userOffset for specific region', () => {
       et.getUpcoming.mockReturnValue([{ id: 'br-boss', name: 'Boss' }]);
@@ -242,26 +207,23 @@ describe('StateBroadcaster.js', () => {
   });
 
   describe('pushAll', () => {
-    test('calls pushProfiles, pushMemory, and pushEvents (3 ManagerWindow.send calls)', () => {
+    test('calls pushProfiles and pushEvents (2 ManagerWindow.send calls)', () => {
       store.getAll.mockReturnValue([]);
-      mg.getStats.mockReturnValue({ totalMB: 100 });
       et.getUpcoming.mockReturnValue([]);
 
       StateBroadcaster.pushAll();
 
       expect(ManagerWindow.send).toHaveBeenCalledWith('profiles:updated', expect.any(Array));
-      expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', expect.any(Object));
       expect(ManagerWindow.send).toHaveBeenCalledWith('events:update', expect.any(Object));
     });
 
-    test('sends exactly 3 IPC messages', () => {
+    test('sends exactly 2 IPC messages', () => {
       store.getAll.mockReturnValue([]);
-      mg.getStats.mockReturnValue({});
       et.getUpcoming.mockReturnValue([]);
 
       StateBroadcaster.pushAll();
 
-      expect(ManagerWindow.send).toHaveBeenCalledTimes(3);
+      expect(ManagerWindow.send).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -296,39 +258,6 @@ describe('StateBroadcaster.js', () => {
   });
 
   describe('listener integration', () => {
-    test('memory update callback triggers pushMemory', () => {
-      // Start auto-refresh to ensure listeners are registered
-      StateBroadcaster.stopAutoRefresh();
-      StateBroadcaster.startAutoRefresh();
-
-      // Simulate a memory update by invoking the callback registered with mg.onMemoryUpdate
-      // We need to find the callback that was registered
-      const memCallbacks = mg.onMemoryUpdate.mock.calls.map(function (c) {
-        return c[0];
-      });
-      if (memCallbacks.length > 0) {
-        const latestCb = memCallbacks[memCallbacks.length - 1];
-        jest.clearAllMocks();
-        latestCb();
-        expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', expect.any(Object));
-      }
-    });
-
-    test('GC callback triggers pushMemory', () => {
-      StateBroadcaster.stopAutoRefresh();
-      StateBroadcaster.startAutoRefresh();
-
-      const gcCallbacks = mg.onGC.mock.calls.map(function (c) {
-        return c[0];
-      });
-      if (gcCallbacks.length > 0) {
-        const latestCb = gcCallbacks[gcCallbacks.length - 1];
-        jest.clearAllMocks();
-        latestCb();
-        expect(ManagerWindow.send).toHaveBeenCalledWith('memory:update', expect.any(Object));
-      }
-    });
-
     test('remind callback triggers pushEvents', () => {
       StateBroadcaster.stopAutoRefresh();
       StateBroadcaster.startAutoRefresh();

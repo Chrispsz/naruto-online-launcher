@@ -46,18 +46,7 @@ const gameLauncher = require('../ui/game-launcher');
 // Map: profileId -> { openedAt, lastSeenMb, crashCount }
 const _runtime = new Map();
 
-let _memoryGuard = null; // injetado via setMemoryGuard()
 let _listeners = [];
-
-/**
- * Injeta a referência do MemoryGuard (quebra a dependência circular).
- * Deve ser chamado no boot, antes de qualquer launchProfile().
- * @param {Object} mg
- */
-function setMemoryGuard(mg) {
-  _memoryGuard = mg;
-  logger.info('ProfileManager: MemoryGuard vinculado');
-}
 
 /**
  * Lista perfis enriquecidos com estado runtime (isOpen, hasVault, shadow).
@@ -182,20 +171,11 @@ function launch(profileId, onOpened, onClosed) {
     });
   }
 
-  // Despacha para o game-launcher com wrappers que adicionam GC + crash handler
+  // Despacha para o game-launcher
   try {
     gameLauncher.launchProfile(
       profileId,
       function onOpenedInternal() {
-        // Registra webContents no MemoryGuard para injeção periódica de window.gc()
-        if (_memoryGuard && typeof _memoryGuard.registerGameWebContents === 'function') {
-          try {
-            const wc = gameLauncher.getWebContents(profileId);
-            if (wc) _memoryGuard.registerGameWebContents(profileId, wc);
-          } catch (e) {
-            logger.debug('ProfileManager: registerGameWebContents falhou: ' + e.message);
-          }
-        }
         if (onOpened) onOpened();
       },
       function onClosedInternal() {
@@ -204,10 +184,6 @@ function launch(profileId, onOpened, onClosed) {
           partition.snapshotCookies(partName, profileId).catch(function () {
             /* ignore */
           });
-        }
-        // Desregistra webContents do MemoryGuard
-        if (_memoryGuard && typeof _memoryGuard.unregisterGameWebContents === 'function') {
-          _memoryGuard.unregisterGameWebContents(profileId);
         }
         _runtime.delete(profileId);
         if (onClosed) onClosed();
@@ -341,21 +317,6 @@ function getStats() {
 }
 
 /**
- * Lista IDs dos perfis atualmente abertos (para o MemoryGuard iterar).
- * @returns {Array<string>}
- */
-function getOpenProfileIds() {
-  return store
-    .getAll()
-    .filter(function (p) {
-      return gameLauncher.isProfileOpen(p.id);
-    })
-    .map(function (p) {
-      return p.id;
-    });
-}
-
-/**
  * Registra listener para mudanças (UI atualiza via push).
  * @param {Function} cb
  */
@@ -375,8 +336,6 @@ function _notify() {
 }
 
 module.exports = {
-  // Lifecycle
-  setMemoryGuard: setMemoryGuard,
   // CRUD — Used by tests only (zero production callers per cleanup-launcher audit)
   list: list, // Used by tests only
   create: create, // Used by tests only
@@ -396,7 +355,6 @@ module.exports = {
   importAll: importAll, // Used by tests only
   // Stats — Used by tests only
   getStats: getStats, // Used by tests only
-  getOpenProfileIds: getOpenProfileIds, // Used by tests only
   // Events — Used by tests only
   onChange: onChange, // Used by tests only
   // Constants — Used by tests only

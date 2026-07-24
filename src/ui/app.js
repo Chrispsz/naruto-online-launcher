@@ -37,9 +37,6 @@ const REGIONS = {
 };
 
 window.api = {
-  getMemoryStats: () => ipcRenderer.invoke('memory:stats'),
-  forceGC: () => ipcRenderer.invoke('memory:force-gc'),
-  getWebviewStats: () => ipcRenderer.invoke('memory:webview-stats'),
   fetchServers: r => ipcRenderer.invoke('servers:fetch', r),
   // v4.9: Tempmail + API Login + Network Inspector
   createTempmail: opts => ipcRenderer.invoke('tempmail:create', opts),

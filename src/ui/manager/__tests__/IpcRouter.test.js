@@ -192,11 +192,6 @@ describe('IpcRouter.js', () => {
       expect(handleHandlers['tempmail:servers']).toBeDefined();
     });
 
-    test('registra handlers de memory', () => {
-      expect(handleHandlers['memory:stats']).toBeDefined();
-      expect(handleHandlers['memory:force-gc']).toBeDefined();
-    });
-
     test('startAutoRefresh é chamado durante registerIpcHandlers', () => {
       // StateBroadcaster.startAutoRefresh was called during the module-level
       // registration above. Since jest.clearAllMocks() clears call history,
@@ -397,27 +392,6 @@ describe('IpcRouter.js', () => {
       const result = await handler({}, {});
       expect(result.ok).toBe(false);
       expect(result.error).toContain('Network error');
-    });
-  });
-
-  describe('memory:stats handler', () => {
-    test('retorna stats do memory guard', async () => {
-      const mg = require('../../../memory/guard');
-      const handler = handleHandlers['memory:stats'];
-
-      const result = await handler();
-      expect(mg.getStats).toHaveBeenCalled();
-      expect(result).toHaveProperty('totalMB');
-    });
-  });
-
-  describe('memory:force-gc handler', () => {
-    test('chama mg.collect com manual:true', async () => {
-      const mg = require('../../../memory/guard');
-      const handler = handleHandlers['memory:force-gc'];
-
-      await handler();
-      expect(mg.collect).toHaveBeenCalledWith({ manual: true });
     });
   });
 
@@ -855,15 +829,6 @@ describe('IpcRouter.js', () => {
       handler({}, true);
       const et = require('../../../utils/EventTimers');
       expect(et.setMuted).toHaveBeenCalledWith(true);
-    });
-  });
-
-  describe('memory:webview-stats handler', () => {
-    test('retorna stats de webview', async () => {
-      const handler = handleHandlers['memory:webview-stats'];
-      await handler();
-      const mg = require('../../../memory/guard');
-      expect(mg.getWebviewStats).toHaveBeenCalled();
     });
   });
 

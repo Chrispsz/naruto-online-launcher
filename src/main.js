@@ -118,9 +118,6 @@ let activeGameWindows = 0;
 // v3.5: Aplica idioma do config ao i18n global
 i18n.setLanguage(config.language || 'pt');
 
-// Vincula o MemoryGuard ao ProfileManager (quebra dependência circular).
-profileManager.setMemoryGuard(memoryGuard);
-
 // Aplica Modo Leve (renomeado de Batata — config legacy retrocompatível)
 if (config.forceBatata !== undefined) {
   memoryGuard.setForceBatata(config.forceBatata === true);
@@ -316,7 +313,6 @@ app.on('ready', function () {
 
   // Subsystems
   profileStore.load();
-  memoryGuard.start();
 
   // v3.4: EventTimers com perfis completos (respeita notificationsEnabled por perfil)
   eventTimers.startWithProfiles(profileStore.getAll());
@@ -373,12 +369,6 @@ function _initManagerAndLaunch() {
   uiManager.registerIpcHandlers({
     launchProfile: launchGameForProfile,
     closeProfile: profileManager.close, // close game window by profile ID
-    getMemoryStats: function () {
-      return memoryGuard.getStats();
-    },
-    forceGC: function () {
-      return memoryGuard.collect({ manual: true });
-    },
     getEvents: function (region) {
       return eventTimers.getUpcoming(region || 'br');
     },
@@ -560,7 +550,6 @@ app.on('will-quit', function () {
   } catch (_) {
     /* ignore */
   }
-  memoryGuard.stop();
   eventTimers.stop();
 });
 
