@@ -1,6 +1,6 @@
 {
   "name": "naruto-online-launcher",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Shinobi Launcher — Privacy-first multi-account Flash launcher for Naruto Online. Cross-platform Linux + Windows, AES-256 vault, GPU/CPU optimization, stall auto-recovery.",
   "main": "src/main.js",
   "author": "Chrispsz",
