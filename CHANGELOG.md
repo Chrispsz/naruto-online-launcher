@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] — 2026-07-25
 
 ### Changed
-- Codebase fully professionalized to English: ~1230 PT→EN renames across comments, identifiers, log messages, and runtime strings (cycles 6–15).
+- Codebase fully professionalized to English: ~1486 PT→EN renames across comments, identifiers, log messages, and runtime strings (cycles 6–15, 44 source files).
 - 4 previously-deferred HIGH audit items resolved via i18n ternary integration in `app.js` (prompt dialogs + button labels).
 - All 87 audit findings from Cycle 14 closed.
 
