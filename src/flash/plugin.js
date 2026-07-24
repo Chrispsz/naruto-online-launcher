@@ -46,7 +46,7 @@ function getFlashVersion(flashDir) {
       }
     }
   } catch (e) {
-    logger.debug('Erro ao ler manifest.json: ' + e.message);
+    logger.debug('Failed to read manifest.json: ' + e.message);
   }
   return FLASH_VERSIONS[process.platform] || '34.0.0.0';
 }
@@ -59,7 +59,7 @@ function findFlashPlugin() {
   const platform = process.platform;
 
   if (platform !== 'win32' && platform !== 'linux') {
-    logger.warn('Plataforma não suportada para Flash');
+    logger.warn('Unsupported platform for Flash');
     return null;
   }
 
@@ -85,7 +85,7 @@ function findFlashPlugin() {
     }
   }
 
-  logger.info('Procurando Flash PPAPI em:');
+  logger.info('Searching for Flash PPAPI in:');
   for (let j = 0; j < uniquePaths.length; j++) {
     logger.info('  → ' + uniquePaths[j]);
     try {
@@ -93,7 +93,7 @@ function findFlashPlugin() {
         const stats = fs.statSync(uniquePaths[j]);
         if (stats.size > MIN_FLASH_SIZE) {
           logger.info(
-            '✅ Flash encontrado: ' +
+            '✅ Flash found: ' +
               uniquePaths[j] +
               ' (' +
               (stats.size / 1024 / 1024).toFixed(1) +
@@ -101,16 +101,16 @@ function findFlashPlugin() {
           );
           return uniquePaths[j];
         } else {
-          logger.warn('Arquivo muito pequeno: ' + uniquePaths[j] + ' (' + stats.size + ' bytes)');
+          logger.warn('File too small: ' + uniquePaths[j] + ' (' + stats.size + ' bytes)');
         }
       }
     } catch (err) {
-      logger.debug('Erro: ' + uniquePaths[j] + ': ' + err.message);
+      logger.debug('Error: ' + uniquePaths[j] + ': ' + err.message);
     }
   }
 
-  logger.error('❌ Flash PPAPI NÃO encontrado!');
-  logger.error('Caminhos testados:\n  ' + uniquePaths.join('\n  '));
+  logger.error('❌ Flash PPAPI NOT found!');
+  logger.error('Paths tested:\n  ' + uniquePaths.join('\n  '));
   return null;
 }
 

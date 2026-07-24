@@ -98,7 +98,7 @@ function _ensureSnapshotsLoaded() {
       _snapshots = {};
     }
   } catch (e) {
-    logger.error('partition: snapshots corrompidos, resetando: ' + e.message);
+    logger.error('partition: corrupted snapshots, resetting: ' + e.message);
     _snapshots = {};
   }
 }
@@ -110,7 +110,7 @@ function _persistSnapshots() {
   try {
     const json = JSON.stringify(_snapshots);
     if (Buffer.byteLength(json, 'utf8') > MAX_SNAPSHOTS_BYTES) {
-      logger.warn('partition: snapshots excedem 512KB — truncando antigos');
+      logger.warn('partition: snapshots exceed 512KB — truncating oldest');
       // Drop oldest entries
       const keys = Object.keys(_snapshots);
       while (
@@ -123,7 +123,7 @@ function _persistSnapshots() {
     fs.writeFileSync(tmp, json, 'utf8');
     fs.renameSync(tmp, file);
   } catch (e) {
-    logger.error('partition: falha ao salvar snapshots: ' + e.message);
+    logger.error('partition: failed to save snapshots: ' + e.message);
     try {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
     } catch (_) {
@@ -163,7 +163,7 @@ async function snapshotCookies(partitionName, profileId) {
     logger.info('partition: snapshot de ' + authCookies.length + ' cookies para ' + profileId);
     return true;
   } catch (e) {
-    logger.debug('partition: snapshot falhou: ' + e.message);
+    logger.debug('partition: snapshot failed: ' + e.message);
     return false;
   }
 }
@@ -192,10 +192,10 @@ async function restoreCookies(partitionName, profileId) {
         /* individual cookie failure is ok */
       }
     }
-    logger.info('partition: restaurados ' + restored + ' cookies para ' + profileId);
+    logger.info('partition: restored ' + restored + ' cookies for ' + profileId);
     return restored;
   } catch (e) {
-    logger.debug('partition: restore falhou: ' + e.message);
+    logger.debug('partition: restore failed: ' + e.message);
     return 0;
   }
 }
@@ -236,11 +236,11 @@ function ensurePartitionDir(profile) {
     const dir = path.join(app.getPath('userData'), 'Partitions', 'profile-' + id);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
-      logger.info('partition: dir criado eageramente — ' + dir);
+      logger.info('partition: dir created eagerly — ' + dir);
     }
     return true;
   } catch (e) {
-    logger.warn('partition: ensurePartitionDir falhou: ' + e.message);
+    logger.warn('partition: ensurePartitionDir failed: ' + e.message);
     return false;
   }
 }

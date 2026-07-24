@@ -81,21 +81,21 @@ async function createNarutoAccount(opts) {
   // 1. Pega domínio disponível no mail.tm
   const domain = await _getMailTmDomain();
   const address = prefix + '@' + domain;
-  logger.info('Tempmail: criando conta ' + address);
+  logger.info('Tempmail: creating account ' + address);
 
   // 2. Cria conta no mail.tm
   await _mailTmCreateAccount(address, password);
 
   // 3. Pega token do mail.tm (pra inbox futuro)
   const mailtmToken = await _mailTmGetToken(address, password);
-  logger.info('Tempmail: conta mail.tm ativa');
+  logger.info('Tempmail: mail.tm account active');
 
   // 4. checkname — confirma que o email não está registrado no Naruto
   const checkResp = await _httpGetJson(
     'https://passport.oasgames.com/index.php?m=checkname&email=' + encodeURIComponent(address)
   );
   if (checkResp && checkResp.status === 'ok' && checkResp.val === true) {
-    throw new Error('Email já registrado no Naruto Online (inesperado p/ tempmail novo)');
+    throw new Error('Email already registered on Naruto Online (unexpected for new tempmail)');
   }
 
   // 5. Registra no passport.oasgames.com → recebe loginKey (JWT)
@@ -106,13 +106,13 @@ async function createNarutoAccount(opts) {
       encodeURIComponent(password)
   );
   if (!regResp || regResp.status !== 'ok' || !regResp.val || !regResp.val.loginKey) {
-    throw new Error('Registro no Naruto falhou: ' + JSON.stringify(regResp).slice(0, 200));
+    throw new Error('Naruto registration failed: ' + JSON.stringify(regResp).slice(0, 200));
   }
 
   const loginKey = regResp.val.loginKey;
   const decoded = jwt.decode(loginKey);
   if (!decoded) {
-    throw new Error('loginKey retornada não é um JWT válido');
+    throw new Error('loginKey returned is not a valid JWT');
   }
 
   logger.info(
@@ -162,10 +162,10 @@ async function login(email, password, remember) {
       '&callback=jq_login'
   );
   if (!resp || resp.status !== 'ok' || !resp.val || !resp.val.loginKey) {
-    throw new Error('Login falhou: ' + JSON.stringify(resp).slice(0, 200));
+    throw new Error('Login failed: ' + JSON.stringify(resp).slice(0, 200));
   }
   const decoded = jwt.decode(resp.val.loginKey);
-  if (!decoded) throw new Error('loginKey de login não é JWT válido');
+  if (!decoded) throw new Error('Login loginKey is not a valid JWT');
   logger.info(
     'Tempmail: login OK — playerId=' +
       resp.val.id +
@@ -213,7 +213,7 @@ async function getRecommendedServers(playerId, gamecode) {
 async function _getMailTmDomain() {
   const resp = await _httpGetJson(MAIL_TM_DOMAINS);
   const members = resp && resp['hydra:member'];
-  if (!members || !members.length) throw new Error('mail.tm: nenhum domínio disponível');
+  if (!members || !members.length) throw new Error('mail.tm: no domains available');
   return members[0].domain;
 }
 
@@ -223,7 +223,7 @@ async function _mailTmCreateAccount(address, password) {
 
 async function _mailTmGetToken(address, password) {
   const resp = await _httpPostJson(MAIL_TM_TOKEN, { address: address, password: password });
-  if (!resp || !resp.token) throw new Error('mail.tm: token não retornado');
+  if (!resp || !resp.token) throw new Error('mail.tm: token not returned');
   return resp.token;
 }
 

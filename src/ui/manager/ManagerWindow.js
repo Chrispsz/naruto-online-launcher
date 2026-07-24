@@ -53,7 +53,7 @@ function createManagerWindow(opts) {
 
   managerWindow.once('ready-to-show', function () {
     managerWindow.show();
-    logger.info('UI Manager exibida');
+    logger.info('UI Manager shown');
     if (typeof opts.onReady === 'function') {
       try {
         opts.onReady();
@@ -71,7 +71,7 @@ function createManagerWindow(opts) {
     if (gameLauncher.hasOpenWindows()) {
       e.preventDefault();
       managerWindow.hide();
-      logger.info('Manager oculto (jogo rodando) — volta quando o jogo fechar');
+      logger.info('Manager hidden (game running) — will return when game closes');
     }
   });
 

@@ -214,11 +214,11 @@ function _applyTaskset(pid, cores) {
         if (err) {
           // taskset não disponível (AppImage minimal) ou sem permissão
           logger.debug(
-            'CpuOptimizer: taskset falhou pid=' + pid + ' cores=' + coresArg + ' — ' + err.message
+            'CpuOptimizer: taskset failed pid=' + pid + ' cores=' + coresArg + ' — ' + err.message
           );
           return resolve({ ok: false, error: err.message });
         }
-        logger.info('CpuOptimizer: affinity aplicada pid=' + pid + ' cores=[' + coresArg + ']');
+        logger.info('CpuOptimizer: affinity applied pid=' + pid + ' cores=[' + coresArg + ']');
         resolve({ ok: true });
       }
     );
@@ -248,11 +248,11 @@ function _applyRenice(pid, priority) {
       function (err) {
         if (err) {
           logger.debug(
-            'CpuOptimizer: renice falhou pid=' + pid + ' n=' + priority + ' — ' + err.message
+            'CpuOptimizer: renice failed pid=' + pid + ' n=' + priority + ' — ' + err.message
           );
           return resolve({ ok: false, error: err.message });
         }
-        logger.info('CpuOptimizer: nice=' + priority + ' aplicado pid=' + pid);
+        logger.info('CpuOptimizer: nice=' + priority + ' applied pid=' + pid);
         resolve({ ok: true, priority: priority });
       }
     );
@@ -275,10 +275,10 @@ function _applyOomScoreAdj(pid, score) {
     const path = '/proc/' + pid + '/oom_score_adj';
     fs.writeFile(path, String(score), function (err) {
       if (err) {
-        logger.debug('CpuOptimizer: oom_score_adj falhou pid=' + pid + ' — ' + err.message);
+        logger.debug('CpuOptimizer: oom_score_adj failed pid=' + pid + ' — ' + err.message);
         return resolve({ ok: false, error: err.message });
       }
-      logger.info('CpuOptimizer: oom_score_adj=' + score + ' aplicado pid=' + pid);
+      logger.info('CpuOptimizer: oom_score_adj=' + score + ' applied pid=' + pid);
       resolve({ ok: true });
     });
   });
@@ -312,7 +312,7 @@ function _applyWindowsAffinity(pid, cores) {
     _execPowershell(script, 3000).then(function (result) {
       if (result.ok) {
         logger.info(
-          'CpuOptimizer: win affinity aplicada pid=' +
+          'CpuOptimizer: win affinity applied pid=' +
             pid +
             ' mask=' +
             mask +
@@ -323,7 +323,7 @@ function _applyWindowsAffinity(pid, cores) {
         resolve({ ok: true, mask: mask });
       } else {
         logger.debug(
-          'CpuOptimizer: win affinity falhou pid=' + pid + ' mask=' + mask + ' — ' + result.error
+          'CpuOptimizer: win affinity failed pid=' + pid + ' mask=' + mask + ' — ' + result.error
         );
         resolve({ ok: false, error: result.error });
       }
@@ -354,11 +354,11 @@ function _applyWindowsPriority(pid, niceTarget) {
     else prio = c.normal;
     try {
       os.setPriority(pid, prio);
-      logger.info('CpuOptimizer: win priority aplicada pid=' + pid + ' prio=' + prio);
+      logger.info('CpuOptimizer: win priority applied pid=' + pid + ' prio=' + prio);
       resolve({ ok: true, priority: prio });
     } catch (e) {
       // EPERM se pid pertence a outro user, ou EINVAL se pid não existe mais
-      logger.debug('CpuOptimizer: win priority falhou pid=' + pid + ' — ' + e.message);
+      logger.debug('CpuOptimizer: win priority failed pid=' + pid + ' — ' + e.message);
       resolve({ ok: false, error: e.message });
     }
   });

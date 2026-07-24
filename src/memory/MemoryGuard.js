@@ -56,7 +56,7 @@ function setForceLowSpec(force) {
   } catch (_) {
     /* partition module may not be loaded yet — ok */
   }
-  logger.info('MemoryGuard: Modo Leve = ' + isLowSpecMode() + ' (threshold ' + _thresholdMB + 'MB)');
+  logger.info('MemoryGuard: Low-spec mode = ' + isLowSpecMode() + ' (threshold ' + _thresholdMB + 'MB)');
 }
 
 /**
@@ -71,7 +71,7 @@ function getStats() {
       totalMB = Math.round(mu.rss / 1024 / 1024);
     }
   } catch (e) {
-    logger.debug('MemoryGuard: memoryUsage() falhou: ' + e.message);
+    logger.debug('MemoryGuard: memoryUsage() failed: ' + e.message);
   }
   const uptimeMs = Date.now() - _startedAt;
   return {
@@ -91,7 +91,7 @@ function getStats() {
 /** Incrementa o contador de crashes registrados. */
 function reportCrash() {
   _crashCount++;
-  logger.warn('MemoryGuard: crash registrado (total: ' + _crashCount + ')');
+  logger.warn('MemoryGuard: crash recorded (total: ' + _crashCount + ')');
 }
 
 module.exports = {

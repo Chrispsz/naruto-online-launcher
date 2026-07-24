@@ -112,7 +112,7 @@ function registerIpcHandlers(handlers) {
     } else {
       _send('profile:toast', {
         type: 'error',
-        msg: 'Limite de ' + store.MAX_PROFILES + ' contas atingido'
+        msg: 'Profile limit reached (' + store.MAX_PROFILES + ')'
       });
     }
   });
@@ -149,7 +149,7 @@ function registerIpcHandlers(handlers) {
 
   ipcMain.on('profile:delete', function (_e, id) {
     if (typeof id !== 'string' || !store.get(id)) {
-      _send('profile:toast', { type: 'error', msg: 'Perfil não encontrado (id inválido)' });
+      _send('profile:toast', { type: 'error', msg: 'Profile not found (invalid id)' });
       return;
     }
     // P2 FIX: não permite deletar perfil com jogo aberto — store.remove()
@@ -159,7 +159,7 @@ function registerIpcHandlers(handlers) {
       if (gameLauncher.isProfileOpen(id)) {
         _send('profile:toast', {
           type: 'error',
-          msg: 'Feche a janela do jogo antes de deletar esta conta'
+          msg: 'Close the game window before deleting this account'
         });
         return;
       }
@@ -180,7 +180,7 @@ function registerIpcHandlers(handlers) {
     partition.removeSnapshot(id);
     store.remove(id);
     _pushProfiles();
-    _send('profile:toast', { type: 'info', msg: 'Conta removida (dados + cookies apagados)' });
+    _send('profile:toast', { type: 'info', msg: 'Account removed (data + cookies deleted)' });
   });
 
   ipcMain.on('profile:reorder', function (_e, order) {
@@ -191,7 +191,7 @@ function registerIpcHandlers(handlers) {
 
   ipcMain.on('profile:launch', function (_e, id) {
     if (typeof id !== 'string' || !store.get(id)) {
-      _send('profile:toast', { type: 'error', msg: 'Perfil não encontrado' });
+      _send('profile:toast', { type: 'error', msg: 'Profile not found' });
       return;
     }
     if (_handlers.launchProfile) _handlers.launchProfile(id);
@@ -308,11 +308,11 @@ function registerIpcHandlers(handlers) {
             ' arquivos)'
         });
       } else if (!result.canceled) {
-        _send('profile:toast', { type: 'error', msg: 'Falha ao exportar: ' + result.error });
+        _send('profile:toast', { type: 'error', msg: 'Export failed: ' + result.error });
       }
       return result;
     } catch (e) {
-      _send('profile:toast', { type: 'error', msg: 'Diagnóstico falhou: ' + e.message });
+      _send('profile:toast', { type: 'error', msg: 'Diagnostics failed: ' + e.message });
       return { ok: false, error: e.message };
     }
   });
@@ -359,7 +359,7 @@ function registerIpcHandlers(handlers) {
       });
       return { ok: true, data: result, profile: profile, vaultStored: vaultStored };
     } catch (e) {
-      _send('profile:toast', { type: 'error', msg: 'Tempmail falhou: ' + e.message });
+      _send('profile:toast', { type: 'error', msg: 'Tempmail failed: ' + e.message });
       return { ok: false, error: e.message };
     }
   });
@@ -370,7 +370,7 @@ function registerIpcHandlers(handlers) {
     }
     try {
       const profile = store.get(profileId);
-      if (!profile) return { ok: false, error: 'Perfil não encontrado' };
+      if (!profile) return { ok: false, error: 'Profile not found' };
       const partName = partition.getPartitionName(profile);
       const ses = session.fromPartition(partName);
       const result = await apiLogin.loginAndInject(ses, email, password);
@@ -385,7 +385,7 @@ function registerIpcHandlers(handlers) {
       });
       return { ok: true, data: result };
     } catch (e) {
-      _send('profile:toast', { type: 'error', msg: 'Login API falhou: ' + e.message });
+      _send('profile:toast', { type: 'error', msg: 'Login API failed: ' + e.message });
       return { ok: false, error: e.message };
     }
   });
@@ -405,7 +405,7 @@ function registerIpcHandlers(handlers) {
   ipcMain.handle('session:check', async function (_e, profileId) {
     try {
       const profile = store.get(profileId);
-      if (!profile) return { ok: false, error: 'Perfil não encontrado' };
+      if (!profile) return { ok: false, error: 'Profile not found' };
       const partName = partition.getPartitionName(profile);
       const ses = session.fromPartition(partName);
       const status = await apiLogin.checkSession(ses);
@@ -419,7 +419,7 @@ function registerIpcHandlers(handlers) {
     if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const profile = store.get(profileId);
-      if (!profile) return { ok: false, error: 'Perfil não encontrado' };
+      if (!profile) return { ok: false, error: 'Profile not found' };
       const partName = partition.getPartitionName(profile);
       const ses = session.fromPartition(partName);
       let insp = _inspectors.get(profileId);
@@ -481,7 +481,7 @@ function registerIpcHandlers(handlers) {
     if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const wc = gameLauncher.getWebContents(profileId);
-      if (!wc || wc.isDestroyed()) return { ok: false, error: 'janela não está aberta' };
+      if (!wc || wc.isDestroyed()) return { ok: false, error: 'game-window-not-open' };
       const source = await wc.executeJavaScript('document.documentElement.outerHTML');
       const url = wc.getURL();
       const title = await wc.executeJavaScript('document.title').catch(function () {
@@ -496,7 +496,7 @@ function registerIpcHandlers(handlers) {
   ipcMain.handle('dev:get-cookies', async function (_e, profileId) {
     try {
       const profile = store.get(profileId);
-      if (!profile) return { ok: false, error: 'Perfil não encontrado' };
+      if (!profile) return { ok: false, error: 'Profile not found' };
       const partName = partition.getPartitionName(profile);
       const ses = session.fromPartition(partName);
       const cookies = await ses.cookies.get({});
@@ -522,7 +522,7 @@ function registerIpcHandlers(handlers) {
     if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const wc = gameLauncher.getWebContents(profileId);
-      if (!wc || wc.isDestroyed()) return { ok: false, error: 'janela não está aberta' };
+      if (!wc || wc.isDestroyed()) return { ok: false, error: 'game-window-not-open' };
       wc.reload();
       return { ok: true };
     } catch (e) {
@@ -534,7 +534,7 @@ function registerIpcHandlers(handlers) {
     if (typeof profileId !== 'string') return { ok: false, error: 'Invalid profileId' };
     try {
       const wc = gameLauncher.getWebContents(profileId);
-      if (!wc || wc.isDestroyed()) return { ok: false, error: 'janela não está aberta' };
+      if (!wc || wc.isDestroyed()) return { ok: false, error: 'game-window-not-open' };
       wc.toggleDevTools();
       return { ok: true };
     } catch (e) {
@@ -629,7 +629,7 @@ function registerIpcHandlers(handlers) {
       );
       return { ok: true, path: result.filePath, count: profiles.length };
     } catch (e) {
-      logger.error('Export backup falhou: ' + e.message);
+      logger.error('Export backup failed: ' + e.message);
       return { ok: false, error: e.message };
     }
   });
@@ -681,10 +681,10 @@ function registerIpcHandlers(handlers) {
 
       _pushProfiles();
       _pushEvents();
-      logger.info('Backup importado: ' + imported + ' perfis, ' + skipped + ' ignorados');
+      logger.info('Backup imported: ' + imported + ' profiles, ' + skipped + ' skipped');
       return { ok: true, imported: imported, skipped: skipped };
     } catch (e) {
-      logger.error('Import backup falhou: ' + e.message);
+      logger.error('Import backup failed: ' + e.message);
       return { ok: false, error: e.message };
     }
   });
@@ -752,7 +752,7 @@ function launchProfile(profileId, onOpened, onClosed) {
       try {
         store.recordLaunch(profileId);
       } catch (e) {
-        logger.warn('IpcRouter: recordLaunch falhou: ' + e.message);
+        logger.warn('IpcRouter: recordLaunch failed: ' + e.message);
       }
       _launchTimes.set(profileId, Date.now());
       _pushProfiles();

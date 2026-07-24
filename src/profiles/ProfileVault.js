@@ -42,7 +42,7 @@ function _encryptWithMachineKey(plaintext) {
   try {
     return CryptoService.encrypt(plaintext, PasswordManager.getMachineKey());
   } catch (e) {
-    logger.error('ProfileVault: encrypt falhou: ' + e.message);
+    logger.error('ProfileVault: encrypt failed: ' + e.message);
     return '';
   }
 }
@@ -56,7 +56,7 @@ function _decryptWithMachineKey(payload) {
   try {
     return CryptoService.decrypt(payload, PasswordManager.getMachineKey());
   } catch (e) {
-    logger.debug('ProfileVault: decrypt falhou (tag mismatch or key changed)');
+    logger.debug('ProfileVault: decrypt failed (tag mismatch or key changed)');
     return null;
   }
 }
@@ -79,7 +79,7 @@ function _ensureLoaded() {
       _store = {};
     }
   } catch (e) {
-    logger.error('ProfileVault: falha ao ler vault.json: ' + e.message + ' — iniciando vazio');
+    logger.error('ProfileVault: failed to read vault.json: ' + e.message + ' — starting empty');
     _store = {};
   }
 }
@@ -95,7 +95,7 @@ function _persist() {
   try {
     const json = JSON.stringify(_store, null, 2);
     if (Buffer.byteLength(json, 'utf8') > MAX_VAULT_BYTES) {
-      logger.error('ProfileVault: recusa salvar — excede 256KB');
+      logger.error('ProfileVault: refusing to save — exceeds 256KB');
       return false;
     }
     fs.writeFileSync(tmp, json, 'utf8');
@@ -109,7 +109,7 @@ function _persist() {
     });
     return true;
   } catch (e) {
-    logger.error('ProfileVault: falha ao salvar: ' + e.message);
+    logger.error('ProfileVault: failed to save: ' + e.message);
     try {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
     } catch (_) {
@@ -133,7 +133,7 @@ function setCredentials(profileId, user, pass) {
     pass: _encryptWithMachineKey(pass || ''),
     updatedAt: Date.now()
   };
-  logger.info('ProfileVault: credenciais salvas para ' + profileId);
+  logger.info('ProfileVault: credentials saved for ' + profileId);
   return _persist();
 }
 
@@ -172,7 +172,7 @@ function removeCredentials(profileId) {
   _ensureLoaded();
   if (!_store[profileId]) return false;
   delete _store[profileId];
-  logger.info('ProfileVault: credenciais removidas para ' + profileId);
+  logger.info('ProfileVault: credentials removed for ' + profileId);
   return _persist();
 }
 

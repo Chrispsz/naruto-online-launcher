@@ -78,7 +78,7 @@ for (var _envKey in gpuEnvVars) {
   }
 }
 if (Object.keys(gpuEnvVars).length > 0) {
-  logger.info('GPU env vars aplicadas: ' + Object.keys(gpuEnvVars).join(', '));
+  logger.info('GPU env vars applied: ' + Object.keys(gpuEnvVars).join(', '));
 }
 
 // ══ APLICAR TODAS AS FLAGS ANTES DE READY ══
@@ -155,9 +155,9 @@ function launchGameForProfile(profileId) {
       // Caso contrário: manager fica visível → multi-conta simultânea habilitada.
       if (memoryGuard.isMinimal() && uiManager) {
         uiManager.hideManager();
-        logger.info('Manager oculto (Minimal Mode) — RAM liberada para o jogo');
+        logger.info('Manager hidden (Minimal Mode) — RAM freed for game');
       } else {
-        logger.info('Jogo aberto — manager visível (multi-conta disponível)');
+        logger.info('Game opened — manager visible (multi-account available)');
       }
     },
     function onClosed() {
@@ -166,7 +166,7 @@ function launchGameForProfile(profileId) {
         // Último jogo fechou: garante que o manager esteja visível (caso o
         // usuário o tenha ocultado manualmente via X durante o jogo).
         uiManager.showManager();
-        logger.info('Jogo fechado — manager restaurado');
+        logger.info('Game closed — manager restored');
       }
     }
   );
@@ -240,7 +240,7 @@ function showSetupWindow(onDone) {
 
   setupWindow.once('ready-to-show', function () {
     setupWindow.show();
-    logger.info('Setup window exibida (firstBoot)');
+    logger.info('Setup window shown (firstBoot)');
   });
 
   // Intercepta o "close" — setup.html sinaliza via document.title '__SETUP_DONE__{json}'
@@ -284,7 +284,7 @@ function showSetupWindow(onDone) {
         setupWindow = null;
         if (onDone) onDone();
       } catch (err) {
-        logger.error('Erro ao processar setup result: ' + err.message);
+        logger.error('Failed to process setup result: ' + err.message);
       }
     }
   });
@@ -294,7 +294,7 @@ function showSetupWindow(onDone) {
     setupWindow = null;
     // Se firstBoot ainda é true (não salvou), mantém para próxima vez
     if (config.firstBoot !== false) {
-      logger.warn('Setup fechado sem concluir — firstBoot mantido para próxima execução');
+      logger.warn('Setup closed without completing — firstBoot preserved for next launch');
       // Não chama onDone → app não continua, fecha
       app.quit();
     }
@@ -319,7 +319,7 @@ app.on('ready', function () {
 
   // ── v3.5: ONBOARDING — se firstBoot, mostra setup antes do manager ──
   if (config.firstBoot !== false) {
-    logger.info('Primeira execução detectada — abrindo tela de setup');
+    logger.info('First run detected — opening setup window');
     showSetupWindow(function onSetupDone() {
       _initManagerAndLaunch();
     });
@@ -335,7 +335,7 @@ app.on('ready', function () {
  * Mostra um dialog e encerra — o usuário deve reinstalar o launcher.
  */
 function _showFlashMissingError() {
-  logger.error('Flash PPAPI não encontrado — instalação corrompida');
+  logger.error('Flash PPAPI not found — corrupted installation');
   dialog.showMessageBoxSync({
     type: 'error',
     title: 'Flash não encontrado',
@@ -459,9 +459,9 @@ function _initManagerAndLaunch() {
       const { createMmsCfg } = require('./flash/mms');
       createMmsCfg(config.hardwareProfile, { advancedMode: newState });
     } catch (err) {
-      logger.error('Falha ao recriar mms.cfg (lowpc toggle): ' + err.message);
+      logger.error('Failed to recreate mms.cfg (lowpc toggle): ' + err.message);
     }
-    logger.info('Modo PC Fraco (advancedMode): ' + (newState ? 'ON' : 'OFF'));
+    logger.info('Low-end PC mode (advancedMode): ' + (newState ? 'ON' : 'OFF'));
     return {
       ok: true,
       previous: previous,
@@ -583,7 +583,7 @@ function _persistConfig() {
     config.mutedEvents = eventTimers.isMuted();
     saveConfig(config);
   } catch (e) {
-    logger.debug('main: saveConfig falhou: ' + e.message);
+    logger.debug('main: saveConfig failed: ' + e.message);
   }
 }
 
@@ -592,20 +592,20 @@ function _logBanner() {
   var ver = pkg.version || 'unknown';
   logger.info('═══════════════════════════════════════════');
   logger.info('  🍥 Shinobi Launcher v' + ver);
-  logger.info('  🥷 Zero tracking + Exportador de diagnóstico + UI responsiva');
+  logger.info('  🥷 Zero tracking + Diagnostics exporter + Responsive UI');
   logger.info('═══════════════════════════════════════════');
   logger.info('Flash PPAPI: ' + (flashPath ? '✅ ' + flashVersion : '❌'));
-  logger.info('Perfis: ' + profileStore.getAll().length + '/' + profileStore.MAX_PROFILES);
-  logger.info('Idioma: ' + i18n.getLanguage());
-  logger.info('RAM do sistema: ' + memoryGuard.SYSTEM_RAM_GB + 'GB');
+  logger.info('Profiles: ' + profileStore.getAll().length + '/' + profileStore.MAX_PROFILES);
+  logger.info('Language: ' + i18n.getLanguage());
+  logger.info('System RAM: ' + memoryGuard.SYSTEM_RAM_GB + 'GB');
   logger.info(
-    'Modo Leve: ' +
+    'Low-spec mode: ' +
       (memoryGuard.isLowSpecMode() ? 'ON' : 'OFF') +
       ' (threshold ' +
       memoryGuard.getThreshold() +
       'MB)'
   );
-  logger.info('Modo Leve Avançado: ' + (config.advancedMode ? 'ON (Flash low quality)' : 'OFF'));
+  logger.info('Advanced low-spec: ' + (config.advancedMode ? 'ON (Flash low quality)' : 'OFF'));
   logger.info('═══════════════════════════════════════════');
 }
 

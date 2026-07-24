@@ -88,7 +88,7 @@ function resolveIconPath() {
 function launchProfile(profileId, onOpened, onClosed) {
   const profile = store.get(profileId);
   if (!profile) {
-    logger.error('Launcher: perfil não encontrado: ' + profileId);
+    logger.error('Launcher: profile not found: ' + profileId);
     return;
   }
 
@@ -106,7 +106,7 @@ function launchProfile(profileId, onOpened, onClosed) {
   const partName = partition.getPartitionName(profile);
   const isShadow = partition.shouldUseShadow(profile);
   logger.info(
-    'Abrindo perfil "' +
+    'Opening profile "' +
       profile.name +
       '" • ' +
       (isShadow ? 'shadow' : 'persist') +
@@ -183,7 +183,7 @@ function launchProfile(profileId, onOpened, onClosed) {
     onClosed: function () {
       gameWindows.delete(profileId);
       // Persiste estado final do auditor + para timer de persistência throttled.
-      try { auditor.destroy(); } catch (e) { logger.debug('auditor.destroy falhou: ' + e.message); }
+      try { auditor.destroy(); } catch (e) { logger.debug('auditor.destroy failed: ' + e.message); }
       if (onClosed) onClosed();
     },
     getGameUrl: getGameUrl,
@@ -262,14 +262,14 @@ function getWebContents(profileId) {
  */
 function reloadWithPreAuth(profileId) {
   if (!gameWindows.has(profileId)) {
-    logger.warn('reloadWithPreAuth: perfil não está aberto — ' + profileId);
+    logger.warn('reloadWithPreAuth: profile not open — ' + profileId);
     return;
   }
   const entry = gameWindows.get(profileId);
   if (!entry || !entry.window || entry.window.isDestroyed()) return;
   const profile = store.get(profileId);
   if (!profile) {
-    logger.warn('reloadWithPreAuth: perfil não encontrado no store — ' + profileId);
+    logger.warn('reloadWithPreAuth: profile not found in store — ' + profileId);
     return;
   }
   SessionLifecycle.reloadWithPreAuth(

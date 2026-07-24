@@ -32,7 +32,7 @@ function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
     var creds = vault.getCredentials(profileId);
     if (creds && creds.user && creds.pass) {
       var apiLogin = require('../network/api-login');
-      logger.info('Login direto via API para "' + profile.name + '" (cookie pré-injetado)');
+      logger.info('Login direto via API para "' + profile.name + '" (cookie pre-injected)');
       apiLogin
         .loginAndInject(ses, creds.user, creds.pass)
         .then(function () {
@@ -53,7 +53,7 @@ function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
     }
   }
 
-  logger.info('Carregando jogo para "' + profile.name + '": ' + url);
+  logger.info('Loading game for "' + profile.name + '": ' + url);
   win.loadURL(url);
 }
 
@@ -124,24 +124,24 @@ function _tryAutoLogin(profileId, win, entry) {
       // "waiting" (MutationObserver watching async form), "not-found" (no form
       // on page — likely already logged in via cookie), "error:<msg>".
       if (result === 'filled') {
-        logger.info('Auto-login: credenciais injetadas para ' + profileId);
+        logger.info('Auto-login: credentials injected for ' + profileId);
         if (entry) entry.formInjectAttempts = 0;
         _sendAutoLoginResult(profileId, 'filled');
       } else if (result === 'waiting') {
-        logger.info('Auto-login: aguardando form assíncrono para ' + profileId);
+        logger.info('Auto-login: waiting for async form for ' + profileId);
         _sendAutoLoginResult(profileId, 'waiting');
       } else if (result === 'not-found') {
-        logger.debug('Auto-login: form não encontrado (já logado?) para ' + profileId);
+        logger.debug('Auto-login: form not found (already logged-in?) for ' + profileId);
         _sendAutoLoginResult(profileId, 'not-found');
       } else if (typeof result === 'string' && result.indexOf('error:') === 0) {
-        logger.warn('Auto-login: erro no script para ' + profileId + ' — ' + result);
+        logger.warn('Auto-login: script error for ' + profileId + ' — ' + result);
         _sendAutoLoginResult(profileId, 'error');
       } else {
-        logger.debug('Auto-login: resultado inesperado para ' + profileId + ' — ' + result);
+        logger.debug('Auto-login: unexpected result for ' + profileId + ' — ' + result);
       }
     })
     .catch(function (e) {
-      logger.debug('Auto-login falhou (ok se já logado por cookie): ' + e.message);
+      logger.debug('Auto-login failed (ok if already logged in via cookie): ' + e.message);
     });
 }
 
@@ -183,7 +183,7 @@ function attach(win, ctx) {
       const manager = require('../profiles/manager');
       manager.reportCrash(profileId);
     } catch (e) {
-      logger.debug('render-process-gone: reportCrash(profile) falhou: ' + e.message);
+      logger.debug('render-process-gone: reportCrash(profile) failed: ' + e.message);
     }
 
     // Auto-recovery: reload se webContents ainda válido e dentro do backoff.
@@ -204,19 +204,19 @@ function attach(win, ctx) {
       return;
     }
     _crashTimestamps.push(now);
-    logger.info('SessionLifecycle: auto-reload em 1.5s para "' + profile.name + '"');
+    logger.info('SessionLifecycle: auto-reload in 1.5s for "' + profile.name + '"');
     if (auditor) {
       try {
         auditor.recordCrash(details && details.reason ? details.reason : 'unknown');
         auditor.recordReload();
-      } catch (e) { logger.debug('auditor.recordCrash/Reload falhou: ' + e.message); }
+      } catch (e) { logger.debug('auditor.recordCrash/Reload failed: ' + e.message); }
     }
     var reloadTimer = setTimeout(function () {
       if (win.isDestroyed() || win.webContents.isDestroyed()) return;
       try {
         win.webContents.reload();
       } catch (e) {
-        logger.warn('SessionLifecycle: reload falhou para "' + profile.name + '": ' + e.message);
+        logger.warn('SessionLifecycle: reload failed for "' + profile.name + '": ' + e.message);
       }
     }, 1500);
     if (reloadTimer.unref) reloadTimer.unref();
@@ -228,7 +228,7 @@ function attach(win, ctx) {
     );
   });
   win.on('responsive', function () {
-    logger.info('SessionLifecycle: janela RESPONSIVE novamente — "' + profile.name + '"');
+    logger.info('SessionLifecycle: window RESPONSIVE again — "' + profile.name + '"');
   });
 
   // ── Navigation handling ──
@@ -247,7 +247,7 @@ function attach(win, ctx) {
         win.loadURL(url + sep + LAUNCHER_PARAMS);
       }
     } catch (e) {
-      logger.debug('will-navigate: URL parse falhou para ' + url);
+      logger.debug('will-navigate: URL parse failed for ' + url);
     }
   });
 
@@ -263,7 +263,7 @@ function attach(win, ctx) {
           shell.openExternal(url);
         }
       } catch (e) {
-        logger.debug('new-window: URL inválida ignorada — ' + url);
+        logger.debug('new-window: invalid URL ignored — ' + url);
       }
     }
   });
@@ -290,7 +290,7 @@ function attach(win, ctx) {
             preset: cfg.optimizationPreset || 'balanced'
           })
           .catch(function (e) {
-            logger.debug('CpuOptimizer: falhou (não-fatal) — ' + e.message);
+            logger.debug('CpuOptimizer: failed (non-fatal) — ' + e.message);
           });
       }
     } catch (e) {
@@ -371,7 +371,7 @@ function attach(win, ctx) {
       )
       .then(function (result) {
         if (result === 'applied') {
-          logger.info('Fullscreen CSS aplicado imediatamente — ' + profile.name);
+          logger.info('Fullscreen CSS applied immediately — ' + profile.name);
         } else if (result === 'observing') {
           logger.info(
             'Fullscreen CSS: aguardando #oas-player (MutationObserver) — ' + profile.name
@@ -409,9 +409,9 @@ function attach(win, ctx) {
       profileName: profile.name,
       onStall: function () {
         if (win.isDestroyed()) return;
-        logger.info('StallDetector disparou auto-F5 (pré-auth) — "' + profile.name + '"');
+        logger.info('StallDetector triggered auto-F5 (pre-auth) — "' + profile.name + '"');
         if (auditor) {
-          try { auditor.recordStall('swf-stall'); } catch (e) { logger.debug('auditor.recordStall falhou: ' + e.message); }
+          try { auditor.recordStall('swf-stall'); } catch (e) { logger.debug('auditor.recordStall failed: ' + e.message); }
         }
         reloadWithPreAuth(profileId, profile, win, ses, getGameUrl);
       }
@@ -511,7 +511,7 @@ function attach(win, ctx) {
     if (_isForceClosing) return;
     _isForceClosing = true;
 
-    logger.info('Kill switch: fechando ' + profile.name + ' (graceful + fallback destroy)');
+    logger.info('Kill switch: closing ' + profile.name + ' (graceful + fallback destroy)');
 
     if (entry) {
       _clearEntryTimers(entry);
@@ -566,7 +566,7 @@ function attach(win, ctx) {
     _windowStallDetectors.delete(win);
     // gameWindows.delete é responsabilidade do Launcher (que possui o Map)
     _sendWindowStatus(profileId, false);
-    logger.info('Perfil fechado: ' + profile.name);
+    logger.info('Profile closed: ' + profile.name);
     if (onClosed) onClosed();
   });
 
@@ -575,7 +575,7 @@ function attach(win, ctx) {
     win.show();
     _sendWindowStatus(profileId, true);
     if (auditor) {
-      try { auditor.sessionStart(); } catch (e) { logger.debug('auditor.sessionStart falhou: ' + e.message); }
+      try { auditor.sessionStart(); } catch (e) { logger.debug('auditor.sessionStart failed: ' + e.message); }
     }
     if (onOpened) onOpened();
     setImmediate(function () {
@@ -710,7 +710,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
   // Anti-race: se já tem um reload em andamento pra esta janela, skip.
   var winId = win.id;
   if (_reloadingWindows.has(winId)) {
-    logger.debug('F5 reloadWithPreAuth: já existe reload em andamento (win ' + winId + ') — skip');
+    logger.debug('F5 reloadWithPreAuth: reload already in progress (win ' + winId + ') — skip');
     return Promise.resolve();
   }
   _reloadingWindows.add(winId);
@@ -730,7 +730,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
     _windowStallDetectors.delete(win);
   }
 
-  logger.info('F5 reloadWithPreAuth: limpando login + pré-autenticando "' + profile.name + '"');
+  logger.info('F5 reloadWithPreAuth: clearing login + pre-authenticating "' + profile.name + '"');
 
   // Limpa onbeforeunload/onunload antes (igual ao reload antigo fazia).
   var clearJs = win.webContents
@@ -748,7 +748,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
         _reloadingWindows.delete(winId);
         return;
       }
-      logger.info('F5 reloadWithPreAuth: login limpo, pré-autenticando — ' + profile.name);
+      logger.info('F5 reloadWithPreAuth: login cleared, pre-authenticating — ' + profile.name);
       // Reutiliza o MESMO fluxo do Play (apiLogin.loginAndInject antes de loadURL).
       _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl);
       // O guard _reloadingWindows é liberado em did-finish-load (após o novo
@@ -762,7 +762,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
     .catch(function (e) {
       _reloadingWindows.delete(winId);
       if (win.isDestroyed()) return;
-      logger.warn('F5 reloadWithPreAuth: erro ao limpar — fallback reload direto: ' + e.message);
+      logger.warn('F5 reloadWithPreAuth: failed to clear — fallback direct reload: ' + e.message);
       // Reset do entry formInjectAttempts não é necessário aqui (did-finish-load cuida).
       win.webContents.reload();
     });

@@ -161,7 +161,7 @@ function fetchServers(region) {
     } catch (e) {
       if (!settled) {
         settled = true;
-        logger.error('server-selector: exceção: ' + e.message);
+        logger.error('server-selector: exception: ' + e.message);
         resolve([]);
       }
     }

@@ -46,10 +46,10 @@ function _loadSalt() {
     } else {
       _cachedSalt = crypto.randomBytes(CryptoService.PBKDF2_SALT_LEN);
       fs.writeFileSync(saltPath, _cachedSalt);
-      logger.info('PasswordManager: salt aleatório gerado e persistido');
+      logger.info('PasswordManager: random salt generated and persisted');
     }
   } catch (e) {
-    logger.error('PasswordManager: erro ao carregar salt: ' + e.message);
+    logger.error('PasswordManager: failed to load salt: ' + e.message);
     _cachedSalt = crypto.randomBytes(CryptoService.PBKDF2_SALT_LEN); // fallback in-memory
   }
   return _cachedSalt;

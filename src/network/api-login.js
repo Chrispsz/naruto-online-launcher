@@ -37,7 +37,7 @@ const DEFAULT_GAME_PATH = '/pl/serverlist';
  */
 async function loginAndInject(session, email, password, opts) {
   opts = opts || {};
-  logger.info('ApiLogin: autenticando ' + email);
+  logger.info('ApiLogin: authenticating ' + email);
 
   // 1. Login via passport API → recebe loginKey (JWT)
   const auth = await tempmail.login(email, password, opts.remember);
@@ -70,9 +70,9 @@ async function loginAndInject(session, email, password, opts) {
   });
 
   logger.info(
-    'ApiLogin: cookie oas_user injetado em .' +
+    'ApiLogin: cookie oas_user injected into .' +
       OAS_USER_DOMAIN +
-      ' (expira em ' +
+      ' (expires in ' +
       Math.round(auth.expiresAt / 1000 - Date.now() / 1000) +
       's)'
   );
@@ -118,7 +118,7 @@ async function renewIfNeeded(session, email, password, thresholdSeconds) {
   if (status.valid && status.expiresInSeconds > thresholdSeconds) {
     return { renewed: false, loginKey: null, expiresAt: 0 };
   }
-  logger.info('ApiLogin: renovando JWT (expira em ' + status.expiresInSeconds + 's)');
+  logger.info('ApiLogin: renewing JWT (expires in ' + status.expiresInSeconds + 's)');
   const fresh = await loginAndInject(session, email, password);
   return { renewed: true, loginKey: fresh.loginKey, expiresAt: fresh.expiresAt };
 }

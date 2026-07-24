@@ -132,7 +132,7 @@ function ensureDir() {
       fs.mkdirSync(dir, { recursive: true });
     }
   } catch (e) {
-    logger.error('ProfileStore: falha ao criar diretório: ' + e.message);
+    logger.error('ProfileStore: failed to create directory: ' + e.message);
   }
 }
 
@@ -157,23 +157,23 @@ function load() {
     if (fs.existsSync(file)) {
       const stat = fs.statSync(file);
       if (stat.size > MAX_FILE_BYTES) {
-        logger.warn('ProfileStore: arquivo muito grande (' + stat.size + ' bytes), descartando');
+        logger.warn('ProfileStore: file too large (' + stat.size + ' bytes), discarding');
         throw new Error('oversized');
       }
       const raw = fs.readFileSync(file, 'utf8');
       parsed = JSON.parse(raw);
     }
   } catch (e) {
-    logger.error('ProfileStore: JSON principal corrompido: ' + e.message);
+    logger.error('ProfileStore: main JSON corrupted: ' + e.message);
     // Tenta backup
     try {
       if (fs.existsSync(backup)) {
-        logger.warn('ProfileStore: recuperando do backup .bak');
+        logger.warn('ProfileStore: recovering from .bak backup');
         const rawBak = fs.readFileSync(backup, 'utf8');
         parsed = JSON.parse(rawBak);
       }
     } catch (e2) {
-      logger.error('ProfileStore: backup também corrompido: ' + e2.message);
+      logger.error('ProfileStore: backup also corrupted: ' + e2.message);
       parsed = null;
     }
   }
@@ -226,7 +226,7 @@ function load() {
     _saveToDisk(_profiles);
   }
 
-  logger.info('ProfileStore: ' + _profiles.length + ' perfil(is) carregado(s)');
+  logger.info('ProfileStore: ' + _profiles.length + ' profile(s) loaded');
   return _profiles;
 }
 
@@ -247,7 +247,7 @@ function _saveToDisk(profiles) {
 
     // Limite de tamanho antes de escrever
     if (Buffer.byteLength(json, 'utf8') > MAX_FILE_BYTES) {
-      logger.error('ProfileStore: recusa salvar — JSON excede 1MB');
+      logger.error('ProfileStore: refusing to save — JSON exceeds 1MB');
       return false;
     }
 
@@ -257,7 +257,7 @@ function _saveToDisk(profiles) {
         fs.copyFileSync(file, backup);
       }
     } catch (e) {
-      logger.warn('ProfileStore: não foi possível criar backup: ' + e.message);
+      logger.warn('ProfileStore: failed to create backup: ' + e.message);
     }
 
     // Atomic write: tmp → rename
@@ -265,7 +265,7 @@ function _saveToDisk(profiles) {
     fs.renameSync(tmp, file);
     return true;
   } catch (e) {
-    logger.error('ProfileStore: falha ao salvar: ' + e.message);
+    logger.error('ProfileStore: failed to save: ' + e.message);
     // Tenta limpar tmp órfão
     try {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
@@ -310,7 +310,7 @@ function get(id) {
 function create(opts) {
   if (_profiles === null) load();
   if (_profiles.length >= MAX_PROFILES) {
-    logger.warn('ProfileStore: limite de ' + MAX_PROFILES + ' perfis atingido');
+    logger.warn('ProfileStore: limit of ' + MAX_PROFILES + ' profiles reached');
     return null;
   }
   opts = opts || {};
@@ -404,10 +404,10 @@ function remove(id) {
     const partDir = path.join(app.getPath('userData'), 'Partitions', 'profile-' + id);
     if (fs.existsSync(partDir)) {
       _rmrf(partDir);
-      logger.info('ProfileStore: dados da partition removidos para ' + id);
+      logger.info('ProfileStore: partition data removed for ' + id);
     }
   } catch (e) {
-    logger.warn('ProfileStore: não foi possível remover partition: ' + e.message);
+    logger.warn('ProfileStore: failed to remove partition: ' + e.message);
   }
   return true;
 }
@@ -537,7 +537,7 @@ function importJSON(jsonStr) {
   try {
     data = JSON.parse(jsonStr);
   } catch (e) {
-    logger.error('ProfileStore: import JSON inválido: ' + e.message);
+    logger.error('ProfileStore: invalid import JSON: ' + e.message);
     return { imported: 0, skipped: 0 };
   }
   const incoming = Array.isArray(data.profiles) ? data.profiles : Array.isArray(data) ? data : [];
@@ -570,7 +570,7 @@ function importJSON(jsonStr) {
     imported++;
   });
   persist();
-  logger.info('ProfileStore: importados ' + imported + ', ignorados ' + skipped);
+  logger.info('ProfileStore: imported ' + imported + ', skipped ' + skipped);
   return { imported: imported, skipped: skipped };
 }
 
@@ -642,7 +642,7 @@ function _loadLaunchLog() {
           );
         }
       } else {
-        logger.warn('LaunchLog: arquivo não é array — iniciando vazio');
+        logger.warn('LaunchLog: file is not an array — starting empty');
         _launchLog = [];
       }
     } else {
@@ -650,7 +650,7 @@ function _loadLaunchLog() {
       _launchLog = [];
     }
   } catch (e) {
-    logger.warn('LaunchLog: arquivo corrompido (' + e.message + ') — iniciando vazio');
+    logger.warn('LaunchLog: corrupted file (' + e.message + ') — starting empty');
     _launchLog = [];
   }
   // Cap defensivo (normalmente o cap já acontece em recordLaunch)
@@ -676,7 +676,7 @@ function _persistLaunchLog() {
     fs.writeFileSync(tmp, json, 'utf8');
     fs.renameSync(tmp, file);
   } catch (e) {
-    logger.error('LaunchLog: falha ao salvar: ' + e.message);
+    logger.error('LaunchLog: failed to save: ' + e.message);
     try {
       if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
     } catch (_) {

@@ -47,14 +47,14 @@ function attach(win, profileName, ses, onClearLogin) {
     // Senão: fallback antigo (clear storage + reload direto).
     if (input.key === 'F5' && !input.control && !input.alt && !input.shift) {
       event.preventDefault();
-      logger.info('F5: clear login para ' + profileName);
+      logger.info('F5: clear login for ' + profileName);
       if (typeof onClearLogin === 'function') {
         // Delega pro Launcher — ele faz clearStorageData + apiLogin.loginAndInject
         // ANTES de recarregar, então a tela de login não aparece (email não vaza).
         try {
           onClearLogin();
         } catch (e) {
-          logger.warn('F5: onClearLogin falhou — fallback reload direto: ' + e.message);
+          logger.warn('F5: onClearLogin failed — fallback direct reload: ' + e.message);
           wc.reload();
         }
         return;
@@ -68,7 +68,7 @@ function attach(win, profileName, ses, onClearLogin) {
           ses.clearCache()
         ])
           .then(function () {
-            logger.info('F5: login limpo, recarregando — ' + profileName);
+            logger.info('F5: login cleared, reloading — ' + profileName);
             wc.executeJavaScript('window.onbeforeunload = null; window.onunload = null;')
               .then(function () {
                 wc.reload();
@@ -78,7 +78,7 @@ function attach(win, profileName, ses, onClearLogin) {
               });
           })
           .catch(function (e) {
-            logger.warn('F5: erro ao limpar login — ' + e.message + ' (reload forçado)');
+            logger.warn('F5: failed to clear login — ' + e.message + ' (forced reload)');
             wc.reload();
           });
       } else {

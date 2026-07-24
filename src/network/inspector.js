@@ -210,7 +210,7 @@ function create(session, profileId) {
       record(details, 'response');
     });
 
-    logger.info('Inspector: captura ativa para ' + profileId);
+    logger.info('Inspector: capture active for ' + profileId);
   }
 
   function disable() {
@@ -225,7 +225,7 @@ function create(session, profileId) {
     } catch (_) {
       /* session pode estar destruída */
     }
-    logger.info('Inspector: captura desativada para ' + profileId);
+    logger.info('Inspector: capture disabled for ' + profileId);
   }
 
   function getEntries(filter) {

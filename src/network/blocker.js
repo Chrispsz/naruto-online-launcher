@@ -122,14 +122,14 @@ function shouldBlock(url) {
  */
 function setupBlocker(session) {
   if (_configuredSessions.has(session)) {
-    logger.debug('Blocker: session já configurada — skip');
+    logger.debug('Blocker: session already configured — skip');
     return false;
   }
   _configuredSessions.add(session);
 
   session.webRequest.onBeforeRequest(function (details, callback) {
     if (shouldBlock(details.url)) {
-      logger.debug('Bloqueado: ' + details.url);
+      logger.debug('Blocked: ' + details.url);
       return callback({ cancel: true });
     }
 

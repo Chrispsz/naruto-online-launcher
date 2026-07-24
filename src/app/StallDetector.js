@@ -177,7 +177,7 @@ function attach(win, ses, ctx) {
     // ── Check: inatividade de rede? ──
     var inactiveFor = now - lastActivityAt;
     if (inactiveFor > opts.stallThresholdMs) {
-      triggerStall('sem atividade de rede por ' + Math.round(inactiveFor / 1000) + 's');
+      triggerStall('no network activity for ' + Math.round(inactiveFor / 1000) + 's');
       return;
     }
   }
@@ -205,7 +205,7 @@ function attach(win, ses, ctx) {
     try {
       onStall();
     } catch (e) {
-      logger.error('StallDetector: onStall callback lançou erro: ' + e.message);
+      logger.error('StallDetector: onStall callback threw error: ' + e.message);
     }
   }
 

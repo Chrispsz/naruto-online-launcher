@@ -29,7 +29,7 @@ function getConfigPath() {
 function validateConfig(rawConfig) {
   const region = rawConfig && rawConfig.region;
   const hardwareProfile = rawConfig && rawConfig.hardwareProfile;
-  // Backward-compat: aceita forceLowSpec (novo) ou forceBatata (legacy v<=5.x)
+  // Backward-compat: migrate legacy forceBatata → forceLowSpec
   const forceLowSpec = rawConfig
     ? rawConfig.forceLowSpec !== undefined
       ? rawConfig.forceLowSpec
@@ -57,11 +57,11 @@ function validateConfig(rawConfig) {
   };
 
   if (region !== undefined && !isValidRegion(region)) {
-    logger.warn('Região inválida: ' + region + ', usando padrão: ' + validated.region);
+    logger.warn('Invalid region: ' + region + ', using default: ' + validated.region);
   }
   if (hardwareProfile !== undefined && !isValidProfile(hardwareProfile)) {
     logger.warn(
-      'Perfil inválido: ' + hardwareProfile + ', usando padrão: ' + validated.hardwareProfile
+      'Invalid hardware profile: ' + hardwareProfile + ', using default: ' + validated.hardwareProfile
     );
   }
 
@@ -77,7 +77,7 @@ function loadConfig() {
 
   try {
     if (!fs.existsSync(configPath)) {
-      logger.info('Usando configurações padrão (primeiro uso)');
+      logger.info('Using default configuration (first run)');
       return validateConfig({});
     }
 
@@ -94,16 +94,16 @@ function loadConfig() {
     try {
       rawConfig = JSON.parse(rawContent);
     } catch (parseError) {
-      logger.error('JSON inválido no config, usando padrão: ' + parseError.message);
+      logger.error('Invalid JSON in config, using defaults: ' + parseError.message);
       return validateConfig({});
     }
 
     const config = validateConfig(rawConfig);
-    logger.info('Config carregada: região=' + config.region + ', perfil=' + config.hardwareProfile);
+    logger.info('Config loaded: region=' + config.region + ', profile=' + config.hardwareProfile);
 
     return config;
   } catch (e) {
-    logger.error('Erro ao carregar config, usando padrão: ' + e.message);
+    logger.error('Failed to load config, using defaults: ' + e.message);
     return validateConfig({});
   }
 }
@@ -137,10 +137,10 @@ function saveConfig(config) {
     const tmpPath = configPath + '.tmp';
     fs.writeFileSync(tmpPath, content, 'utf8');
     fs.renameSync(tmpPath, configPath);
-    logger.info('Config salva');
+    logger.info('Config saved');
     return true;
   } catch (e) {
-    logger.error('Erro ao salvar config: ' + e.message);
+    logger.error('Failed to save config: ' + e.message);
     return false;
   }
 }

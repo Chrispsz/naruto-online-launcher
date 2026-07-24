@@ -72,10 +72,10 @@ function decrypt(payload, key) {
  */
 function exportEncryptedBackup(profiles, credentialsMap, password) {
   if (!password || String(password).length < 8) {
-    throw new Error('Senha mestre deve ter pelo menos 8 caracteres');
+    throw new Error('Master password must be at least 8 characters');
   }
   if (!Array.isArray(profiles)) {
-    throw new Error('Lista de perfis inválida');
+    throw new Error('Invalid profile list');
   }
 
   const payload = {
@@ -124,7 +124,7 @@ function exportEncryptedBackup(profiles, credentialsMap, password) {
  */
 function importEncryptedBackup(encryptedBase64, password) {
   if (!encryptedBase64 || !password) {
-    throw new Error('Arquivo e senha são obrigatórios');
+    throw new Error('File and password are required');
   }
 
   let envelope;
@@ -132,11 +132,11 @@ function importEncryptedBackup(encryptedBase64, password) {
     const envelopeJson = Buffer.from(encryptedBase64, 'base64').toString('utf8');
     envelope = JSON.parse(envelopeJson);
   } catch (e) {
-    throw new Error('Arquivo de backup inválido ou corrompido');
+    throw new Error('Invalid or corrupted backup file');
   }
 
   if (!envelope || envelope.version !== BACKUP_VERSION) {
-    throw new Error('Versão de backup incompatível (esperada ' + BACKUP_VERSION + ')');
+    throw new Error('Incompatible backup version (expected ' + BACKUP_VERSION + ')');
   }
 
   let salt, iv, ct, tag;
@@ -146,14 +146,14 @@ function importEncryptedBackup(encryptedBase64, password) {
     ct = Buffer.from(envelope.ct, 'base64');
     tag = Buffer.from(envelope.tag, 'base64');
   } catch (e) {
-    throw new Error('Estrutura do arquivo de backup inválida');
+    throw new Error('Invalid backup file structure');
   }
 
   if (salt.length !== PBKDF2_SALT_LEN) {
-    throw new Error('Salt inválido (' + salt.length + ' bytes, esperado ' + PBKDF2_SALT_LEN + ')');
+    throw new Error('Invalid salt (' + salt.length + ' bytes, expected ' + PBKDF2_SALT_LEN + ')');
   }
   if (iv.length !== GCM_IV_LEN) {
-    throw new Error('IV inválido (' + iv.length + ' bytes, esperado ' + GCM_IV_LEN + ')');
+    throw new Error('Invalid IV (' + iv.length + ' bytes, expected ' + GCM_IV_LEN + ')');
   }
 
   const key = deriveKey(password, salt);
@@ -164,24 +164,24 @@ function importEncryptedBackup(encryptedBase64, password) {
     decipher.setAuthTag(tag);
     plaintext = Buffer.concat([decipher.update(ct), decipher.final()]).toString('utf8');
   } catch (e) {
-    throw new Error('Senha incorreta ou arquivo corrompido');
+    throw new Error('Incorrect password or corrupted file');
   }
 
   let payload;
   try {
     payload = JSON.parse(plaintext);
   } catch (e) {
-    throw new Error('Conteúdo descriptografado inválido');
+    throw new Error('Invalid decrypted content');
   }
 
   if (!Array.isArray(payload.profiles)) {
-    throw new Error('Schema do backup inválido: perfis não é array');
+    throw new Error('Invalid backup schema: profiles is not an array');
   }
 
   // Validate credentials is a non-null object when present
   if (payload.credentials !== undefined && payload.credentials !== null) {
     if (typeof payload.credentials !== 'object' || Array.isArray(payload.credentials)) {
-      throw new Error('Schema do backup inválido: credenciais não é objeto');
+      throw new Error('Invalid backup schema: credentials is not an object');
     }
   }
 

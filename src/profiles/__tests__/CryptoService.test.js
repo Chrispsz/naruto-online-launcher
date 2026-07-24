@@ -89,28 +89,28 @@ describe('CryptoService.js', () => {
 
     test('export rejeita senha curta (<8 chars)', () => {
       expect(() => Cs.exportEncryptedBackup(profiles, creds, 'ab')).toThrow(
-        /pelo menos 8 caracteres/
+        /at least 8 characters/
       );
     });
 
     test('export rejeita profiles não-array', () => {
-      expect(() => Cs.exportEncryptedBackup(null, creds, 'masterpw12')).toThrow(/perfis inválida/);
+      expect(() => Cs.exportEncryptedBackup(null, creds, 'masterpw12')).toThrow(/Invalid profile list/);
     });
 
     test('import com senha errada lança "Senha incorreta"', () => {
       const enc = Cs.exportEncryptedBackup(profiles, creds, 'masterpw12');
-      expect(() => Cs.importEncryptedBackup(enc, 'wrongpw')).toThrow(/Senha incorreta|corrompido/);
+      expect(() => Cs.importEncryptedBackup(enc, 'wrongpw')).toThrow(/Incorrect password|corrupted/);
     });
 
     test('import de base64 inválido lança "inválido ou corrompido"', () => {
       expect(() => Cs.importEncryptedBackup('not-valid-base64-json', 'pw')).toThrow(
-        /inválido ou corrompido/
+        /Invalid or corrupted/
       );
     });
 
     test('import rejeita argumentos vazios', () => {
-      expect(() => Cs.importEncryptedBackup('', 'pw')).toThrow(/obrigatórios/);
-      expect(() => Cs.importEncryptedBackup('x', '')).toThrow(/obrigatórios/);
+      expect(() => Cs.importEncryptedBackup('', 'pw')).toThrow(/required/);
+      expect(() => Cs.importEncryptedBackup('x', '')).toThrow(/required/);
     });
 
     test('envelope tem versão e kdf documentados', () => {
@@ -147,7 +147,7 @@ describe('CryptoService.js', () => {
       envelope.version = 99;
       const tampered = Buffer.from(JSON.stringify(envelope)).toString('base64');
       expect(() => Cs.importEncryptedBackup(tampered, 'testpass1234')).toThrow(
-        'Versão de backup incompatível'
+        'Incompatible backup version'
       );
     });
 
@@ -160,7 +160,7 @@ describe('CryptoService.js', () => {
         tag: 'aW52YWxpZA=='
       };
       const tampered = Buffer.from(JSON.stringify(envelope)).toString('base64');
-      expect(() => Cs.importEncryptedBackup(tampered, 'testpass1234')).toThrow('Salt inválido');
+      expect(() => Cs.importEncryptedBackup(tampered, 'testpass1234')).toThrow('Invalid salt');
     });
   });
 });

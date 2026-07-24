@@ -79,7 +79,7 @@ function create(opts) {
   try {
     partition.ensurePartitionDir(p);
   } catch (e) {
-    logger.debug('ProfileManager: ensurePartitionDir falhou (ok em shadow): ' + e.message);
+    logger.debug('ProfileManager: ensurePartitionDir failed (ok for shadow): ' + e.message);
   }
   _notify();
   return p;
@@ -151,7 +151,7 @@ function remove(id) {
 function launch(profileId, onOpened, onClosed) {
   const profile = store.get(profileId);
   if (!profile) {
-    logger.error('ProfileManager: perfil não encontrado — ' + profileId);
+    logger.error('ProfileManager: profile not found — ' + profileId);
     return false;
   }
 
@@ -167,7 +167,7 @@ function launch(profileId, onOpened, onClosed) {
   const partName = partition.getPartitionName(profile);
   if (partition.shouldUseShadow(profile)) {
     partition.restoreCookies(partName, profileId).catch(function (e) {
-      logger.debug('ProfileManager: restoreCookies falhou (ok): ' + e.message);
+      logger.debug('ProfileManager: restoreCookies failed (ok): ' + e.message);
     });
   }
 
@@ -191,7 +191,7 @@ function launch(profileId, onOpened, onClosed) {
     );
     return true;
   } catch (e) {
-    logger.error('ProfileManager: launch falhou — ' + e.message);
+    logger.error('ProfileManager: launch failed — ' + e.message);
     return false;
   }
 }

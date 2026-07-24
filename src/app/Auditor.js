@@ -48,7 +48,7 @@ var MAX_REASONS_KEPT = 20; // limita array de reasons pra não crescer indefinid
  */
 function create(profileId, opts) {
   if (typeof profileId !== 'string' || !profileId) {
-    throw new Error('Auditor: profileId obrigatorio');
+    throw new Error('Auditor: profileId is required');
   }
   opts = opts || {};
 
@@ -58,7 +58,7 @@ function create(profileId, opts) {
       var { app } = require('electron');
       _userDataPath = app.getPath('userData');
     } catch (e) {
-      throw new Error('Auditor: userDataPath obrigatorio quando Electron indisponivel');
+      throw new Error('Auditor: userDataPath is required when Electron is unavailable');
     }
   }
 
@@ -101,7 +101,7 @@ function create(profileId, opts) {
       merged.profileId = profileId; // garante
       return merged;
     } catch (e) {
-      logger.warn('Auditor: falhou load de ' + fp + ' — ' + e.message + ' (usando default)');
+      logger.warn('Auditor: failed to load ' + fp + ' — ' + e.message + ' (using default)');
       return defaultState;
     }
   }
@@ -120,7 +120,7 @@ function create(profileId, opts) {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
       return true;
     } catch (e) {
-      logger.error('Auditor: nao criou dir ' + dir + ' — ' + e.message);
+      logger.error('Auditor: failed to create dir ' + dir + ' — ' + e.message);
       return false;
     }
   }
@@ -149,7 +149,7 @@ function create(profileId, opts) {
       _dirty = false;
       return true;
     } catch (e) {
-      logger.error('Auditor: persist falhou (' + profileId + ') — ' + e.message);
+      logger.error('Auditor: persist failed (' + profileId + ') — ' + e.message);
       try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) { /* best-effort cleanup */ }
       return false;
     }

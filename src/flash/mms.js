@@ -92,13 +92,13 @@ function createMmsCfg(hardwareProfile, opts) {
 
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
-      logger.debug('Diretório criado: ' + dir);
+      logger.debug('Directory created: ' + dir);
     }
 
     if (fs.existsSync(cfgPath)) {
       const backupPath = cfgPath + '.bak';
       fs.copyFileSync(cfgPath, backupPath);
-      logger.info('mms.cfg backup atualizado: ' + backupPath);
+      logger.info('mms.cfg backup updated: ' + backupPath);
     }
 
     const content = generateMmsContent(hardwareProfile, opts);
@@ -111,7 +111,7 @@ function createMmsCfg(hardwareProfile, opts) {
     );
     return true;
   } catch (e) {
-    logger.error('Falha ao criar mms.cfg: ' + e.message);
+    logger.error('Failed to create mms.cfg: ' + e.message);
     return false;
   }
 }
@@ -128,11 +128,11 @@ function restoreMmsCfg() {
     if (fs.existsSync(backupPath)) {
       fs.copyFileSync(backupPath, cfgPath);
       fs.unlinkSync(backupPath);
-      logger.info('mms.cfg restaurado do backup');
+      logger.info('mms.cfg restored from backup');
       return true;
     }
   } catch (e) {
-    logger.warn('Falha ao restaurar mms.cfg: ' + e.message);
+    logger.warn('Failed to restore mms.cfg: ' + e.message);
   }
   return false;
 }

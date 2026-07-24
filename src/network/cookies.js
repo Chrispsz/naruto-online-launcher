@@ -82,7 +82,7 @@ function isTrackingDomain(hostname) {
 function setupPersistentCookies(session, options) {
   // Idempotência: não re-registrar listeners na mesma session
   if (_configuredSessions.has(session)) {
-    logger.debug('Cookies: session já configurada — skip (idempotente)');
+    logger.debug('Cookies: session already configured — skip (idempotent)');
     return false;
   }
   _configuredSessions.add(session);
@@ -186,7 +186,7 @@ function setupPersistentCookies(session, options) {
     callback({ responseHeaders: responseHeaders });
   });
 
-  logger.info('Cookies persistentes configurados' + (csp ? ' (+ CSP)' : ''));
+  logger.info('Persistent cookies configured' + (csp ? ' (+ CSP)' : ''));
   return true;
 }
 
@@ -231,10 +231,10 @@ async function clearAllCookies(session) {
     await session.clearCache();
     await session.clearStorageData();
 
-    logger.info('Cookies e cache limpos');
+    logger.info('Cookies and cache cleared');
     return true;
   } catch (e) {
-    logger.error('Erro ao limpar cookies: ' + e.message);
+    logger.error('Failed to clear cookies: ' + e.message);
     return false;
   }
 }

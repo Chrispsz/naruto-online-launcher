@@ -383,13 +383,13 @@ function getEnvVars(preset) {
   if (!_isMusl()) {
     env.MALLOC_ARENA_MAX = '2';
   } else {
-    logger.info('GpuDetector: musl libc detectado — MALLOC_ARENA_MAX skipado (placebo)');
+    logger.info('GpuDetector: musl libc detected — MALLOC_ARENA_MAX skipped (placebo)');
   }
 
   if (gpu.vendor === 'nvidia') {
     // __GL_* vars só funcionam com driver NVIDIA proprietário. Com nouveau são placebo.
     if (!_isNvidiaProprietary()) {
-      logger.info('GpuDetector: nouveau detectado — __GL_* vars skipadas (placebo com nouveau)');
+      logger.info('GpuDetector: nouveau detected — __GL_* vars skipped (placebo with nouveau)');
     } else {
       // Threaded optimizations: driver NVIDIA cria threads auxiliares para
       // upload de texturas e command buffer building. OFF por default em alguns
@@ -407,7 +407,7 @@ function getEnvVars(preset) {
       if (gpu.isPrime && process.env.__NV_PRIME_RENDER_OFFLOAD !== '1') {
         env.__NV_PRIME_RENDER_OFFLOAD = '1';
         env.__GLX_VENDOR_LIBRARY_NAME = 'nvidia';
-        logger.info('GpuDetector: PRIME offload ativado (dGPU NVIDIA forçada)');
+        logger.info('GpuDetector: PRIME offload activated (dGPU NVIDIA forced)');
       }
     }
   } else if (gpu.vendor === 'amd') {

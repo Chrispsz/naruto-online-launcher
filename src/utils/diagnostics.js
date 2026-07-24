@@ -303,7 +303,7 @@ function _makeZipFile(entries) {
  */
 async function exportZip(parentWindow) {
   try {
-    logger.info('Diagnostics: coletando informações...');
+    logger.info('Diagnostics: collecting information...');
 
     const sysInfo = _collectSystemInfo();
     const config = _collectConfig();
@@ -384,7 +384,7 @@ async function exportZip(parentWindow) {
     );
     return { ok: true, path: result.filePath, size: zipBuf.length, entries: entries.length };
   } catch (e) {
-    logger.error('Diagnostics: falha ao exportar — ' + e.message);
+    logger.error('Diagnostics: export failed — ' + e.message);
     return { ok: false, error: e.message };
   }
 }
