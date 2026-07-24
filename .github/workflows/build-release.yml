@@ -2,7 +2,6 @@ name: Build & Release
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
   pull_request:
     branches: [main]
@@ -24,10 +23,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.20.2
+          node-version: 20
           cache: npm
 
-      - run: npm install --no-audit --no-fund
+      - run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Lint (ESLint)
         run: npm run lint
@@ -58,7 +57,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 16.20.2
+          node-version: 20
           cache: npm
 
       - name: System deps (Linux)
@@ -69,7 +68,7 @@ jobs:
             libgtk-3-0 libnotify4 libnss3 libxss1 libxtst6 \
             xdg-utils libatspi2.0-0 libuuid1 libappindicator3-1
 
-      - run: npm install --no-audit --no-fund
+      - run: npm install --ignore-scripts --no-audit --no-fund
 
       - name: Run tests
         run: npm test

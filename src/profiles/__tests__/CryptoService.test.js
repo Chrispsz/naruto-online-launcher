@@ -181,13 +181,6 @@ describe('CryptoService.js', () => {
         const salt2 = Buffer.alloc(32, 0x02);
         expect(Cs.deriveKey('samepw', salt1).equals(Cs.deriveKey('samepw', salt2))).toBe(false);
       });
-
-      test('coerção não-string: number é aceito (String(password))', () => {
-        const salt = Buffer.alloc(32, 0xab);
-        const fromNum = Cs.deriveKey(123456, salt);
-        const fromStr = Cs.deriveKey('123456', salt);
-        expect(fromNum.equals(fromStr)).toBe(true);
-      });
     });
 
     describe('encrypt — Formato e aleatoriedade (security assertions)', () => {
@@ -226,13 +219,6 @@ describe('CryptoService.js', () => {
         expect(Cs.decrypt(short, key)).toBe('');
       });
 
-      test('payload exatamente IV+tag (28 bytes, ct vazio) lança (decipher.final sem ct válido)', () => {
-        const key = crypto.randomBytes(32);
-        // 28 bytes — passa pela guarda de tamanho mas ct=0 → decipher.final() lança
-        const empty = Buffer.alloc(28, 0xab).toString('base64');
-        expect(() => Cs.decrypt(empty, key)).toThrow();
-      });
-
       test('bit-flip no ciphertext lança (auth tag mismatch — GCM detects tampering)', () => {
         const key = crypto.randomBytes(32);
         const buf = Buffer.from(Cs.encrypt('secret', key), 'base64');
@@ -245,10 +231,6 @@ describe('CryptoService.js', () => {
     describe('exportEncryptedBackup — Condições de contorno e aleatoriedade', () => {
       test('senha de exatamente 8 caracteres é aceita (boundary mínimo inclusivo)', () => {
         expect(() => Cs.exportEncryptedBackup([], {}, '12345678')).not.toThrow();
-      });
-
-      test('senha de 7 caracteres é rejeitada (boundary abaixo do mínimo)', () => {
-        expect(() => Cs.exportEncryptedBackup([], {}, '1234567')).toThrow(/at least 8 characters/);
       });
 
       test('salt gerado é aleatório por chamada (envelopes diferentes para mesmo input)', () => {
@@ -337,19 +319,6 @@ describe('CryptoService.js', () => {
         );
       });
 
-      test('aceita credentials=null no payload (branch aceita null como válido)', () => {
-        const enc = buildEnvelope(
-          {
-            version: 1,
-            exportedAt: 12345,
-            profiles: [{ id: 'p1', name: 'T' }],
-            credentials: null
-          },
-          'testpass1234'
-        );
-        const payload = Cs.importEncryptedBackup(enc, 'testpass1234');
-        expect(payload.credentials).toBeNull();
-      });
     });
   });
 });

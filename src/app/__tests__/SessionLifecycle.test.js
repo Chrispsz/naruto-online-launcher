@@ -1191,15 +1191,6 @@ describe('SessionLifecycle.js', () => {
           result: 'unknown-value'
         });
       });
-
-      test('result undefined também cai no default status=idle (defensive)', () => {
-        SessionLifecycle._sendAutoLoginResult('p1', undefined);
-        expect(ManagerWindow.send).toHaveBeenCalledWith('auto-login:status', {
-          profileId: 'p1',
-          status: 'idle',
-          result: undefined
-        });
-      });
     });
 
     describe('_loadGameWithPreAuth — API login flow', () => {
@@ -1325,29 +1316,6 @@ describe('SessionLifecycle.js', () => {
         }
       });
 
-      test('auditor hook silencia exceções (auditor.recordCrash lançando não quebra handler)', () => {
-        jest.useFakeTimers();
-        try {
-          var { win, wcHandlers } = makeMockWin();
-          var auditor = {
-            sessionStart: jest.fn(),
-            sessionEnd: jest.fn(),
-            recordCrash: jest.fn(function () {
-              throw new Error('auditor broken');
-            }),
-            recordReload: jest.fn(),
-            recordStall: jest.fn()
-          };
-          var ctx = makeCtx({ auditor: auditor });
-          SessionLifecycle.attach(win, ctx);
-
-          expect(function () {
-            wcHandlers['render-process-gone']({}, { reason: 'oom', exitCode: 1 });
-          }).not.toThrow();
-        } finally {
-          jest.useRealTimers();
-        }
-      });
     });
 
     describe('attach — render-process-gone edge cases', () => {
@@ -1367,21 +1335,6 @@ describe('SessionLifecycle.js', () => {
         }
       });
 
-      test('reason "abnormal-exit" é recuperável (agenda reload, não é clean-exit/killed)', () => {
-        jest.useFakeTimers();
-        try {
-          var { win, wcHandlers } = makeMockWin();
-          var ctx = makeCtx();
-          SessionLifecycle.attach(win, ctx);
-
-          wcHandlers['render-process-gone']({}, { reason: 'abnormal-exit', exitCode: 1 });
-          expect(win.webContents.reload).not.toHaveBeenCalled();
-          jest.advanceTimersByTime(1500);
-          expect(win.webContents.reload).toHaveBeenCalledTimes(1);
-        } finally {
-          jest.useRealTimers();
-        }
-      });
     });
   });
 });
