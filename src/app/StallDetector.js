@@ -52,13 +52,13 @@ var DEFAULTS = {
 };
 
 /**
- * Cria e anexa um StallDetector a uma janela de jogo.
+ * Creates and attaches a StallDetector to a game window.
  *
  * @param {Electron.BrowserWindow} win
  * @param {Electron.Session} ses
  * @param {Object} ctx
- * @param {string} ctx.profileName — nome do perfil (pra logs)
- * @param {Function} ctx.onStall — callback chamado quando stall detectado
+ * @param {string} ctx.profileName — profile name (for logs)
+ * @param {Function} ctx.onStall — callback called when stall is detected
  * @param {Object} [ctx.opts] — overrides de thresholds (pra testes)
  * @returns {Object|null} instance with detach() method, or null if invalid
  */

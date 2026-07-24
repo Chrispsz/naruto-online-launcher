@@ -43,8 +43,8 @@ const MAX_FILE_BYTES = 1024 * 1024; // 1MB sane limit
 const LAUNCH_LOG_FILE = 'launch-log.json';
 const MAX_LAUNCH_LOG_ENTRIES = 5000;
 
-// Schema validator — nunca confiar em dados lidos do disco
-// v3.4: adicionado language (pt/en) e notificationsEnabled (boolean) por perfil
+// Schema validator — never trust data read from disk
+// v3.4: added language (pt/en) and notificationsEnabled (boolean) per profile
 // v4.5: adicionado notes (string, max 200), launchCount (number), totalPlayMs (number)
 function isValidProfile(p) {
   if (!p || typeof p !== 'object') return false;
@@ -55,18 +55,18 @@ function isValidProfile(p) {
   // (eu/hk/pt/en) which are auto-migrated to current clusters on load via
   // normalizeRegion(). isValidRegion accepts both current + legacy.
   if (!isValidRegion(p.region)) return false;
-  // v3.4: language opcional (default 'pt' para retrocompatibilidade)
+  // v3.4: language optional (default 'pt' for backward compatibility)
   // v4.0.1 FIX: sync with settings.js — i18n supports 6 languages
   if (p.language !== undefined && !['pt', 'en', 'de', 'es', 'pl', 'fr'].includes(p.language))
     return false;
-  // v3.4: notificationsEnabled opcional (default true para retrocompatibilidade)
+  // v3.4: notificationsEnabled optional (default true for backward compatibility)
   if (p.notificationsEnabled !== undefined && typeof p.notificationsEnabled !== 'boolean')
     return false;
   if (typeof p.createdAt !== 'number' || p.createdAt < 0) return false;
   if (typeof p.lastUsed !== 'number' || p.lastUsed < 0) return false;
-  // v4.5: notes opcional (string, max 200 chars)
+  // v4.5: notes optional (string, max 200 chars)
   if (p.notes !== undefined && (typeof p.notes !== 'string' || p.notes.length > 200)) return false;
-  // v4.5: launchCount opcional (number, >= 0)
+  // v4.5: launchCount optional (number, >= 0)
   if (
     p.launchCount !== undefined &&
     (typeof p.launchCount !== 'number' || p.launchCount < 0 || !isFinite(p.launchCount))
@@ -234,7 +234,7 @@ function load() {
  * Saves profiles to disk atomically with backup.
  * NEVER throws — catches all exceptions.
  * @param {Array} profiles
- * @returns {boolean} true se salvou com sucesso
+ * @returns {boolean} true if saved successfully
  */
 function _saveToDisk(profiles) {
   ensureDir();
@@ -708,9 +708,9 @@ function recordLaunch(profileId) {
 }
 
 /**
- * v5.5: Retorna timeline de lançamentos dos últimos `days` dias.
+ * v5.5: Returns a launch timeline for the last `days` days.
  * Array de tamanho `days`, oldest first → newest last.
- * Cada entrada: { date: 'YYYY-MM-DD', count: number, profiles: [{id, name, count}] }
+ * Each entry: { date: 'YYYY-MM-DD', count: number, profiles: [{id, name, count}] }
  * Entries without launches appear with count 0 and empty profiles.
  * @param {number} [days=7]
  * @returns {Array}

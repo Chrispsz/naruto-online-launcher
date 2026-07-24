@@ -264,7 +264,7 @@ function _applyRenice(pid, priority) {
  * Writes directly to /proc/<pid>/oom_score_adj (doesn't need root if it's
  * the process itself or child). In AppImage, the renderer is a child → allowed.
  * @param {number} pid
- * @param {number} score - valor de -1000 (nunca matar) a 1000 (sempre matar)
+ * @param {number} score - value from -1000 (never kill) to 1000 (always kill)
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
 function _applyOomScoreAdj(pid, score) {
@@ -339,7 +339,7 @@ function _applyWindowsAffinity(pid, cores) {
  *   +5 → BELOW_NORMAL (quality preset)
  * Does not use HIGH/REALTIME (causes system instability — mouse/keyboard freeze).
  * @param {number} pid
- * @param {number} niceTarget - valor nice-like (-5 a +5)
+ * @param {number} niceTarget - nice-like value (-5 to +5)
  * @returns {Promise<{ok: boolean, priority?: number, error?: string}>}
  */
 function _applyWindowsPriority(pid, niceTarget) {
@@ -389,9 +389,9 @@ async function optimizeRenderer(pid, opts) {
   }
 
   // Idempotent: if already applied for same PID, skip (but re-applies on reload).
-  // Em reload, o PID pode ser reutilizado — checamos o Set antes de pular.
+  // On reload, the PID can be reused — we check the Set before skipping.
   // Removed: the renderer PID changes on each reload (new process), so the Set
-  // cresce indefinidamente. Limpar a cada 50 entradas (antes de adicionar a 51ª).
+  // grows indefinitely. Clear every 50 entries (before adding the 51st).
   if (_appliedPids.has(pid)) {
     return {
       affinity: { ok: true, skipped: true },
@@ -486,7 +486,7 @@ async function optimizeRenderer(pid, opts) {
 }
 
 /**
- * Snapshot do estado atual (para UI mostrar ao user).
+ * Snapshot of the current state (for UI to display to user).
  * @returns {Object}
  */
 function getStats() {

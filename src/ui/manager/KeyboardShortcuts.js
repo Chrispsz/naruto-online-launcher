@@ -2,16 +2,16 @@
  * ui/manager/KeyboardShortcuts.js — Atalhos de teclado do jogo (Fase 3d split)
  *
  * Single Responsibility (SRP): intercept keyboard shortcuts in game
- * jogo via webContents 'before-input-event'. Inclui os pendências herdadas:
+ * jogo via webContents 'before-input-event'. Includes the inherited shortcuts:
  *   - F5  → Clear Login (clears cookies + storage from partition, then reloads)
  *   - F12 → toggle DevTools
- *   - Alt+F4 → fecha a janela (kill switch graceful)
+ *   - Alt+F4 → closes the window (graceful kill switch)
  *   - Blocks F10/Alt (Chromium menu bar), Ctrl+Shift+I/J (use F12)
  *
  * v5.9.7: F5 agora aceita callback `onClearLogin`. Se fornecido, delega pra ele
  * (Launcher passes a function that does clear + pre-authentication via API before
  * reloading — same as Play — to avoid showing the game login screen, preventing
- * vazar o email). Se `onClearLogin` não é fornecido, mantém o comportamento
+ * vazar o email). If `onClearLogin` is not provided, keeps the behavior
  * antigo (clear + reload direto) — backward compat.
  *
  * History: was inline in the God Object game-launcher.js (620 lines). Extracted
@@ -36,7 +36,7 @@ function attach(win, profileName, ses, onClearLogin) {
   const wc = win.webContents;
 
   wc.on('before-input-event', function (event, input) {
-    // Alt+F4 → fecha a janela (o kill switch do SessionLifecycle trata o graceful)
+    // Alt+F4 → closes the window (the kill switch from SessionLifecycle handles the graceful shutdown)
     if (input.alt && input.key === 'F4') {
       event.preventDefault();
       win.close();

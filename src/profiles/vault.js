@@ -2,13 +2,13 @@
  * profiles/vault.js — FACADE (Fase 3e split)
  *
  * Was the God Object (571 lines). Now it's a thin facade that composes:
- *   - CryptoService.js   — primitivas AES-256-GCM + PBKDF2 puras
+ *   - CryptoService.js   — pure AES-256-GCM + PBKDF2 primitives
  *   - PasswordManager.js — machine key + master password (cache)
- *   - ProfileVault.js    — CRUD de credenciais + buildAutoLoginScript
+ *   - ProfileVault.js    — CRUD of credentials + buildAutoLoginScript
  *
  * The facade preserves the historical public API (setCredentials/getCredentials/
  * hasCredentials/removeCredentials/buildAutoLoginScript/encrypt/decrypt/onChange/
- * exportEncryptedBackup/importEncryptedBackup) para que controller.js,
+ * exportEncryptedBackup/importEncryptedBackup) so that controller.js,
  * game-launcher.js, manager.js and main.js don't need to change.
  *
  * For new code, prefer importing the 3 modules directly.
@@ -37,7 +37,7 @@ module.exports = {
   removeCredentials: ProfileVault.removeCredentials,
   buildAutoLoginScript: ProfileVault.buildAutoLoginScript,
   onChange: ProfileVault.onChange,
-  // CryptoService (primitivas + backup) — encrypt/decrypt wrapped p/ usar machine key
+  // CryptoService (primitives + backup) — encrypt/decrypt wrapped to use machine key
   encrypt: encrypt,
   decrypt: decrypt,
   exportEncryptedBackup: CryptoService.exportEncryptedBackup,

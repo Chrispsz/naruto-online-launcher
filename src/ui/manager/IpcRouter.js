@@ -273,7 +273,7 @@ function registerIpcHandlers(handlers) {
     _send('game-window:status', data);
   });
 
-  // ── Vault (credenciais) ──
+  // ── Vault (credentials) ──
   ipcMain.handle('vault:get', function (_e, id) {
     if (typeof id !== 'string') return null;
     return vault.getCredentials(id);
@@ -354,7 +354,7 @@ function registerIpcHandlers(handlers) {
           result.tempmail.address +
           ' (player ' +
           result.game.nickname +
-          (profile ? ' + perfil auto-criado' : '') +
+          (profile ? ' + auto-created profile' : '') +
           ')'
       });
       return { ok: true, data: result, profile: profile, vaultStored: vaultStored };
@@ -602,7 +602,7 @@ function registerIpcHandlers(handlers) {
 
   ipcMain.handle('profiles:export-encrypted', async function (_e, password) {
     if (typeof password !== 'string' || password.length < 8) {
-      return { ok: false, error: 'Senha deve ter pelo menos 8 caracteres' };
+      return { ok: false, error: 'Password must be at least 8 characters' };
     }
     const win = _getWin();
     if (!win) return { ok: false, error: 'Manager window closed' };
@@ -617,7 +617,7 @@ function registerIpcHandlers(handlers) {
       const encrypted = vault.exportEncryptedBackup(profiles, credentialsMap, password);
 
       const result = await dialog.showSaveDialog(win, {
-        title: 'Exportar backup criptografado',
+        title: 'Export encrypted backup',
         defaultPath: 'shinobi-backup-' + new Date().toISOString().slice(0, 10) + '.enc',
         filters: [{ name: 'Shinobi Backup', extensions: ['enc'] }]
       });
@@ -625,7 +625,7 @@ function registerIpcHandlers(handlers) {
 
       fs.writeFileSync(result.filePath, encrypted, 'utf8');
       logger.info(
-        'Backup criptografado salvo: ' + result.filePath + ' (' + profiles.length + ' perfis)'
+        'Encrypted backup saved: ' + result.filePath + ' (' + profiles.length + ' perfis)'
       );
       return { ok: true, path: result.filePath, count: profiles.length };
     } catch (e) {
@@ -636,13 +636,13 @@ function registerIpcHandlers(handlers) {
 
   ipcMain.handle('profiles:import-encrypted', async function (_e, password) {
     if (typeof password !== 'string') {
-      return { ok: false, error: 'Senha obrigatória' };
+      return { ok: false, error: 'Password required' };
     }
     const win = _getWin();
     if (!win) return { ok: false, error: 'Manager window closed' };
     try {
       const result = await dialog.showOpenDialog(win, {
-        title: 'Importar backup criptografado',
+        title: 'Import encrypted backup',
         filters: [{ name: 'Shinobi Backup', extensions: ['enc'] }],
         properties: ['openFile']
       });
@@ -694,7 +694,7 @@ function registerIpcHandlers(handlers) {
     if (!win) return { ok: false };
     const json = store.exportJSON();
     const result = await dialog.showSaveDialog(win, {
-      title: 'Exportar perfis',
+      title: 'Export profiles',
       defaultPath: 'shinobi-profiles.json',
       filters: [{ name: 'JSON', extensions: ['json'] }]
     });
@@ -711,7 +711,7 @@ function registerIpcHandlers(handlers) {
     const win = _getWin();
     if (!win) return { ok: false, imported: 0 };
     const result = await dialog.showOpenDialog(win, {
-      title: 'Importar perfis',
+      title: 'Import profiles',
       filters: [{ name: 'JSON', extensions: ['json'] }],
       properties: ['openFile']
     });

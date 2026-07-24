@@ -1,14 +1,14 @@
 /**
- * profiles/CryptoService.js — Primitivas de criptografia PURAS (Fase 3e split)
+ * profiles/CryptoService.js — Pure cryptography primitives (Phase 3e split)
  *
- * Single Responsibility (SRP): AES-256-GCM + PBKDF2-SHA512. Nenhuma
+ * Single Responsibility (SRP): AES-256-GCM + PBKDF2-SHA512. No
  * dependency on Electron, disk, or machine state. Everything is a pure function
  * that receives the key/salt as a parameter.
  *
  * History: was part of the God Object vault.js (571 lines). Split into 3:
- *   - CryptoService.js   (este) — primitivas cripto puras
+ *   - CryptoService.js   (this one) — pure crypto primitives
  *   - PasswordManager.js — machine key derivation/caching + master password
- *   - ProfileVault.js    — CRUD de credenciais + buildAutoLoginScript
+ *   - ProfileVault.js    — CRUD of credentials + buildAutoLoginScript
  */
 
 'use strict';
@@ -23,10 +23,10 @@ const GCM_IV_LEN = 12;
 const BACKUP_VERSION = 1;
 
 /**
- * Deriva chave AES-256 a partir de senha usando PBKDF2-SHA512.
+ * Derives AES-256 key from password using PBKDF2-SHA512.
  * @param {string} password
  * @param {Buffer} salt
- * @returns {Buffer} chave de 32 bytes
+ * @returns {Buffer} 32-byte key
  */
 function deriveKey(password, salt) {
   return crypto.pbkdf2Sync(String(password), salt, PBKDF2_ITERATIONS, PBKDF2_KEYLEN, 'sha512');
@@ -67,8 +67,8 @@ function decrypt(payload, key) {
  * Exporta perfis + credenciais em arquivo criptografado com senha mestre.
  * @param {Array} profiles
  * @param {Object} credentialsMap - { profileId: { user, pass } }
- * @param {string} password - senha mestre
- * @returns {string} base64 do envelope criptografado
+ * @param {string} password - master password
+ * @returns {string} base64 of the encrypted envelope
  */
 function exportEncryptedBackup(profiles, credentialsMap, password) {
   if (!password || String(password).length < 8) {
@@ -116,7 +116,7 @@ function exportEncryptedBackup(profiles, credentialsMap, password) {
 }
 
 /**
- * Importa arquivo criptografado com senha mestre.
+ * Imports an encrypted file with master password.
  * @param {string} encryptedBase64
  * @param {string} password
  * @returns {{profiles:Array, credentials:Object, exportedAt:number}}

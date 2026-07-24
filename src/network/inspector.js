@@ -97,9 +97,9 @@ function create(session, profileId) {
   var _filter = { urls: ['<all_urls>'] };
 
   /**
-   * Classifica uma URL nos tipos conhecidos.
+   * Classifies a URL into known types.
    * v5.9.10: now also checks KNOWN_PATH_SIGNATURES to classify
-   * por nome de arquivo (ScriptLoginManager, query_svr_info, etc.) —
+   * by file name (ScriptLoginManager, query_svr_info, etc.) —
    * more specific than hostname alone.
    */
   function classify(url) {

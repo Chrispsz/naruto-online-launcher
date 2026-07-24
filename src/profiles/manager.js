@@ -69,13 +69,13 @@ function list() {
  * Creates a new profile. Ensures the partition dir exists (persist) so that
  * bunshin/clone doesn't fail on never-launched profiles.
  * @param {{name:string, server:string, region:string}} opts
- * @returns {Object|null} perfil criado
+ * @returns {Object|null} created profile
  */
 function create(opts) {
   const p = store.create(opts);
   if (!p) return null;
-  // Eager create da partition dir (persist) — evita "user-data-dir não existe"
-  // em bunshin/clone de perfil recém-criado.
+  // Eager-create the partition dir (persist) — avoids "user-data-dir does not exist"
+  // on bunshin/clone of a newly-created profile.
   try {
     partition.ensurePartitionDir(p);
   } catch (e) {

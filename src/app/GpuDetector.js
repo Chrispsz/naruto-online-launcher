@@ -94,7 +94,7 @@ function _detectNvidiaPrimeLinux() {
 
 /**
  * Lists GPUs present on Linux via /sys/class/drm.
- * Retorna array de { vendor: 'nvidia'|'amd'|'intel', vendorId, deviceId, description, cardN }.
+ * Returns array of { vendor: 'nvidia'|'amd'|'intel', vendorId, deviceId, description, cardN }.
  * @returns {Array<Object>}
  */
 function _listGpusLinuxSysfs() {
@@ -217,10 +217,10 @@ function _listGpusWindows() {
 }
 
 /**
- * Lista GPUs no Windows via wmic.
+ * Lists GPUs on Windows via wmic.
  * NOTE: wmic is DEPRECATED and was REMOVED in Windows 11 24H2+.
- * Ainda funciona em Win10 e Win11 builds anteriores a 26100.
- * Se falhar, o fallback _listGpusWindowsPowershell() é usado.
+ * Still works on Win10 and Win11 builds prior to 26100.
+ * If it fails, the fallback _listGpusWindowsPowershell() is used.
  * @returns {Array<Object>}
  */
 function _listGpusWindowsWmic() {
@@ -270,10 +270,10 @@ function _listGpusWindowsWmic() {
 /**
  * Detects the ACTIVE GPU (the one rendering Electron now).
  *
- * Em desktop: a primeira GPU da lista.
- * Em laptop Optimus: detecta PRIME e marca a NVIDIA como ativa quando
+ * On desktop: the first GPU in the list.
+ * On Optimus laptop: detects PRIME and marks NVIDIA as active when
  * __NV_PRIME_RENDER_OFFLOAD=1, otherwise Intel is the active one (but NVIDIA
- * está disponível para offload).
+ * is available for offload).
  *
  * @returns {Object} { vendor, vendorId, deviceId, description, isPrime, allGpus }
  */
@@ -421,7 +421,7 @@ function getEnvVars(preset) {
 
     // MESA_SHADER_CACHE: keeps cache enabled in all presets (default).
     // Disabling (MESA_SHADER_CACHE_DISABLE=1) only helps in synthetic benchmarks
-    // — no uso real, o cache economiza 1-3s no warm-up de shaders. Removido.
+    // — in real usage, the cache saves 1-3s on shader warm-up. Removed.
   } else if (gpu.vendor === 'intel') {
     // NOTE: LIBVA_DRIVER_NAME removed — VAAPI is for HTML5 <video> hardware decode.
     // Flash PPAPI does video decode internally; VAAPI doesn't affect Flash.
@@ -453,7 +453,7 @@ function _resetCache() {
 }
 
 /**
- * Fallback: lista GPUs no Windows via PowerShell Get-CimInstance.
+ * Fallback: lists GPUs on Windows via PowerShell Get-CimInstance.
  * Works on Win11 24H2+ (where wmic was removed) and Windows Server.
  * Tenta powershell.exe (v5.1) primeiro, fallback pwsh.exe (PowerShell 7+).
  * Get-CimInstance é o substituto moderno do wmic.
@@ -473,8 +473,8 @@ function _listGpusWindowsPowershell() {
 
 /**
  * Executes Get-CimInstance via a specific PowerShell binary.
- * @param {string} bin - 'powershell' ou 'pwsh'
- * @returns {string|null} stdout ou null se falhou
+ * @param {string} bin - 'powershell' or 'pwsh'
+ * @returns {string|null} stdout or null if failed
  */
 function _tryPowershellGpu(bin) {
   try {

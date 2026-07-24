@@ -19,10 +19,10 @@ const StallDetector = require('./StallDetector');
 
 /**
  * Loads the game page with pre-authentication via API when possible.
- * Se o perfil tem credenciais no vault, chama apiLogin.loginAndInject() ANTES
+ * If the profile has credentials in the vault, calls apiLogin.loginAndInject() BEFORE
  * from loadURL — so the oas_user cookie is already set and the server redirects
- * direto pro jogo, sem mostrar a tela de login do Naruto Online.
- * Fallback: se API login falha, carrega a URL normalmente (form-injection auto-login
+ * straight to the game, without showing the Naruto Online login screen.
+ * Fallback: if API login fails, loads the URL normally (form-injection auto-login
  * via MutationObserver cuida do login depois).
  */
 function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
@@ -418,7 +418,7 @@ function attach(win, ctx) {
     });
     _windowStallDetectors.set(win, _stallDetector);
     // Releases the reload guard now that the new StallDetector is active.
-    // (O guard foi adicionado em reloadWithPreAuth antes do loadURL.)
+    // (The guard was added in reloadWithPreAuth before loadURL.)
     _reloadingWindows.delete(win.id);
   });
 
@@ -763,7 +763,7 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
       _reloadingWindows.delete(winId);
       if (win.isDestroyed()) return;
       logger.warn('F5 reloadWithPreAuth: failed to clear — fallback direct reload: ' + e.message);
-      // Reset do entry formInjectAttempts não é necessário aqui (did-finish-load cuida).
+      // Reset of entry formInjectAttempts is not needed here (did-finish-load handles it).
       win.webContents.reload();
     });
 }

@@ -1031,7 +1031,7 @@ function initDevTools() {
         'Captured JWTs: ' +
         s.capturedJwts.length +
         '\n' +
-        'Por tipo: auth=' +
+        'By type: auth=' +
         s.byType.auth +
         ' api=' +
         s.byType.api +

@@ -52,7 +52,7 @@ function validateConfig(rawConfig) {
     language:
       rawConfig && ['pt', 'en'].indexOf(rawConfig.language) !== -1 ? rawConfig.language : 'en',
     advancedMode: rawConfig && rawConfig.advancedMode === true, // Advanced Light Mode (Flash low quality)
-    // optimization preset (performance/balanced/quality) — aplicado em flags.js
+    // optimization preset (performance/balanced/quality) — applied in flags.js
     optimizationPreset: isValidPreset(optimizationPreset) ? optimizationPreset : getDefaultPreset()
   };
 

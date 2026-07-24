@@ -310,7 +310,7 @@ async function _httpPostJson(url, body) {
   });
 }
 
-// HTTP GET que retorna JSON com wrapper JSONP (passport login, odp3)
+// HTTP GET that returns JSON with JSONP wrapper (passport login, odp3)
 async function _httpGetJsonp(url) {
   const https = require('https');
   return new Promise(function (resolve, reject) {

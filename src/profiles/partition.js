@@ -3,12 +3,12 @@
  * v3.0.0 — DISRUPTIVE INNOVATION
  *
  * PROBLEMA QUE RESOLVE:
- *   Cada profile com `persist:profile-<id>` grava ~30-80MB em disco e mantém
- *   cache/localStorage/indexedDB carregados em RAM. Em um PC de 2-4GB com 4
+ *   Each profile with `persist:profile-<id>` writes ~30-80MB to disk and keeps
+ *   cache/localStorage/indexedDB loaded in RAM. On a 2-4GB PC with 4
  *   accounts, that is 120-320MB JUST from partitions — unfeasible.
  *
  * SOLUTION — SHADOW PARTITIONS:
- *   Em vez de `persist:` (grava em disco), usar `partition:profile-<id>`
+ *   Instead of `persist:` (writes to disk), use `partition:profile-<id>`
  *   (EPHEMERAL — exists only in RAM while the window is open; wiped on close).
  *   On close, takes a SNAPSHOT of only the authentication cookies from the
  *   game domain (typically 2-5KB) and saves to cookie-snapshots.json.
@@ -19,13 +19,13 @@
  *   global compartilhado na default session).
  *
  * POLICY:
- *   - Modo Low-Spec (RAM <4GB) ou forceLowSpec → shadow ATIVO para todos os perfis.
+ *   - Low-Spec mode (RAM <4GB) or forceLowSpec → shadow ACTIVE for all profiles.
  *   - Normal mode → persist (default behavior, backwards-compatible).
- *   - Profile pode forçar shadow via profile.shadow=true (power-user opt-in).
+ *   - Profile can force shadow via profile.shadow=true (power-user opt-in).
  *
  * ISOLAMENTO:
- *   Shadow partitions continuam 100% isoladas entre si pelo Chromium
- *   (cada `partition:name` é um sandbox de session/cookies/storage separado).
+ *   Shadow partitions remain 100% isolated from each other by Chromium
+ *   (each `partition:name` is a separate session/cookies/storage sandbox).
  *   The difference is only disk persistence.
  */
 
@@ -58,7 +58,7 @@ function setLowSpecMode(lowSpec) {
 }
 
 /**
- * Decide se um perfil deve usar shadow (ephemeral) partition.
+ * Decides whether a profile should use shadow (ephemeral) partition.
  * @param {Object|null} profile - profile object (may have .shadow override)
  * @returns {boolean}
  */
@@ -69,8 +69,8 @@ function shouldUseShadow(profile) {
 }
 
 /**
- * Retorna o nome da partition para um perfil.
- * `persist:profile-<id>` (durável) ou `partition:profile-<id>` (ephemeral).
+ * Returns the partition name for a profile.
+ * `persist:profile-<id>` (durable) or `partition:profile-<id>` (ephemeral).
  * @param {Object} profile
  * @returns {string}
  */
@@ -215,12 +215,12 @@ function removeSnapshot(profileId) {
 /**
  * Creates the persistent partition directory on disk eagerly.
  * Needed so that bunshin/clone of a newly-created profile doesn't fail with
- * "user-data-dir do origem não existe" (o Chromium só cria o dir no primeiro
- * launch — sem isso, operações que dependem do dir antes do primeiro launch
+ * "user-data-dir of the source does not exist" (Chromium only creates the dir on the first
+ * launch — without this, operations that depend on the dir before the first launch
  * quebram).
  *
  * In shadow mode (partition:profile-<id>), the partition is ephemeral and has NO
- * dir em disco — este método é no-op.
+ * dir on disk — this method is a no-op.
  *
  * @param {Object|string} profile - profile object ou id
  * @returns {boolean} true if created or already existed

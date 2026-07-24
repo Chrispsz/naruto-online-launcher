@@ -2,12 +2,12 @@
  * JWT Decoder — for the Naruto Online oas_user cookie
  * v1.0.0 — v4.9: tempmail + API login + dev inspector
  *
- * O passport.oasgames.com retorna um loginKey (JWT HS256) de 2h. Esse JWT
+ * The passport.oasgames.com returns a loginKey (JWT HS256) valid for 2h. This JWT
  * will end up in the oas_user cookie (domain .narutowebgame.com) and is what
  * keeps the session logged in to the game.
  *
  * This module decodes WITHOUT validating the signature (the server validates).
- * Usado pelo Inspector de Rede pra mostrar o payload do JWT capturado.
+ * Used by the Network Inspector to display the captured JWT payload.
  */
 
 'use strict';

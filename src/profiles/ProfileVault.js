@@ -1,12 +1,12 @@
 /**
- * profiles/ProfileVault.js — CRUD de credenciais + auto-login script (Fase 3e split)
+ * profiles/ProfileVault.js — CRUD of credentials + auto-login script (Phase 3e split)
  *
  * Single Responsibility (SRP): persist encrypted credentials (user/pass)
- * em vault.json e gerar o script de auto-login injetado no jogo. Delega a
+ * in vault.json and generate the auto-login script injected into the game. Delegates to
  * cryptography to CryptoService and key derivation to PasswordManager.
  *
  * History: was part of the God Object vault.js (571 lines). Split into 3:
- *   - CryptoService.js   — primitivas cripto puras
+ *   - CryptoService.js   — pure crypto primitives
  *   - PasswordManager.js — machine key + master password
  *   - ProfileVault.js    (este) — CRUD + buildAutoLoginScript
  *

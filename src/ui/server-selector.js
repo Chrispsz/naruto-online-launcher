@@ -8,7 +8,7 @@
  * COMO FUNCIONA:
  *   1. Makes GET to naruto.narutowebgame.com/{lang}/serverlist
  *   2. Extrai links /serverlist/sNNN do HTML
- *   3. Retorna array de { id, number, url } ordenado por número
+ *   3. Returns array of { id, number, url } sorted by number
  *
  * PERFORMANCE:
  *   - In-memory cache per region (avoids re-fetch)

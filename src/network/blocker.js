@@ -8,7 +8,7 @@
 const logger = require('../utils/logger');
 
 // Idempotency: sessions already configured (onBeforeRequest replaces, but
-// evitamos trabalho redundante em reabertura de perfis)
+// we avoid redundant work on profile reopening)
 const _configuredSessions = new WeakSet();
 
 // Blocked domains

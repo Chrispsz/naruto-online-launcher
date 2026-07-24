@@ -1170,7 +1170,7 @@ describe('IpcRouter.js', () => {
       const handler = handleHandlers['profiles:export-encrypted'];
       var result = await handler({}, 'ab');
       expect(result.ok).toBe(false);
-      expect(result.error).toContain('8 caracteres');
+      expect(result.error).toContain('8 characters');
     });
 
     test('rejeita senha não-string', async () => {
@@ -1185,7 +1185,7 @@ describe('IpcRouter.js', () => {
       const handler = handleHandlers['profiles:import-encrypted'];
       var result = await handler({}, 123);
       expect(result.ok).toBe(false);
-      expect(result.error).toContain('obrigatória');
+      expect(result.error).toContain('required');
     });
   });
 

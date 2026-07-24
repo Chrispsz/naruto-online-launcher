@@ -22,7 +22,7 @@ const logger = require('../../utils/logger');
 let managerWindow = null;
 
 /**
- * Cria a janela de gerenciamento.
+ * Creates the management window.
  * @param {Object} [opts] - { onReady: Function } called on ready-to-show
  * @returns {Electron.BrowserWindow}
  */
@@ -87,7 +87,7 @@ function getManagerWindow() {
 }
 
 /**
- * Mostra (ou recria) a janela do manager.
+ * Shows (or recreates) the manager window.
  * @param {Function} [onShown] - called after showing (e.g.: pushAll)
  */
 function showManager(onShown) {
