@@ -11,10 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 >
 > This repository was squashed to a single commit on 2026-07-21 to establish a
 > clean public baseline. The full pre-squash history (153 commits, v4.9.2 →
-> v5.26.0) is preserved locally in the `backup/messy-history-v5` branch and is
+> v5.26.0) is preserved locally in the `archive/v5-messy` branch and is
 > available to maintainers on request. The changelog below starts at v1.0.0.
 
 ---
+
+## [1.2.0] — 2026-07-25
+
+### Changed
+- Codebase fully professionalized to English: ~1230 PT→EN renames across comments, identifiers, log messages, and runtime strings (cycles 6–15).
+- 4 previously-deferred HIGH audit items resolved via i18n ternary integration in `app.js` (prompt dialogs + button labels).
+- All 87 audit findings from Cycle 14 closed.
+
+### Fixed
+- Test fixtures updated to match EN string changes (IpcRouter profile clone suffix).
+
+### Verified
+- 1101/1101 tests pass (37/37 suites), lint clean.
 
 ## [Unreleased]
 
@@ -30,6 +43,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Code-polish passes (17 cron runs, 7 productive): sealed real memory leak in `EventTimers.js` `fired` Map (never cleared), removed redundant `_relTimeTimer` polling in `ui/app.js`, pruned 161 lines of dead CSS selectors in `styles.css`, removed 19 tombstone comments across `preload.js`, `main.js`, `tempmail.js`, `i18n.js`, `preview-mock.js`. Net −420 lines across 8 files with zero functional regression.
+
+## [1.1.2] — 2026-07-24
+
+### Changed
+- Removed `GcDaemon` — forced GC on main every 50 MB was a useless optimization (`94b587b`).
+- 6-cluster alignment + dead code removal + leak fixes (v1.1.1 commit, shipped under the v1.1.2 tag).
+- Wired `Auditor` into `SessionLifecycle` (Phase 2 of per-profile session metadata collection).
+- Added `src/network/request-logger.js` (per-profile JSONL request/response logger with 5 MB rotation + 3-day retention) and `src/app/Auditor.js` (Phase 1).
+- Added `tools/ai-eval.js` AI code-review pipeline + research notes (`RESEARCH.md`, `STRATEGY.md`, `SCOPE.md`, `HOW_THEY_MODIFY_FLASH.md`).
+- Code-polish cron passes — net −420 lines (sealed memory leak in `EventTimers.js` `fired` Map, pruned 161 lines of dead CSS, removed 19 tombstone comments).
+- Removed `FlashUpdater` — Flash is EOL, binaries committed in repo; scrubbed references across docs.
+- Cleaned up redundant docs + trimmed CHANGELOG to v1.0.0 baseline.
 
 ## [1.0.0] — 2026-07-21
 

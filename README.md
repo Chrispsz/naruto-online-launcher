@@ -5,9 +5,9 @@
 **A clean, minimal multi-account launcher for Naruto Online.**
 Isolated accounts • Encrypted credential vault • Real performance optimizations • Linux + Windows • Zero tracking
 
-[![Version](https://img.shields.io/badge/version-1.0.0-d4a543?style=flat-square)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.2.0-d4a543?style=flat-square)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
 [![License](https://img.shields.io/github/license/Chrispsz/naruto-online-launcher?style=flat-square)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-1235%20passing-10b981?style=flat-square)](#testing)
+[![Tests](https://img.shields.io/badge/tests-1101%20passing-10b981?style=flat-square)](#testing)
 [![Electron](https://img.shields.io/badge/electron-11.5.0-47848f?style=flat-square)](#why-electron-11)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-6e7681?style=flat-square)](#install)
 
@@ -63,6 +63,8 @@ Built-in integration with the mail.tm API lets you generate a temporary inbox an
 
 ### Bilingual UI (EN + PT)
 Every user-facing string in `src/config/i18n.js` ships in both English and Brazilian Portuguese. Toggle in Settings; the choice is persisted to `config.json`.
+
+> **Codebase note (v1.2.0):** Comments, identifiers, log messages, and runtime strings are fully professionalized to English (PT→EN, ~1230 renames across cycles 6–15). The UI remains bilingual EN/PT for end users.
 
 ### Keyboard shortcuts
 
@@ -157,7 +159,7 @@ npm start
 ```bash
 npm run lint           # ESLint (flat config disabled — pinned to legacy .eslintrc)
 npm run lint:fix       # ESLint with --fix
-npm test               # Jest — 1235 tests across 38 suites
+npm test               # Jest — 1101 tests across 37 suites
 npm run test:coverage  # Jest with coverage report
 npm run format         # Prettier --write src/
 
@@ -234,7 +236,7 @@ See **[SECURITY.md](SECURITY.md)** for the full policy and supported versions.
 
 <a name="testing"></a>
 
-- **1235 tests across 38 suites**, all passing.
+- **1101 tests across 37 suites**, all passing.
 - Covers: crypto (AES-256-GCM + PBKDF2), vault CRUD, profile store, session lifecycle, event timers + TZ math, i18n, optimization flags, network blocker, cookies, tempmail rate-limiting, memory guard, GC daemon, plugin loader path resolution.
 - Run with `npm test` (or `npm run test:coverage` for a coverage report).
 - Jest setup is in `tests/setup.js` — mocks `electron` and `electron-log` so the full test suite runs without an Electron binary.
@@ -243,7 +245,7 @@ See **[SECURITY.md](SECURITY.md)** for the full policy and supported versions.
 
 ## Contributing
 
-PRs are welcome. Read **[CONTRIBUTING.md](CONTRIBUTING.md)** first. The golden rule: **lint must stay clean and all 1235 tests must pass** — no regressions, no exceptions.
+PRs are welcome. Read **[CONTRIBUTING.md](CONTRIBUTING.md)** first. The golden rule: **lint must stay clean and all 1101 tests must pass** — no regressions, no exceptions.
 
 ---
 
@@ -408,7 +410,7 @@ npm start
 ```bash
 npm run lint           # ESLint (flat config desabilitado — pinado em .eslintrc legacy)
 npm run lint:fix       # ESLint com --fix
-npm test               # Jest — 1235 testes em 38 suítes
+npm test               # Jest — 1101 testes em 37 suítes
 npm run test:coverage  # Jest com relatório de cobertura
 npm run format         # Prettier --write src/
 
@@ -485,7 +487,7 @@ Veja **[SECURITY.md](SECURITY.md)** para a política completa e versões suporta
 
 <a name="testes"></a>
 
-- **1235 testes em 38 suítes**, todos passando.
+- **1101 testes em 37 suítes**, todos passando.
 - Cobertura: crypto (AES-256-GCM + PBKDF2), CRUD do vault, profile store, session lifecycle, event timers + math de TZ, i18n, flags de otimização, network blocker, cookies, rate-limit do tempmail, memory guard, GC daemon, plugin loader, resolução de caminhos.
 - Rode com `npm test` (ou `npm run test:coverage` para relatório de cobertura).
 - Setup do Jest em `tests/setup.js` — mocka `electron` e `electron-log` para a suíte completa rodar sem binário Electron.
@@ -494,7 +496,7 @@ Veja **[SECURITY.md](SECURITY.md)** para a política completa e versões suporta
 
 ## Contribuindo
 
-PRs são bem-vindos. Leia **[CONTRIBUTING.md](CONTRIBUTING.md)** primeiro. Regra de ouro: **lint tem que continuar limpo e os 1235 testes têm que passar** — sem regressões, sem exceções.
+PRs são bem-vindos. Leia **[CONTRIBUTING.md](CONTRIBUTING.md)** primeiro. Regra de ouro: **lint tem que continuar limpo e os 1101 testes têm que passar** — sem regressões, sem exceções.
 
 ---
 
