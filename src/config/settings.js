@@ -29,11 +29,11 @@ function getConfigPath() {
 function validateConfig(rawConfig) {
   const region = rawConfig && rawConfig.region;
   const hardwareProfile = rawConfig && rawConfig.hardwareProfile;
-  // Backward-compat: aceita forceLowSpec (novo) ou forceLowSpec (legacy v<=5.x)
+  // Backward-compat: aceita forceLowSpec (novo) ou forceBatata (legacy v<=5.x)
   const forceLowSpec = rawConfig
     ? rawConfig.forceLowSpec !== undefined
       ? rawConfig.forceLowSpec
-      : rawConfig.forceLowSpec
+      : rawConfig.forceBatata
     : undefined;
 
   const optimizationPreset = rawConfig && rawConfig.optimizationPreset;
