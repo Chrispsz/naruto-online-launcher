@@ -13,7 +13,7 @@
  *   - When event ends, an "ended" notification fires (smarter: only the active badge
  *     on the Events nav item disappears; the start toast auto-dismisses)
  *
- * REGIÕES SUPORTADAS (6 clusters reais de servidores Naruto Online):
+ * SUPPORTED REGIONS (6 real Naruto Online server clusters):
  *   br — America/Sao_Paulo (UTC-3, sem DST)
  *   na — America/New_York   (UTC-5/-4 DST)
  *   de — Europe/Berlin      (UTC+1/+2 DST)
@@ -32,7 +32,7 @@ const path = require('path');
 const logger = require('../utils/logger');
 const { normalizeRegion } = require('../config/regions');
 
-// Offsets UTC aproximados por região (sem libs de TZ).
+// Approximate UTC offsets by region (without TZ libs).
 // DST é auto-detectado comparando o offset atual do Date com o offset base.
 // v1.1.1: flag field uses [XX] text tag (not emoji) — native OS notifications
 // can't render SVG and Windows doesn't render flag emoji. Text tag works everywhere.
@@ -45,7 +45,7 @@ const REGION_TZ = {
   fr: { name: 'France', name_en: 'France', flag: '[FR]', baseOffset: 1 } // UTC+1, DST +2
 };
 
-// Catálogo de eventos por região (horários no fuso do SERVIDOR)
+// Event catalog by region (times in SERVER timezone)
 // SOURCE (validado 2025):
 //   - https://narutooasis.fandom.com/wiki/Timed_Events
 //   - Padrões confirmados pela comunidade

@@ -1,5 +1,5 @@
 /**
- * JWT Decoder — para o cookie oas_user do Naruto Online
+ * JWT Decoder — for the Naruto Online oas_user cookie
  * v1.0.0 — v4.9: tempmail + API login + dev inspector
  *
  * O passport.oasgames.com retorna um loginKey (JWT HS256) de 2h. Esse JWT
@@ -13,7 +13,7 @@
 'use strict';
 
 /**
- * Decodifica um JWT (header + payload) sem validar a assinatura.
+ * Decodes a JWT (header + payload) without validating the signature.
  * @param {string} token — JWT completo (xxx.yyy.zzz)
  * @returns {{header:Object, payload:Object, signature:string, exp:Date, iat:Date, expired:boolean, expiresInSeconds:number}|null}
  */

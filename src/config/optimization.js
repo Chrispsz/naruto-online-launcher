@@ -1,7 +1,7 @@
 /**
- * config/optimization.js — Presets de Otimização (v1.0.0)
+ * config/optimization.js — Optimization Presets (v1.0.0)
  *
- * Responsabilidade ÚNICA: definir os 3 presets (Performance / Balanced / Quality)
+ * Single Responsibility: define the 3 presets (Performance / Balanced / Quality)
  * e suas configurações específicas. Aplicados em main/flags.js + CpuOptimizer.js.
  *
  * PRESETS:

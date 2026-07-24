@@ -1,7 +1,7 @@
 /**
  * memory/MemoryGuard.js — Memory monitoring + Light Mode (low-spec)
  *
- * Responsabilidade ÚNICA (SRP): observar e reportar o estado de memória do
+ * Single Responsibility (SRP): observe and report memory state do
  * processo main + detectar máquinas low-spec (Modo Leve / Minimal).
  *
  * NÃO executa GC. O V8 cuida do main process sozinho — um launcher passa 99%
@@ -95,7 +95,7 @@ function reportCrash() {
 }
 
 module.exports = {
-  // Mantido (não remover): APIs de detecção de low-spec usadas pelo Modo Leve
+  // Maintained (do not remove): low-spec detection APIs used by Light Mode
   // em máquinas com <4GB de RAM — getStats, isLowSpecMode, isMinimal, IS_LOW_SPEC,
   // SYSTEM_RAM_GB, getThreshold, setForceLowSpec, reportCrash.
   getStats: getStats,

@@ -1,9 +1,9 @@
 /**
- * ui/server-selector.js — Seletor de Servidores Nativo
+ * ui/server-selector.js — Native Server Selector
  * v1.0.0 — v3.5.0
  *
- * Faz fetch da lista de servidores da página serverlist da Oasis Games
- * e retorna lista estruturada para o launcher renderizar.
+ * Fetches the server list from the Oasis Games serverlist page
+ * and returns a structured list for the launcher to render.
  *
  * COMO FUNCIONA:
  *   1. Faz GET para naruto.narutowebgame.com/{lang}/serverlist
@@ -11,8 +11,8 @@
  *   3. Retorna array de { id, number, url } ordenado por número
  *
  * PERFORMANCE:
- *   - Cache em memória por região (evita re-fetch)
- *   - Fetch assíncrono não-bloqueante (Electron net module)
+ *   - In-memory cache per region (avoids re-fetch)
+ *   - Non-blocking async fetch (Electron net module)
  *   - Timeout de 10s
  */
 
@@ -28,7 +28,7 @@ const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min
 const FETCH_TIMEOUT_MS = 10000;
 
 /**
- * Mapeia região → locale da URL.
+ * Maps region → URL locale.
  * @param {string} region
  * @returns {string}
  */
@@ -47,7 +47,7 @@ function _regionToLocale(region) {
 }
 
 /**
- * Extrai servidores do HTML da página serverlist.
+ * Extracts servers from the serverlist page HTML.
  * @param {string} html
  * @param {string} locale
  * @returns {Array<{id:string, number:number, url:string}>}
@@ -60,7 +60,7 @@ function _parseServersFromHtml(html, locale) {
   let match;
   while ((match = regex.exec(html)) !== null) {
     const num = parseInt(match[1], 10);
-    // v3.5.1: S9999 é um redirect "Jogar Agora" (play_host), não servidor real
+    // v3.5.1: S9999 is a "Play Now" redirect (play_host), not a real server
     if (num === 9999) continue;
     if (!seen.has(num)) {
       seen.add(num);
@@ -71,7 +71,7 @@ function _parseServersFromHtml(html, locale) {
       });
     }
   }
-  // Ordena por número decrescente (servidores mais novos primeiro)
+  // Sort by descending number (newest servers first)
   servers.sort(function (a, b) {
     return b.number - a.number;
   });
@@ -79,27 +79,27 @@ function _parseServersFromHtml(html, locale) {
 }
 
 /**
- * Busca lista de servidores de uma região.
- * Usa cache de 5min para evitar re-fetch desnecessário.
- * @param {string} region - Código da região (br/na/eu/hk/de/es/pl/fr)
+ * Fetches server list for a region.
+ * Uses 5min cache to avoid unnecessary re-fetch.
+ * @param {string} region - Region code (br/na/eu/hk/de/es/pl/fr)
  * @returns {Promise<Array<{id:string, number:number}>>}
  */
 function fetchServers(region) {
   return new Promise(function (resolve) {
     const locale = _regionToLocale(region);
 
-    // Verifica cache
+    // Check cache
     const cached = _cache.get(region);
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
       logger.debug(
-        'server-selector: cache hit para ' + region + ' (' + cached.servers.length + ' servers)'
+        'server-selector: cache hit for ' + region + ' (' + cached.servers.length + ' servers)'
       );
       resolve(cached.servers);
       return;
     }
 
     const serverlistUrl = urlConfig.getServerlistUrl(region);
-    logger.info('server-selector: fetchando servidores de ' + region + ' → ' + serverlistUrl);
+    logger.info('server-selector: fetching servers from ' + region + ' → ' + serverlistUrl);
 
     let html = '';
     let settled = false;
@@ -120,7 +120,7 @@ function fetchServers(region) {
           } catch (_) {
             /* ignore — socket pode já estar fechado */
           }
-          logger.warn('server-selector: timeout para ' + region);
+          logger.warn('server-selector: timeout for ' + region);
           resolve([]);
         }
       }, FETCH_TIMEOUT_MS);
@@ -135,7 +135,7 @@ function fetchServers(region) {
           clearTimeout(timer);
 
           if (response.statusCode !== 200) {
-            logger.warn('server-selector: HTTP ' + response.statusCode + ' para ' + region);
+            logger.warn('server-selector: HTTP ' + response.statusCode + ' for ' + region);
             resolve([]);
             return;
           }
@@ -143,7 +143,7 @@ function fetchServers(region) {
           const servers = _parseServersFromHtml(html, locale);
           _cache.set(region, { servers: servers, fetchedAt: Date.now() });
           logger.info(
-            'server-selector: ' + servers.length + ' servidores encontrados para ' + region
+            'server-selector: ' + servers.length + ' servers found for ' + region
           );
           resolve(servers);
         });
@@ -153,7 +153,7 @@ function fetchServers(region) {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        logger.warn('server-selector: erro para ' + region + ': ' + error.message);
+        logger.warn('server-selector: error for ' + region + ': ' + error.message);
         resolve([]);
       });
 
@@ -169,7 +169,7 @@ function fetchServers(region) {
 }
 
 /**
- * Limpa cache de uma região (ou todas).
+ * Clears cache for a region (or all).
  * @param {string} [region]
  */
 function clearCache(region) {

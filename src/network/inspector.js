@@ -1,19 +1,19 @@
 /**
- * Network Inspector — captura dados do jogo via webRequest
+ * Network Inspector — captures game data via webRequest
  * v1.0.0 — v4.9: dev-mode network inspector (alternative to blocked DevTools)
  *
- * O jogo Naruto Online roda em Flash (PPAPI). Os dados do personagem (stats,
- * itens, party, etc.) NÃO estão no DOM — estão nas respostas HTTP que o SWF
- * faz. A única forma de capturar esses dados é interceptar via
+ * The Naruto Online game runs in Flash (PPAPI). Character data (stats,
+ * items, party, etc.) are NOT in the DOM — they are in HTTP responses that the SWF
+ * makes. The only way to capture this data is by intercepting via
  * session.webRequest.onBeforeRequest / onResponseStarted.
  *
- * Este módulo registra listeners na session do perfil e captura:
+ * This module registers listeners on the profile's session and captures:
  *   - URLs chamadas (com método, tipo, timestamp)
- *   - Cookies oas_user capturados (JWT decodificado)
+ *   - Captured oas_user cookies (decoded JWT)
  *   - Endpoints conhecidos (passport, odp3, game backend)
- *   - Estatísticas agregadas (requests/min, domains hit, etc.)
+ *   - Aggregated statistics (requests/min, domains hit, etc.)
  *
- * O DevTools (Ctrl+Shift+I) é bloqueado no jogo por segurança. Este inspector
+ * DevTools (Ctrl+Shift+I) is blocked in the game for security. This inspector
  * is the legitimate alternative for developers to analyze traffic.
  */
 
@@ -22,14 +22,14 @@
 const logger = require('../utils/logger');
 const jwt = require('../utils/jwt');
 
-// Endpoints interessantes pra classificar capturas
-// adicionados endpoints do fluxo de login observados no F12:
-//   - ScriptLoginManager-1.2.php (login manager JS com params criptografados)
-//   - Scriptpad-zeropadding.js (crypto padding library pro form de login)
-//   - query_svr_info.fcgi (XHR que busca info do servidor por svr_id)
-// Esses 3 endpoints aparecem no tráfego normal do jogo mesmo com pre-auth
-// via API (oas_user cookie). O ScriptLoginManager é carregado pela página
-// do jogo pra validação de sessão — NÃO é bug se aparece com status 200.
+// Interesting endpoints for classifying captures
+// added login flow endpoints observed in F12:
+//   - ScriptLoginManager-1.2.php (login manager JS with encrypted params)
+//   - Scriptpad-zeropadding.js (crypto padding library for login form)
+//   - query_svr_info.fcgi (XHR that fetches server info by svr_id)
+// These 3 endpoints appear in normal game traffic even with pre-auth
+// via API (oas_user cookie). The ScriptLoginManager is loaded by the game page
+// for session validation — NOT a bug if it appears with status 200.
 var KNOWN_ENDPOINTS = {
   'passport.oasgames.com': { type: 'auth', label: 'Passport (login/register)' },
   'odp3.oasgames.com': { type: 'api', label: 'Odp3 API (servers/profile)' },
@@ -39,9 +39,9 @@ var KNOWN_ENDPOINTS = {
   'oasgames.com': { type: 'parent', label: 'oasgames parent' }
 };
 
-// Path signatures para classificar requisições por nome de arquivo
-// quando o hostname já é conhecido mas o path identifica a função específica.
-// Útil pra distinguir login flow vs game API vs telemetry no inspector log.
+// Path signatures for classifying requests by filename
+// when hostname is already known but the path identifies the specific function.
+// Useful to distinguish login flow vs game API vs telemetry in inspector log.
 var KNOWN_PATH_SIGNATURES = [
   {
     pattern: /ScriptLoginManager/i,
@@ -71,18 +71,18 @@ var KNOWN_PATH_SIGNATURES = [
 ];
 
 /**
- * Cria um inspector pra uma session do Electron.
+ * Creates an inspector for an Electron session.
  * @param {Object} session — session.fromPartition(partName)
  * @param {string} profileId
  * @returns {Object} inspector instance
  */
 function create(session, profileId) {
-  var entries = []; // últimas N capturas
+  var entries = []; // last N captures
   var stats = {
     // agregados
     totalRequests: 0,
     byDomain: {},
-    // adicionado tipo 'telemetry' (oss_report.fcgi, crossdomain.xml)
+    // added 'telemetry' type (oss_report.fcgi, crossdomain.xml)
     byType: { auth: 0, api: 0, game: 0, site: 0, parent: 0, telemetry: 0, other: 0 },
     capturedCookies: [],
     capturedJwts: [],
@@ -91,16 +91,16 @@ function create(session, profileId) {
   var maxEntries = 500;
   var listeners = { onCapture: [] };
   var enabled = false;
-  // Filtro usado no enable() — necessário pra removable preciso no disable().
-  // Sem filtro, onBeforeRequest(null) remove TODOS os listeners da session
-  // (incluindo o ad blocker), não só os nossos. Mesmo padrão do StallDetector.
+  // Filter used in enable() — required for precise removable in disable().
+  // Without filter, onBeforeRequest(null) removes ALL session listeners
+  // (including the ad blocker), not just ours. Same pattern as StallDetector.
   var _filter = { urls: ['<all_urls>'] };
 
   /**
    * Classifica uma URL nos tipos conhecidos.
-   * v5.9.10: agora também checa KNOWN_PATH_SIGNATURES pra classificar
+   * v5.9.10: now also checks KNOWN_PATH_SIGNATURES to classify
    * por nome de arquivo (ScriptLoginManager, query_svr_info, etc.) —
-   * mais específico que só o hostname.
+   * more specific than hostname alone.
    */
   function classify(url) {
     try {
@@ -108,7 +108,7 @@ function create(session, profileId) {
       var host = u.hostname;
       var fullPath = u.pathname + u.search;
 
-      // Primeiro checa path signatures (mais específico)
+      // First checks path signatures (more specific)
       for (var i = 0; i < KNOWN_PATH_SIGNATURES.length; i++) {
         var sig = KNOWN_PATH_SIGNATURES[i];
         if (sig.pattern.test(fullPath)) {
@@ -121,7 +121,7 @@ function create(session, profileId) {
         }
       }
 
-      // Depois checa hostname conhecido
+      // Then checks known hostname
       for (var domain in KNOWN_ENDPOINTS) {
         if (host === domain || host.endsWith('.' + domain)) {
           return Object.assign({ domain: host, path: u.pathname }, KNOWN_ENDPOINTS[domain]);
@@ -134,7 +134,7 @@ function create(session, profileId) {
   }
 
   /**
-   * Tenta extrair JWT de cookie header ou query param.
+   * Attempts to extract JWT from cookie header or query param.
    */
   function tryExtractJwt(details) {
     // Cookie header
@@ -178,7 +178,7 @@ function create(session, profileId) {
       resourceType: details.resourceType || null
     };
 
-    // Só extrai JWT de requests pra passport/oasgames
+    // Only extracts JWT from requests to passport/oasgames
     if (info.type === 'auth' || info.type === 'parent' || info.type === 'site') {
       var decoded = tryExtractJwt(details);
       if (decoded) entry.jwt = decoded;
@@ -202,7 +202,7 @@ function create(session, profileId) {
 
     session.webRequest.onBeforeRequest(_filter, function (details) {
       record(details, 'request');
-      // NUNCA bloqueia — só observa
+      // NEVER blocks — only observes
       return { cancel: false };
     });
 
@@ -216,9 +216,9 @@ function create(session, profileId) {
   function disable() {
     if (!enabled) return;
     enabled = false;
-    // Usa filtro específico pra remover APENAS nossos listeners —
-    // sem filtro, remove TODOS os onBeforeRequest da session (incluindo
-    // o ad blocker do blocker.js). Mesmo padrão do StallDetector.
+    // Uses specific filter to remove ONLY our listeners —
+    // without filter, removes ALL onBeforeRequest from the session (including
+    // the ad blocker from blocker.js). Same pattern as StallDetector.
     try {
       session.webRequest.onBeforeRequest(_filter, null);
       session.webRequest.onResponseStarted(_filter, null);

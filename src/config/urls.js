@@ -1,7 +1,7 @@
 /**
  * config/urls.js — Game URL builder multi-região (v3.5.1)
  *
- * PESQUISA REAL (2025): As URLs foram validadas extraindo HTML das páginas
+ * REAL RESEARCH (2025): URLs were validated by extracting HTML das páginas
  * oficiais da Oasis Games. Descobrimos que:
  *
  *   ❌ https://oasgames.com → página placeholder chinesa ("网站建设中")
@@ -24,7 +24,7 @@
 
 'use strict';
 
-// ── URLs reais de login por região (6 idiomas — validado por pesquisa 2025) ──
+// ── Real login URLs by region (6 languages — validated by 2025 research) ──
 // Cada região carrega a página de serverlist que TEM o form de login.
 // Campos do form: input[name="oasun"] + input[name="oaspd"] + keyLogin()
 const REGION_URLS = {
@@ -50,7 +50,7 @@ const REGION_GAME_CODES = {
   fr: 'narutofr'
 };
 
-// Parâmetros de identificação do launcher (reconhecimento pelo servidor)
+// Launcher identification params (recognized by server)
 const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes&launcher=shinobi';
 
 /**

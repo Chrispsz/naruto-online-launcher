@@ -1,7 +1,7 @@
 /**
  * profiles/CryptoService.js — Primitivas de criptografia PURAS (Fase 3e split)
  *
- * Responsabilidade ÚNICA (SRP): AES-256-GCM + PBKDF2-SHA512. Nenhuma
+ * Single Responsibility (SRP): AES-256-GCM + PBKDF2-SHA512. Nenhuma
  * dependência de Electron, disco, ou estado de máquina. Tudo é função pura
  * que recebe a chave/salt como parâmetro.
  *
@@ -194,7 +194,7 @@ module.exports = {
   decrypt: decrypt,
   exportEncryptedBackup: exportEncryptedBackup,
   importEncryptedBackup: importEncryptedBackup,
-  // constants (p/ testes / documentação)
+  // constants (for tests / documentation)
   PBKDF2_ITERATIONS: PBKDF2_ITERATIONS,
   PBKDF2_KEYLEN: PBKDF2_KEYLEN,
   PBKDF2_SALT_LEN: PBKDF2_SALT_LEN,

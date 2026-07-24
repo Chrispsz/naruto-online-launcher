@@ -1,5 +1,5 @@
 /**
- * profiles/partition.js — Shadow Partition manager (RAM saver disruptivo)
+ * profiles/partition.js — Shadow Partition manager (disruptive RAM saver)
  * v3.0.0 — INOVAÇÃO DISRUPTIVA
  *
  * PROBLEMA QUE RESOLVE:
@@ -133,7 +133,7 @@ function _persistSnapshots() {
 }
 
 /**
- * Filtra cookies para manter apenas os de domínios de autenticação do jogo.
+ * Filters cookies to keep only those from game authentication domains.
  * @param {Array} cookies
  * @returns {Array}
  */
@@ -160,7 +160,7 @@ async function snapshotCookies(partitionName, profileId) {
     _ensureSnapshotsLoaded();
     _snapshots[profileId] = authCookies;
     _persistSnapshots();
-    logger.info('partition: snapshot de ' + authCookies.length + ' cookies para ' + profileId);
+    logger.info('partition: snapshot of ' + authCookies.length + ' cookies for ' + profileId);
     return true;
   } catch (e) {
     logger.debug('partition: snapshot failed: ' + e.message);

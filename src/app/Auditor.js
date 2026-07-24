@@ -43,7 +43,7 @@ var MAX_REASONS_KEPT = 20; // cap reasons array to prevent unbounded growth
 /**
  * Cria um Auditor para um profile.
  * @param {string} profileId
- * @param {Object} [opts] - { userDataPath (string), now (fn p/ testes) }
+ * @param {Object} [opts] - { userDataPath (string), now (fn for tests) }
  * @returns {Object} auditor instance
  */
 function create(profileId, opts) {
@@ -98,7 +98,7 @@ function create(profileId, opts) {
       merged.networkErrors = Object.assign(defaultState.networkErrors, loaded.networkErrors || {});
       merged.crashes = Object.assign(defaultState.crashes, loaded.crashes || {});
       merged.autoReloads = Object.assign(defaultState.autoReloads, loaded.autoReloads || {});
-      merged.profileId = profileId; // garante
+      merged.profileId = profileId; // ensures
       return merged;
     } catch (e) {
       logger.warn('Auditor: failed to load ' + fp + ' — ' + e.message + ' (using default)');

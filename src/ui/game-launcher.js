@@ -1,7 +1,7 @@
 /**
  * ui/game-launcher.js — FACADE (Fase 3d split)
  *
- * Era o God Object (620 linhas). Agora é uma facade fina que delega ao
+ * Was the God Object (620 lines). Now it's a thin facade that delegates to
  * app/Launcher.js (orquestração + registry de janelas). O lifecycle dos
  * eventos mora em app/SessionLifecycle.js e os atalhos em
  * ui/manager/KeyboardShortcuts.js.

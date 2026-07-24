@@ -1,5 +1,5 @@
 /**
- * Carregamento e Salvamento de Configuração
+ * Configuration Loading and Saving
  * v1.2.0 - Window bounds persistence, async file operations
  */
 

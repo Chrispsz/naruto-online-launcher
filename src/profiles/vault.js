@@ -1,7 +1,7 @@
 /**
  * profiles/vault.js — FACADE (Fase 3e split)
  *
- * Era o God Object (571 linhas). Agora é uma facade fina que compõe:
+ * Was the God Object (571 lines). Now it's a thin facade that composes:
  *   - CryptoService.js   — primitivas AES-256-GCM + PBKDF2 puras
  *   - PasswordManager.js — chave de máquina + senha mestre (cache)
  *   - ProfileVault.js    — CRUD de credenciais + buildAutoLoginScript

@@ -1,7 +1,7 @@
 /**
  * ui/manager/IpcRouter.js — Registro dos handlers IPC (Fase 3c split)
  *
- * Responsabilidade ÚNICA (SRP): registrar os handlers ipcMain.on/handle que
+ * Single Responsibility (SRP): register ipcMain.on/handle handlers que
  * conectam o renderer (index.html) aos subsistemas (store, vault, memory,
  * events, tempmail, inspector, etc.). Um método por domínio.
  *
@@ -51,7 +51,7 @@ function _getWin() {
 }
 
 /**
- * Registra TODOS os handlers IPC. Idempotente (guard _registered).
+ * Registers ALL IPC handlers. Idempotent (guard _registered).
  * @param {Object} handlers - { launchProfile, getMemoryStats, forceGC, ... }
  */
 function registerIpcHandlers(handlers) {
@@ -301,11 +301,11 @@ function registerIpcHandlers(handlers) {
         _send('profile:toast', {
           type: 'success',
           msg:
-            'Diagnóstico exportado (' +
+            'Diagnostics exported (' +
             Math.round(result.size / 1024) +
             'KB, ' +
             result.entries +
-            ' arquivos)'
+            ' files)'
         });
       } else if (!result.canceled) {
         _send('profile:toast', { type: 'error', msg: 'Export failed: ' + result.error });
@@ -379,7 +379,7 @@ function registerIpcHandlers(handlers) {
         msg:
           'Login API OK — ' +
           result.nickname +
-          ' (expira em ' +
+          ' (expires in ' +
           Math.round(result.expiresAt / 1000 - Date.now() / 1000) +
           's)'
       });

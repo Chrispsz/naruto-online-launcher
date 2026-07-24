@@ -1,36 +1,36 @@
 /**
  * app/StallDetector.js — Stuck loader detection + auto-F5 with pre-auth
  *
- * PROBLEMA (v5.9.11): o login do Naruto Online às vezes trava em ~14% e dá
- * erro de conexão. Root cause: um SWF essencial (assets, UI, empty.swf)
- * falha no download (network hiccup, timeout, Mixed Content). O preloader
- * do Flash NÃO tem retry — quando um SWF falha, o loader fica preso
- * forever naquela porcentagem. O usuário precisa fechar e reabrir manualmente.
+ * PROBLEM (v5.9.11): Naruto Online login sometimes gets stuck at ~14% with
+ * connection error. Root cause: an essential SWF (assets, UI, empty.swf)
+ * fails to download (network hiccup, timeout, Mixed Content). The preloader
+ * of Flash has NO retry — when an SWF fails, the loader gets stuck
+ * forever at that percentage. The user has to close and reopen manually.
  *
- * SOLUÇÃO: monitorar a session via webRequest.onCompleted + onErrorOccurred.
- * Quando detectamos:
- *   (A) 2+ SWFs falhando em 60s → burst de falhas = servidor instável → reload
- *   (B) 45s sem nenhuma atividade de rede durante o loading → loader travado → reload
- * Chamamos onStall() que delega pra SessionLifecycle.reloadWithPreAuth
- * (mesmo fluxo do F5: limpa cookies + pré-autentica via API antes de reload).
+ * SOLUTION: monitor the session via webRequest.onCompleted + onErrorOccurred.
+ * When detected:
+ *   (A) 2+ SWFs failing in 60s → burst of failures = unstable server → reload
+ *   (B) 45s without any network activity during loading → stuck loader → reload
+ * Calls onStall() which delegates to SessionLifecycle.reloadWithPreAuth
+ * (same flow as F5: clears cookies + pre-authenticates via API before reload).
  *
- * BACKOFF: max 3 auto-reloads em 10 min por perfil (evita loop infinito
- * se o servidor estiver realmente fora do ar).
+ * BACKOFF: max 3 auto-reloads in 10 min per profile (avoids infinite loop
+ * if the server is actually down).
  *
- * AUTO-STOP: após 120s de atividade contínua sem stall, consideramos o
- * jogo "pronto" e encerramos o monitoramento (o jogo está rodando, não
- * precisa mais de watchdog).
+ * AUTO-STOP: after 120s of continuous activity without stall, consider the
+ * game "ready" and end monitoring (the game is running, no
+ * longer needs a watchdog).
  *
- * LISTENER CLEANUP: Electron 11's webRequest.onCompleted(null) remove TODOS
- * os listeners da session, não apenas o nosso. Isso causava leak quando
- * múltiplas janelas usavam a mesma session. Fix: usamos um WeakMap para
- * rastrear os filtros registrados por cada session e passamos o filtro
- * correto no detach(). Se não for possível remover com filtro, usamos
- * um flag 'stopped' para no-op nos handlers (listeners ficam mas são inertes).
+ * LISTENER CLEANUP: Electron 11's webRequest.onCompleted(null) removes ALL
+ * listeners from the session, not just ours. This caused leaks when
+ * multiple windows used the same session. Fix: we use a WeakMap to
+ * track registered filters per session and pass the correct filter
+ * on detach(). If removal with filter isn't possible, we use
+ * a 'stopped' flag to no-op in handlers (listeners remain but are inert).
  *
- * Nota: did-fail-load (em SessionLifecycle) cuida de erros da página HTML
- * principal. Este módulo cuida de falhas de SUB-RECURSOS (SWFs dentro do
- * Flash player) que o did-fail-load não detecta.
+ * Note: did-fail-load (in SessionLifecycle) handles HTML page errors.
+ * This module handles SUB-RESOURCE failures (SWFs inside the
+ * Flash player) that did-fail-load doesn't detect.
  */
 
 'use strict';

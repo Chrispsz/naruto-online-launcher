@@ -1,6 +1,6 @@
 /**
  * Tracker and Analytics Blocker
- * v1.3.0 — Idempotência anti-vazamento (cron-review-1)
+ * v1.3.0 — Idempotent anti-leak (cron-review-1)
  */
 
 'use strict';
@@ -59,7 +59,7 @@ const BLOCKED_DOMAINS = new Set([
   'cdn.mxpnl.com'
 ]);
 
-// URL path patterns to block (para telemetry que roda no MESMO domínio
+// URL path patterns to block (for telemetry that runs on the SAME domain
 // do jogo, onde bloquear por hostname quebraria o jogo). Caso constatado no F12:
 // oss_report.fcgi?uin=...&role_id=...&svr_id=... é o iMSDK da Tencent reportando
 // server_id + role_id + uin pra telemetria, no mesmo host naruto-pl.oasgames.com.
@@ -85,7 +85,7 @@ function isBlockedDomain(hostname) {
 
 /**
  * Check if a URL path matches any blocked path pattern (v5.9.9).
- * Usado para telemetry que roda no MESMO domínio do jogo (ex: oss_report.fcgi
+ * Used for telemetry that runs on the SAME game domain (e.g.: oss_report.fcgi
  * em naruto-pl.oasgames.com) onde bloquear o hostname quebraria o jogo.
  * @param {string} pathname - URL pathname to check
  * @returns {boolean} True if blocked
@@ -149,7 +149,7 @@ function setupBlocker(session) {
   logger.info(
     'Blocker: ' +
       BLOCKED_DOMAINS.size +
-      ' domínios + ' +
+      ' domains + ' +
       BLOCKED_PATH_PATTERNS.length +
       ' path patterns'
   );
@@ -157,7 +157,7 @@ function setupBlocker(session) {
 }
 
 /**
- * Reseta o estado de idempotência de uma session.
+ * Resets the idempotency state of a session.
  * @param {Electron.Session} session
  */
 function forgetSession(session) {

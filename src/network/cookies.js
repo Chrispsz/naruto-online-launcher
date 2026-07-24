@@ -1,6 +1,6 @@
 /**
  * Persistent Cookie Management
- * v1.3.0 — Idempotência anti-vazamento de listeners (cron-review-1)
+ * v1.3.0 — Idempotent anti-leak of listeners (cron-review-1)
  */
 
 'use strict';
@@ -9,10 +9,10 @@ const logger = require('../utils/logger');
 
 const COOKIE_EXPIRY = 365 * 86400; // 1 year in seconds
 
-// ── Idempotência: WeakSet rastreia sessions já configuradas ──
-// BUG FIX (cron-review-1): antes, cada chamada de setupPersistentCookies()
-// registrava NOVO listener em session.cookies.on('changed'). Como sessions
-// persist:profile-<id> são cached pelo Electron, reabrir um perfil
+// ── Idempotency: WeakSet tracks already-configured sessions ──
+// BUG FIX (cron-review-1): previously, each call to setupPersistentCookies()
+// registered a NEW listener on session.cookies.on('changed'). Since sessions
+// persist:profile-<id> are cached by Electron, reopening a profile
 // duplicava os listeners → cada cookie change disparava N cookies.set()
 // → cumulative performance degradation. Now skipped if already configured.
 const _configuredSessions = new WeakSet();
@@ -67,10 +67,10 @@ function isTrackingDomain(hostname) {
 /**
  * Setup persistent cookies with auto-extension + optional CSP.
  *
- * IDEMPOTENTE (cron-review-1): se a session já foi configurada, skipa.
- * Resolve vazamento de listeners 'changed' acumulados em reabertura de perfis.
+ * IDEMPOTENT (cron-review-1): if session already configured, skip.
+ * Resolves 'changed' listener leak accumulated on profile reopen.
  *
- * BUG FIX (cron-review-1): antes, callers (ex: game-launcher.js) registravam
+ * BUG FIX (cron-review-1): previously, callers (e.g.: game-launcher.js) registered
  * um SEGUNDO onHeadersReceived para CSP, que sobrescrevia este handler
  * → cookie extension ficava morta. Agora CSP é mesclado AQUI no mesmo handler.
  *
@@ -145,8 +145,8 @@ function setupPersistentCookies(session, options) {
     }
   });
 
-  // ── ÚNICO onHeadersReceived: CSP + cookie extension + tracking block ──
-  // (Electron só permite UM handler por session/evento — mesclar aqui é OBRIGATÓRIO)
+  // ── Single onHeadersReceived: CSP + cookie extension + tracking block ──
+  // (Electron only allows ONE handler per session/event — merging here is MANDATORY)
   session.webRequest.onHeadersReceived(function (details, callback) {
     const setCookie = details.responseHeaders && details.responseHeaders['set-cookie'];
 
@@ -191,7 +191,7 @@ function setupPersistentCookies(session, options) {
 }
 
 /**
- * Reseta o estado de idempotência de uma session (para testes ou reset explícito).
+ * Resets the idempotency state of a session (for tests or explicit reset).
  * NÃO remove os listeners já registrados — use session.cookies.removeAllListeners('changed')
  * se precisar de limpeza profunda.
  * @param {Electron.Session} session

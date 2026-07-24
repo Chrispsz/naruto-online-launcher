@@ -1,37 +1,37 @@
 /**
- * profiles/manager.js — Facade de alto nível para Perfis + Partitions + Vault
+ * profiles/manager.js — High-level Facade for Profiles + Partitions + Vault
  * v3.1.0 — "ProfileManager"
  *
- * FILOSOFIA:
- *   O controller da UI não deveria conhecer a topologia interna
- *   de store.js + partition.js + vault.js + game-launcher.js. Este módulo é a
- *   ÚNICA superfície pública para operações de perfil: criar, listar, lançar,
- *   fechar, deletar, isolar, credenciais, snapshot/restore de cookies.
+ * PHILOSOPHY:
+ *   The UI controller shouldn't know the internal topology
+ *   of store.js + partition.js + vault.js + game-launcher.js. This module is the
+ *   ONLY public surface for profile operations: create, list, launch,
+ *   close, delete, isolate, credentials, snapshot/restore of cookies.
  *
- * RESPONSABILIDADES:
- *   - CRUD de perfis (delega a store.js, mas enriquece com estado runtime:
+ * RESPONSIBILITIES:
+ *   - Profile CRUD (delegates to store.js, but enriches with runtime state:
  *     isOpen, hasVault, shadow, lastWindow).
- *   - Lançamento de janelas isoladas por `session.fromPartition('persist:profile-<id>')`.
- *     Pepper Flash é injetado via app.commandLine (global, uma vez no boot) —
- *     NÃO por janela. Cada BrowserWindow com `plugins:true` herda o Flash.
- *   - Coordenação com partition.js para shadow partitions (Modo Low-Spec):
- *     restoreCookies() antes de loadURL, snapshotCookies() no fechamento.
- *   - Coordenação com vault.js para auto-login: se o perfil tem credenciais,
- *     game-launcher injeta no formulário após did-finish-load.
- *   - Registro de webContents no MemoryGuard (para observação de métricas
- *     de memória em cada webview ativa).
- *   - Tratamento de crash: render-process-gone de uma partition NÃO derruba
- *     as outras. Cada janela é independente.
+ *   - Isolated window launching via `session.fromPartition('persist:profile-<id>')`.
+ *     Pepper Flash is injected via app.commandLine (global, once at boot) —
+ *     NOT per window. Each BrowserWindow with `plugins:true` inherits Flash.
+ *   - Coordination with partition.js for shadow partitions (Low-Spec Mode):
+ *     restoreCookies() before loadURL, snapshotCookies() on close.
+ *   - Coordination with vault.js for auto-login: if profile has credentials,
+ *     game-launcher injects into the form after did-finish-load.
+ *   - Registration of webContents in MemoryGuard (for memory metric observation
+ *     in each active webview).
+ *   - Crash handling: render-process-gone from one partition does NOT crash
+ *     the others. Each window is independent.
  *
- * CONTRATO IPC:
- *   O controller.js registra handlers que chamam estes métodos. O renderer
- *   nunca chama store/partition/vault diretamente.
+ * IPC CONTRACT:
+ *   controller.js registers handlers that call these methods. The renderer
+ *   never calls store/partition/vault directly.
  *
- * ISOLAMENTO RÍGIDO (requisito do usuário):
- *   Se o jogador abrir o perfil Main e o Fake ao mesmo tempo, cada um recebe
- *   uma BrowserWindow + session.fromPartition INDEPENDENTE. O Pepper Flash de
- *   uma janela NÃO interfere no da outra porque cada session tem seu próprio
- *   plugin host. Se uma cair, a outra continua rodando lisa.
+ * STRICT ISOLATION (user requirement):
+ *   If the player opens Main and Fake profiles simultaneously, each gets
+ *   an INDEPENDENT BrowserWindow + session.fromPartition. Pepper Flash from
+ *   one window does NOT interfere with the other because each session has its own
+ *   plugin host. If one crashes, the other keeps running smoothly.
  */
 
 'use strict';
@@ -49,7 +49,7 @@ const _runtime = new Map();
 let _listeners = [];
 
 /**
- * Lista perfis enriquecidos com estado runtime (isOpen, hasVault, shadow).
+ * Lists profiles enriched with runtime state (isOpen, hasVault, shadow).
  * @returns {Array<Object>}
  */
 function list() {
@@ -66,8 +66,8 @@ function list() {
 }
 
 /**
- * Cria um novo perfil. Garante que a partition dir existe (persist) para que
- * bunshin/clone não falhe em perfis nunca lançados.
+ * Creates a new profile. Ensures the partition dir exists (persist) so that
+ * bunshin/clone doesn't fail on never-launched profiles.
  * @param {{name:string, server:string, region:string}} opts
  * @returns {Object|null} perfil criado
  */
@@ -86,7 +86,7 @@ function create(opts) {
 }
 
 /**
- * Atualiza metadados do perfil.
+ * Updates profile metadata.
  * @param {string} id
  * @param {Object} updates
  * @returns {boolean}
@@ -98,8 +98,8 @@ function update(id, updates) {
 }
 
 /**
- * Deleta um perfil COMPLETAMENTE: fecha janela, remove partition, vault,
- * snapshot de cookies e entrada no store.
+ * Deletes a profile COMPLETELY: closes window, removes partition, vault,
+ * cookie snapshot and store entry.
  * @param {string} id
  * @returns {boolean}
  */
@@ -118,7 +118,7 @@ function remove(id) {
     /* ignore */
   }
 
-  // 3. Remove snapshot de cookies (shadow mode)
+  // 3. Remove cookie snapshot (shadow mode)
   try {
     partition.removeSnapshot(id);
   } catch (_) {
@@ -136,17 +136,17 @@ function remove(id) {
 }
 
 /**
- * Lança o jogo para um perfil. Orquestra:
- *   1. restoreCookies() se shadow partition (restaura auth cookies salvos).
+ * Launches the game for a profile. Orchestrates:
+ *   1. restoreCookies() if shadow partition (restores saved auth cookies).
  *   2. gameLauncher.launchProfile() — cria BrowserWindow isolada.
- *   3. Registra webContents no MemoryGuard (observa métricas de memória).
- *   4. Trata crash: render-process-gone NÃO derruba outras janelas.
- *   5. Snapshot de cookies no fechamento (se shadow).
+ *   3. Registers webContents in MemoryGuard (observes memory metrics).
+ *   4. Handles crash: render-process-gone does NOT crash other windows.
+ *   5. Cookie snapshot on close (if shadow).
  *
  * @param {string} profileId
- * @param {Function} [onOpened]  — chamado quando a janela abre
- * @param {Function} [onClosed]  — chamado quando a janela fecha
- * @returns {boolean} true se o lançamento foi despachado
+ * @param {Function} [onOpened]  — called when the window opens
+ * @param {Function} [onClosed]  — called when the window closes
+ * @returns {boolean} true if the launch was dispatched
  */
 function launch(profileId, onOpened, onClosed) {
   const profile = store.get(profileId);
@@ -197,7 +197,7 @@ function launch(profileId, onOpened, onClosed) {
 }
 
 /**
- * Fecha a janela de um perfil (sem deletar o perfil).
+ * Closes a profile's window (without deleting the profile).
  * @param {string} profileId
  * @returns {boolean}
  */
@@ -206,8 +206,8 @@ function close(profileId) {
 }
 
 /**
- * Marca que uma janela de jogo sofreu crash (chamado pelo game-launcher em
- * render-process-gone). Não derruba outras janelas — isolamento rígido.
+ * Marks that a game window crashed (called by game-launcher on
+ * render-process-gone). Does NOT crash other windows — strict isolation.
  * @param {string} profileId
  */
 function reportCrash(profileId) {
@@ -216,7 +216,7 @@ function reportCrash(profileId) {
     rt.crashCount = (rt.crashCount || 0) + 1;
     rt.lastCrashAt = Date.now();
     logger.warn(
-      'ProfileManager: crash reportado em ' + profileId + ' (total: ' + rt.crashCount + ')'
+      'ProfileManager: crash reported in ' + profileId + ' (total: ' + rt.crashCount + ')'
     );
   }
 }
@@ -224,7 +224,7 @@ function reportCrash(profileId) {
 // ── Vault (credenciais) ──
 
 /**
- * Retorna credenciais descriptografadas (para o renderer validar/injetar).
+ * Returns decrypted credentials (for the renderer to validate/inject).
  * @param {string} profileId
  * @returns {{user:string, pass:string}|null}
  */
@@ -233,7 +233,7 @@ function getCredentials(profileId) {
 }
 
 /**
- * Salva credenciais criptografadas (AES-256-GCM machine-bound).
+ * Saves encrypted credentials (AES-256-GCM machine-bound).
  * @param {string} profileId
  * @param {string} user
  * @param {string} pass
@@ -246,7 +246,7 @@ function setCredentials(profileId, user, pass) {
 }
 
 /**
- * Remove credenciais.
+ * Removes credentials.
  * @param {string} profileId
  * @returns {boolean}
  */
@@ -257,7 +257,7 @@ function removeCredentials(profileId) {
 }
 
 /**
- * Verifica se o perfil tem credenciais salvas.
+ * Checks if the profile has saved credentials.
  * @param {string} profileId
  * @returns {boolean}
  */
@@ -289,7 +289,7 @@ function importAll(jsonStr) {
 // ── Estado runtime / observabilidade ──
 
 /**
- * Retorna estatísticas do gerenciador (para o dashboard).
+ * Returns manager statistics (for the dashboard).
  * @returns {{total:number, open:number, withVault:number, shadow:number, crashes:number}}
  */
 function getStats() {
@@ -317,7 +317,7 @@ function getStats() {
 }
 
 /**
- * Registra listener para mudanças (UI atualiza via push).
+ * Registers listener for changes (UI updates via push).
  * @param {Function} cb
  */
 function onChange(cb) {

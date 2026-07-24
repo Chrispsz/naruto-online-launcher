@@ -1,7 +1,7 @@
 /**
  * ui/manager/KeyboardShortcuts.js — Atalhos de teclado do jogo (Fase 3d split)
  *
- * Responsabilidade ÚNICA (SRP): interceptar atalhos de teclado nas janelas de
+ * Single Responsibility (SRP): intercept keyboard shortcuts in game
  * jogo via webContents 'before-input-event'. Inclui os pendências herdadas:
  *   - F5  → Clear Login (limpa cookies + storage da partition, depois recarrega)
  *   - F12 → toggle DevTools
@@ -23,10 +23,10 @@
 const logger = require('../../utils/logger');
 
 /**
- * Anexa o handler de atalhos ao webContents de uma janela de jogo.
+ * Attaches the shortcut handler to a game window's webContents.
  * @param {Electron.BrowserWindow} win
  * @param {string} profileName - para logging
- * @param {Electron.Session} [ses] - session da partition (fallback F5 sem callback)
+ * @param {Electron.Session} [ses] - partition session (fallback F5 sem callback)
  * @param {Function} [onClearLogin] - callback invocado no F5 (clear + pré-auth).
  *        Se fornecido, substitui o clear+reload manual — o callback é responsável
  *        por limpar o storage e recarregar com pré-autenticação (igual ao Play).

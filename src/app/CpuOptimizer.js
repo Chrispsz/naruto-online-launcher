@@ -35,8 +35,8 @@ const os = require('os');
 const { execFile } = require('child_process');
 const logger = require('../utils/logger');
 
-// Windows priority constants — resolved lazily dentro de _applyWindowsPriority
-// (os mock nos testes não tem constants.priority, então não pode ser top-level).
+// Windows priority constants — resolved lazily inside _applyWindowsPriority
+// (mocks in tests lack constants.priority, so it can't be top-level).
 let _winPrioCache = null;
 function _winPrioConstants() {
   if (_winPrioCache) return _winPrioCache;
@@ -150,8 +150,8 @@ function detectCoreTopology() {
     }
   }
 
-  // Fallback: se não achou P/E separados, todos os núcleos são P (CPU uniforme).
-  // Em CPUs AMD ou Intel non-hybrid, o scheduler já faz bom work distribution.
+  // Fallback: if no separate P/E found, all cores are P (uniform CPU).
+  // On AMD or Intel non-hybrid CPUs, the scheduler already does good work distribution.
   if (pCores.length === 0 && eCores.length === 0) {
     for (let i = 0; i < totalCores; i++) pCores.push(i);
   }
@@ -165,8 +165,8 @@ function detectCoreTopology() {
 }
 
 /**
- * Parser de listas de CPU do kernel (/sys/devices/.../cpus).
- * Formatos suportados: "0-7", "0,2,4-6", "0 1 2", "0-3,8-11".
+ * Parser for kernel CPU lists (/sys/devices/.../cpus).
+ * Supported formats: "0-7", "0,2,4-6", "0 1 2", "0-3,8-11".
  * @param {string} raw
  * @returns {number[]}
  */
@@ -189,9 +189,9 @@ function _parseCpuList(raw) {
 }
 
 /**
- * Aplica CPU affinity no PID via `taskset -cp <cores> <pid>`.
+ * Applies CPU affinity to PID via `taskset -cp <cores> <pid>`.
  * @param {number} pid - Process ID
- * @param {number[]} cores - Lista de núcleos (ex: [0,1,2,3])
+ * @param {number[]} cores - Core list (e.g.: [0,1,2,3])
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
 function _applyTaskset(pid, cores) {
@@ -226,11 +226,11 @@ function _applyTaskset(pid, cores) {
 }
 
 /**
- * Aplica nice priority via `renice -n <priority> -p <pid>`.
- * Usuário semum pode setar nice de 0 a 19 (menor prioridade). Para nice negativo
- * (-5, mais prioridade), precisa de CAP_SYS_NICE. Tentamos -5, se falha cai pra 0.
+ * Applies nice priority via `renice -n <priority> -p <pid>`.
+ * Unprivileged user can set nice 0-19 (lower priority). For negative nice
+ * (-5, higher priority), needs CAP_SYS_NICE. We try -5, if it fails fall back to 0.
  * @param {number} pid
- * @param {number} priority - valor nice (-20 a 19)
+ * @param {number} priority - nice value (-20 to 19)
  * @returns {Promise<{ok: boolean, priority?: number, error?: string}>}
  */
 function _applyRenice(pid, priority) {
@@ -260,7 +260,7 @@ function _applyRenice(pid, priority) {
 }
 
 /**
- * Ajusta oom_score_adj para -500 (kernel prefere matar outros processos em OOM).
+ * Sets oom_score_adj to -500 (kernel prefers killing other processes on OOM).
  * Escreve diretamente em /proc/<pid>/oom_score_adj (não precisa de root se for
  * o próprio processo ou filho). Em AppImage, o renderer é filho → permitido.
  * @param {number} pid
@@ -285,7 +285,7 @@ function _applyOomScoreAdj(pid, score) {
 }
 
 /**
- * Aplica CPU affinity no Windows via PowerShell `Set-Process -ProcessorAffinity`.
+ * Applies CPU affinity on Windows via PowerShell `Set-Process -ProcessorAffinity`.
  * Windows usa bitmask: bit N = core N. cores [0,1,2,3] → 0b1111 = 15.
  * PowerShell é o método mais confiável no Win10/11 (wmic está deprecated).
  * @param {number} pid
@@ -332,7 +332,7 @@ function _applyWindowsAffinity(pid, cores) {
 }
 
 /**
- * Aplica prioridade de processo no Windows via Node.js os.setPriority (cross-platform).
+ * Applies process priority on Windows via Node.js os.setPriority (cross-platform).
  * Mapeia nice-like targets (-5/0/+5) para Windows priority classes:
  *   -5 → ABOVE_NORMAL (performance preset)
  *    0 → NORMAL (balanced preset)
@@ -365,7 +365,7 @@ function _applyWindowsPriority(pid, niceTarget) {
 }
 
 /**
- * Aplica todas as otimizações de CPU em um renderer PID (cross-platform).
+ * Applies all CPU optimizations to a renderer PID (cross-platform).
  *
  * LINUX: taskset (affinity) + renice (priority) + oom_score_adj (OOM protection).
  * WINDOWS: PowerShell (affinity) + os.setPriority (priority). Sem OOM protection.
@@ -388,7 +388,7 @@ async function optimizeRenderer(pid, opts) {
     };
   }
 
-  // Idempotente: se já aplicamos pro mesmo PID, pula (mas re-aplica em reload).
+  // Idempotent: if already applied for same PID, skip (but re-applies on reload).
   // Em reload, o PID pode ser reutilizado — checamos o Set antes de pular.
   // Removido: o renderer PID muda em cada reload (novo processo), então o Set
   // cresce indefinidamente. Limpar a cada 50 entradas (antes de adicionar a 51ª).
@@ -404,9 +404,9 @@ async function optimizeRenderer(pid, opts) {
 
   const topology = opts.topology || detectCoreTopology();
 
-  // Performance: fixa em P-cores + 1 E-core reserva (para GC do V8 não competir
+  // Performance: pins to P-cores + 1 E-core reserve (so V8 GC doesn't compete
   // com o thread principal do Flash).
-  // Balanced: fixa em P-cores apenas (deixa E-cores livres pra outras apps).
+  // Balanced: pins to P-cores only (leaves E-cores free for other apps).
   // Quality: NÃO aplica affinity (deixa scheduler decidir — melhor pra multi-task).
   let cores = [];
   if (preset === 'quality') {

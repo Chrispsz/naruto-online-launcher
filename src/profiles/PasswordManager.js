@@ -1,7 +1,7 @@
 /**
  * profiles/PasswordManager.js — Chave de máquina + senha mestre (Fase 3e split)
  *
- * Responsabilidade ÚNICA (SRP): derivar e cachear a chave simétrica usada pelo
+ * Single Responsibility (SRP): derive and cache the symmetric key usada pelo
  * CryptoService para criptografar credenciais em repouso. A chave é derivada de
  * um identificador de máquina (hostname + username + userDataPath) + salt
  * aleatório persistido, via PBKDF2.
@@ -76,7 +76,7 @@ function getMachineKey() {
   }
   const machineSeed = os.hostname() + '|' + username + '|' + userDataPath + '|shinobi-vault-v2';
   const salt = _loadSalt();
-  // 100k iters para a chave de máquina (diferente das 200k do backup c/ senha)
+  // 100k iters for machine key (different from backup's 200k with password)
   _cachedKey = crypto.pbkdf2Sync(machineSeed, salt, 100000, CryptoService.PBKDF2_KEYLEN, 'sha512');
   return _cachedKey;
 }

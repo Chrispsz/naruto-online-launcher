@@ -1,7 +1,7 @@
 /**
  * ui/manager/StateBroadcaster.js — Push de estado para a UI (Fase 3c split)
  *
- * Responsabilidade ÚNICA (SRP): empurrar snapshots de estado (perfis, memória,
+ * Single Responsibility (SRP): push state snapshots (profiles, memory,
  * eventos) para o renderer do manager via IPC, em intervalos e em resposta a
  * mudanças. Não cria janelas nem registra handlers de ação — isso é papel do
  * ManagerWindow e IpcRouter.

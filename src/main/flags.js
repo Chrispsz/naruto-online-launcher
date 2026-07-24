@@ -39,7 +39,7 @@ function _computeHeapMB(forceLowSpec) {
 }
 
 /**
- * Aplica TODAS as flags. Idempotente (só roda 1x).
+ * Applies ALL flags. Idempotent (runs only once).
  * @param {Object} opts - { flashPath, flashVersion, hardwareProfile, forceLowSpec }
  */
 function applyAll(opts) {

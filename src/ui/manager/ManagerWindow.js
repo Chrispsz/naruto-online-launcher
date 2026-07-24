@@ -1,7 +1,7 @@
 /**
  * ui/manager/ManagerWindow.js — Lifecycle da BrowserWindow do manager (Fase 3c split)
  *
- * Responsabilidade ÚNICA (SRP): criar, focar, mostrar, esconder e destruir a
+ * Single Responsibility (SRP): create, focus, show, hide and destroy the
  * janela de gerenciamento (dashboard de contas). Não registra IPC nem faz
  * push de estado — isso é papel do IpcRouter e StateBroadcaster.
  *
@@ -63,7 +63,7 @@ function createManagerWindow(opts) {
     }
   });
 
-  // v3.3: SEM TRAY — close behavior inteligente.
+  // v3.3: NO TRAY — intelligent close behavior.
   // Se há janelas de jogo abertas: hide (não quit, jogo ainda roda).
   // Se não há jogo: permite close → window-all-closed → app.quit().
   managerWindow.on('close', function (e) {

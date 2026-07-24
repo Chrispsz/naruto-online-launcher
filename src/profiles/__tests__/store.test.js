@@ -142,7 +142,7 @@ describe('store.js', () => {
 
     test('assigns auto-generated name if not provided', () => {
       const p = store.create();
-      expect(p.name).toMatch(/^Conta/);
+      expect(p.name).toMatch(/^Account/);
     });
 
     test('defaults region to br for invalid region', () => {

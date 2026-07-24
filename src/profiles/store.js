@@ -1,25 +1,25 @@
 /**
- * ProfileStore — Armazenamento robusto de perfis (Multi-conta)
+ * ProfileStore — Robust profile storage (Multi-account)
  * v2.1.0
  *
- * FILOSOFIA (reavaliada):
- *   O usuário NÃO quer "8 contas simultâneas" por padrão. Ele quer PERFIS:
- *   clica num perfil → abre o jogo com os cookies salvos → joga. Simples.
+ * PHILOSOPHY (revised):
+ *   The user does NOT want "8 simultaneous accounts" by default. They want PROFILES:
+ *   clicks a profile → opens the game with saved cookies → plays. Simple.
  *
- *   Multi-conta em tempo real (várias janelas abertas) é recurso SECUNDÁRIO
- *   de power-user, acessível via "Abrir adicional", não o fluxo padrão.
+ *   Real-time multi-account (multiple windows open) is a SECONDARY feature
+ *   for power-users, accessible via "Open additional", not the default flow.
  *
- *   Cada perfil guarda: id, nome (ex: "chris"), servidor (ex: "s799"),
- *   região (BR/NA/EU/HK), cor de identificação, e cookies persistidos
- *   automaticamente pela session partition do Chromium.
+ *   Each profile stores: id, name (e.g.: "chris"), server (e.g.: "s799"),
+ *   region (BR/NA/EU/HK), identification color, and cookies persisted
+ *   automatically by the Chromium session partition.
  *
- * ROBUSTEZ (correção do que o usuário pediu):
- *   - Atomic write: escreve em .tmp, renomeia. Nunca corrompe se cair luz.
- *   - Backup .bak antes de cada save. Recuperação automática se JSON quebrar.
- *   - Schema validation: cada perfil é validado; inválidos são descartados.
+ * ROBUSTNESS (fixing what the user asked for):
+ *   - Atomic write: writes to .tmp, renames. Never corrupts on power loss.
+ *   - Backup .bak before each save. Auto-recovery if JSON breaks.
+ *   - Schema validation: each profile is validated; invalid ones are discarded.
  *   - 1MB file size limit (sanity check against silent corruption).
- *   - Try/catch em TODAS as operações síncronas de I/O.
- *   - Máximo 12 perfis (elevado conforme requisito, mas default é 1 janela ativa).
+ *   - Try/catch on ALL synchronous I/O operations.
+ *   - Maximum 12 profiles (increased per requirement, but default is 1 active window).
  */
 
 'use strict';
@@ -137,8 +137,8 @@ function ensureDir() {
 }
 
 /**
- * Carrega perfis do disco com recuperação automática de backup.
- * Sempre retorna um array válido (possivelmente vazio).
+ * Loads profiles from disk with automatic backup recovery.
+ * Always returns a valid array (possibly empty).
  * @returns {Array}
  */
 function load() {
@@ -189,7 +189,7 @@ function load() {
     logger.warn(
       'ProfileStore: ' +
         (parsed.length - _profiles.length) +
-        ' perfil(is) inválido(s) descartado(s)'
+        ' invalid profile(s) discarded'
     );
   }
   // v3.4: migra perfis v1 (sem language/notificationsEnabled) para v2
@@ -212,14 +212,14 @@ function load() {
     logger.info(
       'ProfileStore: ' +
         regionMigrated +
-        ' perfil(is) com região legacy migrada para cluster atual'
+        ' profile(s) with legacy region migrated to current cluster'
     );
   }
   if (migrated > 0) {
     logger.info(
       'ProfileStore: ' +
         migrated +
-        ' perfil(is) migrado(s) para schema atual (language + notificationsEnabled + region)'
+        ' profile(s) migrated to current schema (language + notificationsEnabled + region)'
     );
     _saveToDisk(_profiles);
   } else if (_profiles.length !== parsed.length) {
@@ -231,8 +231,8 @@ function load() {
 }
 
 /**
- * Salva perfis no disco de forma atômica com backup.
- * NUNCA lança — captura todas as exceções.
+ * Saves profiles to disk atomically with backup.
+ * NEVER throws — catches all exceptions.
  * @param {Array} profiles
  * @returns {boolean} true se salvou com sucesso
  */
@@ -277,7 +277,7 @@ function _saveToDisk(profiles) {
 }
 
 /**
- * Persiste o cache atual + notifica listeners.
+ * Persists the current cache + notifies listeners.
  */
 function persist() {
   if (_profiles === null) return;
@@ -317,9 +317,9 @@ function create(opts) {
   const profile = {
     id: 'p_' + crypto.randomBytes(6).toString('hex'),
     name:
-      String(opts.name || 'Conta ' + (_profiles.length + 1))
+      String(opts.name || 'Account ' + (_profiles.length + 1))
         .slice(0, 40)
-        .trim() || 'Conta',
+        .trim() || 'Account',
     server: String(opts.server || '')
       .slice(0, 20)
       .trim(),
@@ -348,7 +348,7 @@ function create(opts) {
   _profiles.push(profile);
   persist();
   logger.info(
-    'ProfileStore: perfil criado — ' +
+    'ProfileStore: profile created — ' +
       profile.name +
       (profile.server ? ' (' + profile.server + ')' : '') +
       ' [' +
@@ -452,7 +452,7 @@ function touch(id) {
 }
 
 /**
- * v4.5: Incrementa contador de lançamentos do perfil.
+ * v4.5: Increments profile launch count.
  * @param {string} id
  * @returns {boolean}
  */
@@ -469,9 +469,9 @@ function incrementLaunch(id) {
 }
 
 /**
- * v4.5: Adiciona tempo de jogo (ms) ao total acumulado do perfil.
+ * v4.5: Adds play time (ms) to the profile's accumulated total.
  * @param {string} id
- * @param {number} ms - milissegundos a adicionar (clampado em [0, 24h])
+ * @param {number} ms - milliseconds to add (clamped to [0, 24h])
  * @returns {boolean}
  */
 function addPlayTime(id, ms) {
@@ -488,7 +488,7 @@ function addPlayTime(id, ms) {
 }
 
 /**
- * v4.5: Retorna estatísticas de uso de um perfil.
+ * v4.5: Returns usage statistics for a profile.
  * @param {string} id
  * @returns {{launchCount:number, totalPlayMs:number, lastUsed:number, avgSessionMs:number}|null}
  */

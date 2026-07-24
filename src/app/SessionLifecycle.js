@@ -1,7 +1,7 @@
 /**
- * app/SessionLifecycle.js — Hooks de lifecycle da janela de jogo (Fase 3d split)
+ * app/SessionLifecycle.js — Game window lifecycle hooks (Fase 3d split)
  *
- * Responsabilidade ÚNICA (SRP): anexar handlers de evento (did-finish-load,
+ * Single Responsibility (SRP): attach event handlers (did-finish-load,
  * did-fail-load, render-process-gone, unresponsive, will-navigate, new-window,
  * close, closed, ready-to-show) a uma BrowserWindow de jogo. Inclui CSS
  * injection, FB mock, e auto-login via vault.
@@ -18,7 +18,7 @@ const ManagerWindow = require('../ui/manager/ManagerWindow');
 const StallDetector = require('./StallDetector');
 
 /**
- * Carrega a página do jogo com pré-autenticação via API quando possível.
+ * Loads the game page with pre-authentication via API when possible.
  * Se o perfil tem credenciais no vault, chama apiLogin.loginAndInject() ANTES
  * de loadURL — assim o cookie oas_user já está setado e o servidor redireciona
  * direto pro jogo, sem mostrar a tela de login do Naruto Online.
@@ -298,7 +298,7 @@ function attach(win, ctx) {
     }
 
     // LAYER 1: light cleanup (ads, cookies, popups, game site clutter)
-    // Usa executeJavaScript com guard de idempotência — insertCSS() adiciona
+    // Uses executeJavaScript with idempotency guard — insertCSS() adds
     // um novo <style> a CADA chamada (incluindo sub-frame loads do Flash),
     // acumulando estilos duplicados. Com o guard, injeta exatamente uma vez.
     win.webContents
@@ -417,12 +417,12 @@ function attach(win, ctx) {
       }
     });
     _windowStallDetectors.set(win, _stallDetector);
-    // Libera o guard de reload agora que o novo StallDetector está ativo.
+    // Releases the reload guard now that the new StallDetector is active.
     // (O guard foi adicionado em reloadWithPreAuth antes do loadURL.)
     _reloadingWindows.delete(win.id);
   });
 
-  // ── did-fail-load: retry 1x + tela de erro amigável ──
+  // ── did-fail-load: retry 1x + friendly error page ──
   win.webContents.on('did-fail-load', function (_e, code, desc, url) {
     if (url.startsWith('data:')) return;
     if (code === -3) return; // ERR_ABORTED
@@ -430,13 +430,13 @@ function attach(win, ctx) {
     const alreadyRetried = entry && entry.failLoadRetry;
     if (!alreadyRetried) {
       logger.warn(
-        'Falha ao carregar (' +
+        'Load failure (' +
           profile.name +
           '): ' +
           code +
           ' ' +
           desc +
-          ' — tentando novamente...'
+          ' — retrying...'
       );
       if (entry) entry.failLoadRetry = true;
       if (entry) {
@@ -450,13 +450,13 @@ function attach(win, ctx) {
       }
     } else {
       logger.error(
-        'Falha ao carregar (' +
+        'Load failure (' +
           profile.name +
           '): ' +
           code +
           ' ' +
           desc +
-          ' — retry esgotado, exibindo tela de erro'
+          ' — retry exhausted, showing error page'
       );
       const safeDesc = String(desc)
         .replace(/&/g, '&amp;')
@@ -474,13 +474,13 @@ function attach(win, ctx) {
             '<html><head><meta charset="utf-8"></head><body style="background:#0f0f14;color:#fff;display:flex;' +
               'align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;flex-direction:column">' +
               '<div style="font-size:48px;margin-bottom:16px">⚠️</div>' +
-              '<h2 style="color:#DC2626">Falha na conexão</h2>' +
-              '<p style="color:#8a8a96;margin:10px 0;font-size:13px">Erro: ' +
+              '<h2 style="color:#DC2626">Connection failure</h2>' +
+              '<p style="color:#8a8a96;margin:10px 0;font-size:13px">Error: ' +
               safeDesc +
               ' (' +
               safeCode +
               ')</p>' +
-              '<p style="color:#5a5a68;font-size:11px;margin-bottom:20px">Perfil: ' +
+              '<p style="color:#5a5a68;font-size:11px;margin-bottom:20px">Profile: ' +
               profile.name +
               '</p>' +
               '<button onclick="location.href=\'' +
@@ -488,7 +488,7 @@ function attach(win, ctx) {
               '\'" ' +
               'style="padding:10px 24px;background:linear-gradient(135deg,#DC2626,#7a1414);color:#fff;' +
               'border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600">' +
-              '🔄 Tentar Novamente</button>' +
+              '🔄 Try Again</button>' +
               '</body></html>'
           )
       );
@@ -499,13 +499,13 @@ function attach(win, ctx) {
   let _isForceClosing = false;
   let _renewTimer = null;
   win.on('close', function (e) {
-    // Se o app está fechando (before-quit), pula graceful cleanup —
-    // Electron destrói as janelas sozinho. Com N janelas abertas,
-    // o delay de 500ms por janela atrasa o shutdown desnecessariamente.
+    // If app is quitting (before-quit), skip graceful cleanup —
+    // Electron destroys windows on its own. With N windows open,
+    // the 500ms delay per window unnecessarily delays shutdown.
     try {
       if (require('../main').isQuitting()) return;
     } catch (_) {
-      // main não disponível (testes) — prossegue com graceful
+      // main not available (tests) — proceeds with graceful
     }
     e.preventDefault();
     if (_isForceClosing) return;
@@ -620,14 +620,14 @@ function attach(win, ctx) {
             if (r.renewed) {
               _renewConsecutiveFailures = 0;
               logger.info(
-                'JWT auto-renovado para "' +
+                'JWT auto-renewed for "' +
                   profile.name +
-                  '" (novo expira em ' +
+                  '" (new expires in ' +
                   Math.round(r.expiresAt / 1000 - Date.now() / 1000) +
                   's)'
               );
             }
-            // Sucesso ou não-renovado (JWT ainda válido) → reseta delay
+            // Success or not-renewed (JWT still valid) → resets delay
             _scheduleJwtRenewal(_renewBaseIntervalMs);
           })
           .catch(function (e) {
@@ -668,7 +668,7 @@ function attach(win, ctx) {
 }
 
 /**
- * Recarrega a página do jogo com pré-autenticação (igual ao fluxo do Play).
+ * Reloads the game page with pre-authentication (same flow as Play).
  *
  * Diferente de um reload cru, este método:
  *   1. Limpa cookies + localStorage + sessionStorage + cache da partition

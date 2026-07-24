@@ -1,7 +1,7 @@
 /**
  * profiles/ProfileVault.js — CRUD de credenciais + auto-login script (Fase 3e split)
  *
- * Responsabilidade ÚNICA (SRP): persistir credenciais (user/pass) criptografadas
+ * Single Responsibility (SRP): persist encrypted credentials (user/pass)
  * em vault.json e gerar o script de auto-login injetado no jogo. Delega a
  * criptografia ao CryptoService e a derivação de chave ao PasswordManager.
  *
@@ -247,7 +247,7 @@ module.exports = {
   removeCredentials: removeCredentials,
   buildAutoLoginScript: buildAutoLoginScript,
   onChange: onChange,
-  // exposto p/ testes
+  // exposed for tests
   _getVaultPath: _getVaultPath,
   MAX_VAULT_BYTES: MAX_VAULT_BYTES
 };

@@ -1,7 +1,7 @@
 /**
  * ui/controller.js — FACADE (Fase 3c split)
  *
- * Era o God Object (648 linhas). Agora é uma facade fina que compõe:
+ * Was the God Object (648 lines). Now it's a thin facade that composes:
  *   - manager/ManagerWindow.js    — lifecycle da BrowserWindow
  *   - manager/StateBroadcaster.js — push de estado (perfis/memória/eventos)
  *   - manager/IpcRouter.js        — registro dos handlers IPC

@@ -160,7 +160,7 @@ const DICTIONARY = {
 let _currentLang = 'en';
 
 /**
- * Define o idioma atual. Ignora silenciosamente se o idioma não existir no dicionário.
+ * Sets the current language. Silently ignores if language doesn't exist in dictionary.
  * @param {string} lang — código do idioma (ex: 'pt', 'en')
  */
 function setLanguage(lang) {
@@ -174,19 +174,19 @@ function getLanguage() {
   return _currentLang;
 }
 
-/** Traduz uma chave para o idioma atual, com fallback para en/pt. @param {string} key @returns {string} */
+/** Translates a key to the current language, with en/pt fallback. @param {string} key @returns {string} */
 function t(key) {
   const dict = DICTIONARY[_currentLang] || DICTIONARY.en;
   return dict[key] || DICTIONARY.en[key] || DICTIONARY.pt[key] || key;
 }
 
-/** Traduz uma chave para um idioma específico, com fallback para en/pt. @param {string} key @param {string} lang @returns {string} */
+/** Translates a key to a specific language, with en/pt fallback. @param {string} key @param {string} lang @returns {string} */
 function tl(key, lang) {
   const dict = DICTIONARY[lang] || DICTIONARY.en;
   return dict[key] || DICTIONARY.en[key] || DICTIONARY.pt[key] || key;
 }
 
-/** Retorna o dicionário completo para um idioma (ou o atual). @param {string} [lang] @returns {Object} */
+/** Returns the complete dictionary for a language (or the current one). @param {string} [lang] @returns {Object} */
 function getAll(lang) {
   const l = lang || _currentLang;
   return DICTIONARY[l] || DICTIONARY.pt;

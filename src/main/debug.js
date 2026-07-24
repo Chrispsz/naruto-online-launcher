@@ -1,7 +1,7 @@
 /**
  * main/debug.js — SHINOBI_DEBUG feature flag (Decisão B / Fase 3)
  *
- * DUAS camadas de isolamento para código de debug/teste:
+ * Two layers of isolation for debug/test code:
  *   1. (git) Branch `debug` — código experimental fica lá, nunca merge em main
  *      sem aprovação. `main` = sempre release-ready.
  *   2. (runtime) Esta feature flag — esconde UI de debug na build final.

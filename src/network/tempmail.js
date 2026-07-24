@@ -1,20 +1,20 @@
 /**
  * Tempmail Registration — mail.tm API
- * v1.0.0 — v4.9: criar contas temporárias pra logar no Naruto Online
+ * v1.0.0 — v4.9: create temporary accounts to log into Naruto Online
  *
- * Fluxo:
- *   1. GET  https://api.mail.tm/domains            → pega domínio disponível
- *   2. POST https://api.mail.tm/accounts           → cria conta {address, password}
- *   3. POST https://api.mail.tm/token              → pega JWT do mail.tm
+ * Flow:
+ *   1. GET  https://api.mail.tm/domains            → gets available domain
+ *   2. POST https://api.mail.tm/accounts           → creates account {address, password}
+ *   3. POST https://api.mail.tm/token              → gets mail.tm JWT
  *   4. POST https://passport.oasgames.com/?m=register&email=&pwd=
- *      → registra no Naruto Online, recebe loginKey (JWT HS256, 2h)
+ *      → registers on Naruto Online, receives loginKey (JWT HS256, 2h)
  *
- * Verificado ao vivo em 2026-07-14: conta criada, registrada, JWT capturado,
- * login funcionando, servidor recomendado retornado. Sem Flash, sem CAPTCHA,
- * sem verificação de email (email_active:0 é o default e a conta é usável).
+ * Verified live on 2026-07-14: account created, registered, JWT captured,
+ * login working, recommended server returned. No Flash, no CAPTCHA,
+ * no email verification (email_active:0 is the default and the account is usable).
  *
- * Limits: mail.tm tem rate-limit por IP (~8 contas/hora). Passport tem
- * rate-limit desconhecido. JWT expira em 2h (sem remember=1).
+ * Limits: mail.tm has per-IP rate-limit (~8 accounts/hour). Passport has
+ * rate-limit unknown. JWT expires in 2h (without remember=1).
  */
 
 'use strict';
@@ -28,13 +28,13 @@ const MAIL_TM_ACCOUNTS = MAIL_TM_BASE + '/accounts';
 const MAIL_TM_TOKEN = MAIL_TM_BASE + '/token';
 
 // v4.9.1: Rate limiting to avoid overloading mail.tm + passport.oasgames.com
-// mail.tm tem ~8 contas/hora por IP; passport tem rate-limit desconhecido.
+// mail.tm has ~8 accounts/hour per IP; passport has unknown rate-limit.
 // Limit: max 5 accounts per hour, minimum 30s between attempts.
 const _rateLimit = { history: [], MAX_PER_HOUR: 5, MIN_INTERVAL_MS: 30000 };
 
 function _checkRateLimit() {
   const now = Date.now();
-  // Remove entradas mais velhas que 1h
+  // Remove entries older than 1h
   _rateLimit.history = _rateLimit.history.filter(function (t) {
     return now - t < 3600000;
   });
@@ -42,9 +42,9 @@ function _checkRateLimit() {
     const oldest = _rateLimit.history[0];
     const waitMs = 3600000 - (now - oldest);
     throw new Error(
-      'Rate limit: máx ' +
+      'Rate limit: max ' +
         _rateLimit.MAX_PER_HOUR +
-        ' contas/hora. Tente novamente em ' +
+        ' accounts/hour. Try again in ' +
         Math.ceil(waitMs / 60000) +
         ' min.'
     );
@@ -54,9 +54,9 @@ function _checkRateLimit() {
     const since = now - last;
     if (since < _rateLimit.MIN_INTERVAL_MS) {
       throw new Error(
-        'Rate limit: aguarde ' +
+        'Rate limit: wait ' +
           Math.ceil((_rateLimit.MIN_INTERVAL_MS - since) / 1000) +
-          's entre contas.'
+          's between accounts.'
       );
     }
   }
@@ -64,11 +64,11 @@ function _checkRateLimit() {
 }
 
 /**
- * Cria uma conta tempmail + registra no Naruto Online, retornando credenciais + JWT.
+ * Creates a tempmail account + registers on Naruto Online, returning credentials + JWT.
  *
  * @param {Object} [opts]
- * @param {string} [opts.password] — senha da conta (default: gerada aleatória forte)
- * @param {string} [opts.prefix]   — prefixo do email (default: 'shinobi' + random)
+ * @param {string} [opts.password] — account password (default: random strong one generated)
+ * @param {string} [opts.prefix]   — email prefix (default: 'shinobi' + random)
  * @returns {Promise<{tempmail:{address:string,password:string,mailtmToken:string,accountId:string},game:{playerId:string,nickname:string,loginKey:string,jwtDecoded:Object,registeredAt:number,expiresAt:number}}>}
  */
 async function createNarutoAccount(opts) {
@@ -78,19 +78,19 @@ async function createNarutoAccount(opts) {
   const password = opts.password || _generatePassword();
   const prefix = opts.prefix || 'shinobi' + Math.random().toString(36).slice(2, 10);
 
-  // 1. Pega domínio disponível no mail.tm
+  // 1. Gets available domain from mail.tm
   const domain = await _getMailTmDomain();
   const address = prefix + '@' + domain;
   logger.info('Tempmail: creating account ' + address);
 
-  // 2. Cria conta no mail.tm
+  // 2. Creates account on mail.tm
   await _mailTmCreateAccount(address, password);
 
-  // 3. Pega token do mail.tm (pra inbox futuro)
+  // 3. Gets mail.tm token (for future inbox)
   const mailtmToken = await _mailTmGetToken(address, password);
   logger.info('Tempmail: mail.tm account active');
 
-  // 4. checkname — confirma que o email não está registrado no Naruto
+  // 4. checkname — confirms email isn't registered on Naruto
   const checkResp = await _httpGetJson(
     'https://passport.oasgames.com/index.php?m=checkname&email=' + encodeURIComponent(address)
   );
@@ -98,7 +98,7 @@ async function createNarutoAccount(opts) {
     throw new Error('Email already registered on Naruto Online (unexpected for new tempmail)');
   }
 
-  // 5. Registra no passport.oasgames.com → recebe loginKey (JWT)
+  // 5. Register on passport.oasgames.com → receive loginKey (JWT)
   const regResp = await _httpGetJson(
     'https://passport.oasgames.com/index.php?m=register&email=' +
       encodeURIComponent(address) +
@@ -116,11 +116,11 @@ async function createNarutoAccount(opts) {
   }
 
   logger.info(
-    'Tempmail: conta Naruto criada — playerId=' +
+    'Tempmail: Naruto account created — playerId=' +
       regResp.val.id +
       ' nickname=' +
       decoded.payload.nickname +
-      ' expira em ' +
+      ' expires in ' +
       Math.round(decoded.expiresInSeconds / 60) +
       'min'
   );
@@ -144,10 +144,10 @@ async function createNarutoAccount(opts) {
 }
 
 /**
- * Faz login com email+senha (renova o JWT antes de expirar).
+ * Performs login with email+password (renews JWT before expiry).
  * @param {string} email
  * @param {string} password
- * @param {boolean} [remember] — remember=1 estende o JWT (não testado, default false = 2h)
+ * @param {boolean} [remember] — remember=1 extends the JWT (untested, default false = 2h)
  * @returns {Promise<{loginKey:string, jwtDecoded:Object, playerId:string, nickname:string}>}
  */
 async function login(email, password, remember) {
@@ -169,7 +169,7 @@ async function login(email, password, remember) {
   logger.info(
     'Tempmail: login OK — playerId=' +
       resp.val.id +
-      ' expira em ' +
+      ' expires in ' +
       Math.round(decoded.expiresInSeconds / 60) +
       'min'
   );
@@ -182,7 +182,7 @@ async function login(email, password, remember) {
 }
 
 /**
- * Lista servidores recomendados pra um playerId.
+ * Lists recommended servers for a playerId.
  * @param {string} playerId
  * @param {string} [gamecode] — narutopl | narutoen | narutobr | narutode | narutoes | narutofr
  * @returns {Promise<Array<{server_sid:number, server_prex:string, server_name:string, fullname:string, url:string}>>}
@@ -228,7 +228,7 @@ async function _mailTmGetToken(address, password) {
 }
 
 function _generatePassword() {
-  // Senha forte aleatória (mail.tm exige ≥8 chars com variedade)
+  // Strong random password (mail.tm requires ≥8 chars with variety)
   const sets = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghijkmnopqrstuvwxyz', '23456789', '!@#$%&*'];
   let out = '';
   for (let i = 0; i < 16; i++) {
@@ -243,7 +243,7 @@ function _generatePassword() {
     .join('');
 }
 
-// HTTP GET que retorna JSON puro (passport register/checkname, mail.tm)
+// HTTP GET returning plain JSON (passport register/checkname, mail.tm)
 async function _httpGetJson(url, authHeader) {
   const https = require('https');
   return new Promise(function (resolve, reject) {
@@ -269,7 +269,7 @@ async function _httpGetJson(url, authHeader) {
   });
 }
 
-// HTTP POST que retorna JSON (mail.tm accounts/token)
+// HTTP POST returning JSON (mail.tm accounts/token)
 async function _httpPostJson(url, body) {
   const https = require('https');
   const u = new (require('url').URL)(url);
@@ -335,7 +335,7 @@ async function _httpGetJsonp(url) {
             try {
               resolve(JSON.parse(data));
             } catch (e) {
-              reject(new Error('Sem wrapper JSONP e JSON inválido: ' + data.slice(0, 200)));
+              reject(new Error('No JSONP wrapper and invalid JSON: ' + data.slice(0, 200)));
             }
           }
         });

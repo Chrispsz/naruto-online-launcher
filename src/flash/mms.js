@@ -1,5 +1,5 @@
 /**
- * Gerenciamento do mms.cfg (Flash Config)
+ * mms.cfg Management (Flash Config)
  * v1.2.0
  */
 
@@ -104,7 +104,7 @@ function createMmsCfg(hardwareProfile, opts) {
     const content = generateMmsContent(hardwareProfile, opts);
     fs.writeFileSync(cfgPath, content, 'utf8');
     logger.info(
-      'mms.cfg atualizado (' +
+      'mms.cfg updated (' +
         hardwareProfile +
         (opts && opts.advancedMode ? ' + Advanced' : '') +
         ')'

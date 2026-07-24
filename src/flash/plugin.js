@@ -1,5 +1,5 @@
 /**
- * Detecção e Configuração do Flash PPAPI
+ * Flash PPAPI Detection and Configuration
  * v3.0.0 - Clean Flash PPAPI configuration
  *
  * v4.9.3 (Fase 2): findFlashPlugin() procura TAMBÉM no cache on-demand

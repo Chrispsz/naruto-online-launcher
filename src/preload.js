@@ -15,7 +15,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 const { DEBUG } = require('./main/debug');
 
 // v5.9.9 (fix preload crash): contextBridge.exposeInMainWorld no Electron 11
-// NÃO aceita primitivos (boolean/string/number) como 2º argumento — só
+// Does NOT accept primitives (boolean/string/number) as 2nd argument — only
 // object/function/null. Passar `DEBUG` (boolean) direto crashava o preload
 // inteiro com "TypeError: Error processing argument at index 1, conversion
 // failure from". Consequência: window.__SHINOBI_DEBUG__ ficava undefined E
