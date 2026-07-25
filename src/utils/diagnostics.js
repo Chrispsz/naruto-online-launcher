@@ -36,6 +36,7 @@ const { app, dialog } = require('electron');
 const logger = require('./logger');
 
 const MAX_SANITIZE_DEPTH = 6; // Maximum recursion depth for _sanitizeObj (prevents stack overflow on circular refs)
+const MAX_LOG_FILE_BYTES = 2 * 1024 * 1024; // 2MB — skip oversized log files
 
 // ── Sanitization ──────────────────────────────────────────────────────────
 
@@ -180,7 +181,7 @@ function _readLogs() {
       const full = path.join(logsDir, f);
       try {
         const stat = fs.statSync(full);
-        if (stat.size > 2 * 1024 * 1024) {
+        if (stat.size > MAX_LOG_FILE_BYTES) {
           // >2MB: reads only last 500 lines
           const buf = fs.readFileSync(full, 'utf8');
           const lines = buf.split('\n');

@@ -7,10 +7,12 @@
 
 const log = require('electron-log');
 
+const MAX_LOG_SIZE_BYTES = 5 * 1024 * 1024; // 5MB rotation
+
 // Configure electron-log
 log.transports.file.level = 'info';
 log.transports.console.level = (process.env.LOG_LEVEL || 'info').toLowerCase();
-log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB rotation
+log.transports.file.maxSize = MAX_LOG_SIZE_BYTES;
 log.transports.file.maxFiles = 3;
 
 // Custom format with timestamp and emoji icons

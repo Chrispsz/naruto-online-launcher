@@ -144,6 +144,7 @@ Repo-wide overhaul to match the hygiene bar of top-starred open-source projects.
 - Removed test-only internal exports from `diagnostics.js` (`_sanitize`, `_sanitizeObj`, `_collectSystemInfo` — no longer needed after test removal).
 
 ### Changed
+- **Polish (Caretaker cycle 4)**: named 6 magic numbers as constants across 3 files — `EventTimers.js` (TICK_INTERVAL_MS=30s, NOTIFY_WINDOW_MS=60s, EVICTION_CUTOFF_MS=3h, MAX_FIRED_ENTRIES=200), `diagnostics.js` (MAX_LOG_FILE_BYTES=2MB), `logger.js` (MAX_LOG_SIZE_BYTES=5MB).
 - **Optimize (Caretaker cycle 2)**: hoisted 5 inline `require('https')` and 2 inline `require('url')` calls from hot-path network functions to module top-level in `tempmail.js` (3 https, 1 url) and `inspector.js` (1 url). Eliminates per-call module resolution overhead in every HTTP request.
 - Code-polish passes (17 cron runs, 7 productive): removed dead CSS selectors, tombstone comments, and redundant polling. Net −420 lines across 8 files with zero functional regression.
 - **Polish (Caretaker cycle 0)**: named magic numbers as constants across 3 files — `tempmail.js` (HTTP_TIMEOUT_MS, HOUR_MS, JWT_DEFAULT_EXPIRY_MS), `cookies.js` (COOKIE_RENEW_THRESHOLD_SECS), `diagnostics.js` (MAX_SANITIZE_DEPTH). Fixed stale User-Agent in `tempmail.js` (`4.9` → dynamic `pkg.version`).

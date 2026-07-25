@@ -32,6 +32,12 @@ const path = require('path');
 const logger = require('../utils/logger');
 const { normalizeRegion } = require('../config/regions');
 
+// Timer constants
+const TICK_INTERVAL_MS = 30000; // 30s — how often the timer loop runs
+const NOTIFY_WINDOW_MS = 60000; // 60s — time window to fire start/end notifications
+const EVICTION_CUTOFF_MS = 3 * 60 * 60 * 1000; // 3h — drop old entries from fired Map
+const MAX_FIRED_ENTRIES = 200; // threshold to trigger eviction cleanup
+
 // Approximate UTC offsets by region (without TZ libs).
 // DST is auto-detected by comparing the current Date offset with the base offset.
 // flag field uses [XX] text tag (not emoji) — native OS notifications
@@ -460,8 +466,8 @@ function start(activeRegions) {
             state = { reminded: false, endFired: false, occ: occ };
             fired.set(key, state);
           }
-          // Fire reminder if we're in the 0-60s window after fireAt and haven't yet
-          if (!state.reminded && now >= fireAt && now < fireAt + 60000) {
+          // Fire reminder if we're in the NOTIFY_WINDOW_MS after fireAt and haven't yet
+          if (!state.reminded && now >= fireAt && now < fireAt + NOTIFY_WINDOW_MS) {
             state.reminded = true;
             showNotification(ev, region, _lang);
           }
@@ -470,7 +476,7 @@ function start(activeRegions) {
             state.reminded &&
             !state.endFired &&
             now >= endAt &&
-            now < endAt + 60000
+            now < endAt + NOTIFY_WINDOW_MS
           ) {
             state.endFired = true;
             showEndNotification(ev, region, _lang);
@@ -481,14 +487,14 @@ function start(activeRegions) {
     // Cleanup old states — keeps map bounded.
     // (1) Delete entries for events that have already ended.
     // (2) Delete entries whose occurrence was >3h ago (missed end window).
-    if (fired.size > 200) {
-      var cutoff = now - 3 * 60 * 60 * 1000;
+    if (fired.size > MAX_FIRED_ENTRIES) {
+      var cutoff = now - EVICTION_CUTOFF_MS;
       // Performance: use cached state.occ instead of parsing the key each tick.
       for (const [k, s] of fired.entries()) {
         if (s.endFired || (s.occ && s.occ < cutoff)) fired.delete(k);
       }
     }
-  }, 30000);
+  }, TICK_INTERVAL_MS);
 
   if (_timer.unref) _timer.unref();
 }
