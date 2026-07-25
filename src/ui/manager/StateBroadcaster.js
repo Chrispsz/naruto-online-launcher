@@ -32,6 +32,7 @@ function _activeRegions() {
   return seen.length ? seen : ['br'];
 }
 
+/** Sends full profile list (with vault/shadow metadata) to the manager window. */
 function pushProfiles() {
   const list = store.getAll().map(function (p) {
     return Object.assign({}, p, {
@@ -42,6 +43,7 @@ function pushProfiles() {
   ManagerWindow.send('profiles:updated', list);
 }
 
+/** Sends upcoming events to the manager window. If no region, broadcasts all active regions. */
 function pushEvents(region) {
   const regions = region ? [region] : _activeRegions();
   const all = {};
@@ -51,6 +53,7 @@ function pushEvents(region) {
   ManagerWindow.send('events:update', { byRegion: all, userOffset: et.getUserOffsetHours() });
 }
 
+/** Pushes profiles + events in one call. Used for initial load. */
 function pushAll() {
   pushProfiles();
   pushEvents();
@@ -86,6 +89,7 @@ function startAutoRefresh() {
   }
 }
 
+/** Stops the periodic timer and unregisters listeners. */
 function stopAutoRefresh() {
   if (_pushTimer) {
     clearInterval(_pushTimer);

@@ -300,11 +300,13 @@ function persist() {
   }
 }
 
+/** Returns a shallow copy of all profiles. Triggers lazy-load on first call. */
 function getAll() {
   if (_profiles === null) load();
   return _profiles.slice();
 }
 
+/** Returns a single profile by ID, or null. */
 function get(id) {
   if (_profiles === null) load();
   return (
@@ -314,6 +316,7 @@ function get(id) {
   );
 }
 
+/** Creates a new profile with defaults. Returns the profile object, or null if limit reached. */
 function create(opts) {
   if (_profiles === null) load();
   if (_profiles.length >= MAX_PROFILES) {
@@ -367,6 +370,7 @@ function create(opts) {
   return profile;
 }
 
+/** Merges safe fields from `updates` into an existing profile. Returns true if found and persisted. */
 function update(id, updates) {
   if (_profiles === null) load();
   const p = _profiles.find(function (x) {
@@ -397,6 +401,7 @@ function update(id, updates) {
   return true;
 }
 
+/** Removes a profile by ID and wipes its partition (cookies/cache). Returns true if found. */
 function remove(id) {
   if (_profiles === null) load();
   const idx = _profiles.findIndex(function (x) {
@@ -447,6 +452,7 @@ function reorder(order) {
   persist();
 }
 
+/** Updates lastUsed timestamp to now. */
 function touch(id) {
   if (_profiles === null) load();
   const p = _profiles.find(function (x) {
@@ -581,6 +587,7 @@ function importJSON(jsonStr) {
   return { imported: imported, skipped: skipped };
 }
 
+/** Registers a listener called after every persist(). */
 function onChange(cb) {
   if (typeof cb === 'function') _listeners.push(cb);
 }
