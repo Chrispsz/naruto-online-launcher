@@ -258,23 +258,8 @@ function create(profileId, opts) {
   // ── Public API: query methods ──
 
   /**
-   * Return state snapshot (deep copy).
-   */
-  function getStats() {
-    // If session active, include current playtime
-    var currentPlaytime = _state.playtimeMs;
-    if (_sessionStartTs !== null) {
-      currentPlaytime += _now() - _sessionStartTs;
-    }
-    return JSON.parse(JSON.stringify(Object.assign({}, _state, {
-      playtimeMs: currentPlaytime,
-      sessionActive: _sessionStartTs !== null
-    })));
-  }
-
-  /**
    * Return compact summary (for future IPC/UI).
-   * Reads _state directly — avoids the JSON roundtrip deep clone in getStats().
+   * Reads _state directly — no deep clone.
    */
   function getSummary() {
     var currentPlaytime = _state.playtimeMs;
@@ -358,7 +343,6 @@ function create(profileId, opts) {
     recordNetworkError: recordNetworkError,
     recordCrash: recordCrash,
     recordReload: recordReload,
-    getStats: getStats,
     getSummary: getSummary,
     reset: reset,
     persist: persist,
