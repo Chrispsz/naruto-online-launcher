@@ -279,7 +279,5 @@ function create(session, profileId) {
 }
 
 module.exports = {
-  create: create,
-  KNOWN_ENDPOINTS: KNOWN_ENDPOINTS,
-  KNOWN_PATH_SIGNATURES: KNOWN_PATH_SIGNATURES
+  create: create
 };

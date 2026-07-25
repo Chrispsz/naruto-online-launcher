@@ -357,7 +357,5 @@ module.exports = {
   createNarutoAccount: createNarutoAccount,
   login: login,
   getRecommendedServers: getRecommendedServers,
-  // exposed for tests
-  _generatePassword: _generatePassword,
   _decode: jwt.decode
 };

@@ -156,20 +156,6 @@ function setupBlocker(session) {
   return true;
 }
 
-/**
- * Resets the idempotency state of a session.
- * @param {Electron.Session} session
- */
-function forgetSession(session) {
-  _configuredSessions.delete(session);
-}
-
 module.exports = {
-  BLOCKED_DOMAINS: BLOCKED_DOMAINS,
-  BLOCKED_PATH_PATTERNS: BLOCKED_PATH_PATTERNS,
-  isBlockedDomain: isBlockedDomain,
-  isBlockedPath: isBlockedPath,
-  shouldBlock: shouldBlock,
-  setupBlocker: setupBlocker,
-  forgetSession: forgetSession
+  setupBlocker: setupBlocker
 };

@@ -446,13 +446,6 @@ function getEnvVars(preset) {
 }
 
 /**
- * Reseta o cache (para testes).
- */
-function _resetCache() {
-  _cache = null;
-}
-
-/**
  * Fallback: lists GPUs on Windows via PowerShell Get-CimInstance.
  * Works on Win11 24H2+ (where wmic was removed) and Windows Server.
  * Tenta powershell.exe (v5.1) primeiro, fallback pwsh.exe (PowerShell 7+).
@@ -565,19 +558,5 @@ function detectLinuxSandbox() {
 
 module.exports = {
   detect: detect,
-  getEnvVars: getEnvVars,
-  // exposed for tests
-  _resetCache: _resetCache,
-  _listGpusLinuxSysfs: _listGpusLinuxSysfs,
-  _listGpusLinuxLspci: _listGpusLinuxLspci,
-  _listGpusWindowsWmic: _listGpusWindowsWmic,
-  _listGpusWindowsPowershell: _listGpusWindowsPowershell,
-  _detectNvidiaPrimeLinux: _detectNvidiaPrimeLinux,
-  _isMusl: _isMusl,
-  _isNvidiaProprietary: _isNvidiaProprietary,
-  detectLinuxSandbox: detectLinuxSandbox,
-  VENDOR_NVIDIA: VENDOR_NVIDIA,
-  VENDOR_AMD: VENDOR_AMD,
-  VENDOR_INTEL: VENDOR_INTEL,
-  VENDOR_MAP: VENDOR_MAP
+  getEnvVars: getEnvVars
 };

@@ -142,6 +142,7 @@ Repo-wide overhaul to match the hygiene bar of top-starred open-source projects.
 ### Removed
 - **Clean (Caretaker cycle 1)**: removed 14 dead development/debug artifacts — `tools/` (6 AI review scripts), `.launcher-research-backup/` (4 eval reports), `scripts/debug.sh`, `scripts/debug-launcher.sh`, `scripts/build-preview.sh`, `docs/audits/` (2 audit reports). None are referenced by production code.
 - Removed test-only internal exports from `diagnostics.js` (`_sanitize`, `_sanitizeObj`, `_collectSystemInfo` — no longer needed after test removal).
+- **Clean (Caretaker cycle 5)**: removed 24 dead test-only exports from 4 files — `GpuDetector.js` (14: internal helpers + vendor constants exposed for tests, `_resetCache` function deleted), `blocker.js` (6: `BLOCKED_DOMAINS`, `BLOCKED_PATH_PATTERNS`, `isBlockedDomain`, `isBlockedPath`, `shouldBlock`, `forgetSession`; `forgetSession` function deleted), `inspector.js` (2: `KNOWN_ENDPOINTS`, `KNOWN_PATH_SIGNATURES`), `tempmail.js` (1: `_generatePassword`).
 
 ### Changed
 - **Polish (Caretaker cycle 4)**: named 6 magic numbers as constants across 3 files — `EventTimers.js` (TICK_INTERVAL_MS=30s, NOTIFY_WINDOW_MS=60s, EVICTION_CUTOFF_MS=3h, MAX_FIRED_ENTRIES=200), `diagnostics.js` (MAX_LOG_FILE_BYTES=2MB), `logger.js` (MAX_LOG_SIZE_BYTES=5MB).
