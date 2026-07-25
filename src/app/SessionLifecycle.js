@@ -168,7 +168,9 @@ function attach(win, ctx) {
   var _stallDetector = null;
 
   // ── CRASH ISOLATION + AUTO-RECOVERY ──
-  // Backoff: max 3 auto-reloads in 10 min per profile (prevents crash loop).
+  // Backoff: max MAX_AUTO_RELOADS auto-reloads in CRASH_WINDOW_MS per profile (prevents crash loop).
+  var CRASH_WINDOW_MS = 10 * 60 * 1000; // 10 min
+  var MAX_AUTO_RELOADS = 3;
   var _crashTimestamps = [];
   win.webContents.on('render-process-gone', function (_e, details) {
     logger.error(
@@ -195,9 +197,9 @@ function attach(win, ctx) {
 
     var now = Date.now();
     _crashTimestamps = _crashTimestamps.filter(function (ts) {
-      return now - ts < 600000;
-    }); // 10 min window
-    if (_crashTimestamps.length >= 3) {
+      return now - ts < CRASH_WINDOW_MS;
+    }); // CRASH_WINDOW_MS window
+    if (_crashTimestamps.length >= MAX_AUTO_RELOADS) {
       logger.error(
         'SessionLifecycle: crash limit reached for "' + profile.name + '" — not reloading (loop)'
       );

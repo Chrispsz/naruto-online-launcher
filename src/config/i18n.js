@@ -161,7 +161,7 @@ let _currentLang = 'en';
 
 /**
  * Sets the current language. Silently ignores if language doesn't exist in dictionary.
- * @param {string} lang — código do idioma (ex: 'pt', 'en')
+ * @param {string} lang — language code (e.g. 'pt', 'en')
  */
 function setLanguage(lang) {
   if (DICTIONARY[lang]) {
@@ -169,7 +169,7 @@ function setLanguage(lang) {
   }
 }
 
-/** Retorna o idioma atual. @returns {string} */
+/** Returns the current language. @returns {string} */
 function getLanguage() {
   return _currentLang;
 }

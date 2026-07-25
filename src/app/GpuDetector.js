@@ -448,13 +448,13 @@ function getEnvVars(preset) {
 /**
  * Fallback: lists GPUs on Windows via PowerShell Get-CimInstance.
  * Works on Win11 24H2+ (where wmic was removed) and Windows Server.
- * Tenta powershell.exe (v5.1) primeiro, fallback pwsh.exe (PowerShell 7+).
- * Get-CimInstance é o substituto moderno do wmic.
+ * Tries powershell.exe (v5.1) first, fallback pwsh.exe (PowerShell 7+).
+ * Get-CimInstance is the modern replacement for wmic.
  * @returns {Array<Object>}
  */
 function _listGpusWindowsPowershell() {
   try {
-    // Tenta powershell.exe primeiro, fallback pwsh.exe
+    // Try powershell.exe first, fallback pwsh.exe
     var out = _tryPowershellGpu('powershell');
     if (!out) out = _tryPowershellGpu('pwsh');
     if (!out) return [];
