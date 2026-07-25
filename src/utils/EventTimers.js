@@ -193,7 +193,7 @@ function getServerOffsetHours(region) {
 /**
  * Calculates the timestamp (ms) of the next occurrence of an event in the server timezone,
  * converted to the user's local clock.
- * Respeita `days` (dias da semana permitidos); vazio = qualquer dia.
+ * Honors `days` (allowed weekdays); empty = any day.
  * @param {string} region
  * @param {number} serverHour 0-23
  * @param {number[]} [days] — weekday numbers (0=Sun..6=Sat). Empty/missing = any day.
@@ -219,10 +219,10 @@ function nextOccurrenceMs(region, serverHour, days) {
 }
 
 /**
- * Lists events for a region with countdown to next trigger.
- * @param {string} region
- * @param {string} [lang] — 'pt' or 'en' (defaults to current set language)
- * @returns {Array}
+ * Returns upcoming events for a region, sorted by time until next reminder fires.
+ * @param {string} region — server region code (br/na/de/es/pl/fr or legacy eu/hk)
+ * @param {string} [lang] — 'en' or 'pt' (defaults to current lang)
+ * @returns {Array<Object>} sorted event objects with countdown/time metadata
  */
 function getUpcoming(region, lang) {
   // Normalize legacy region codes (eu/hk/pt/en) to current clusters.
@@ -301,9 +301,11 @@ function formatServerTime(ms, region) {
   return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
 }
 
+/** Returns whether event notifications are muted. */
 function isMuted() {
   return _muted;
 }
+/** Mutes or unmutes event notifications. */
 function setMuted(m) {
   _muted = !!m;
   logger.info('EventTimers: notifications ' + (_muted ? 'MUTED' : 'active'));
@@ -326,6 +328,7 @@ function setLang(lang) {
   if (lang === 'pt' || lang === 'en') _lang = lang;
 }
 
+/** Registers a callback invoked when an event reminder fires. */
 function onRemind(cb) {
   if (typeof cb === 'function') _remindListeners.push(cb);
 }
@@ -387,6 +390,11 @@ function showEndNotification(event, region, lang) {
   }
 }
 
+/**
+ * Starts the event timer for the regions of profiles that have notifications enabled.
+ * Falls back to ['br'] if no profiles have notifications enabled.
+ * @param {Array<Object>} profiles — profile objects with .region and .notificationsEnabled
+ */
 function startWithProfiles(profiles) {
   if (_timer) return;
   if (!Array.isArray(profiles) || profiles.length === 0) {
@@ -421,8 +429,8 @@ function startWithProfiles(profiles) {
 }
 
 /**
- * Starts the loop. Monitors ALL active regions (for profiles in different regions).
- * A cada 30s checa se algum lembrete deve disparar OU se algum evento ativo acabou de terminar.
+ * Starts the event timer loop for the given regions.
+ * Every 30s checks if any reminder should fire or any active event just ended.
  * @param {Array<string>} activeRegions — regions of active profiles
  */
 function start(activeRegions) {
@@ -483,6 +491,7 @@ function start(activeRegions) {
   if (_timer.unref) _timer.unref();
 }
 
+/** Stops the event timer loop. */
 function stop() {
   if (_timer) {
     clearInterval(_timer);

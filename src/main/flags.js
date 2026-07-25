@@ -1,7 +1,7 @@
 /**
  * main/flags.js — Single source of truth: Chromium 87 command-line flags
  *
- * Consolidado e enxugado.
+ * Consolidated and streamlined.
  * Single merge of disable-features, enable-features and js-flags.
  */
 
@@ -12,6 +12,7 @@ const { app } = require('electron');
 
 const TOTAL_RAM_GB = os.totalmem() / (1024 * 1024 * 1024);
 const CPU_CORES = os.cpus().length;
+/** True when running under Wayland (affects GPU flag selection on Linux). */
 const IS_WAYLAND = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY;
 
 const _disabled = new Set([
@@ -136,11 +137,18 @@ function getAppliedSnapshot() {
   };
 }
 
+/** True when the machine has less than 4 GB RAM (triggers low-spec mode). */
+const IS_LOW_SPEC = TOTAL_RAM_GB < 4;
+/** True when the machine has less than 2 GB RAM (extreme low-spec, reduced functionality). */
+const IS_MINIMAL = TOTAL_RAM_GB < 2;
+/** Total system RAM in GB, rounded to 1 decimal. Used for heap/cache sizing. */
+const SYSTEM_RAM_GB = Math.round(TOTAL_RAM_GB * 10) / 10;
+
 module.exports = {
   applyAll,
   getAppliedSnapshot,
-  IS_LOW_SPEC: TOTAL_RAM_GB < 4,
-  IS_MINIMAL: TOTAL_RAM_GB < 2,
+  IS_LOW_SPEC: IS_LOW_SPEC,
+  IS_MINIMAL: IS_MINIMAL,
   IS_WAYLAND: IS_WAYLAND,
-  SYSTEM_RAM_GB: Math.round(TOTAL_RAM_GB * 10) / 10
+  SYSTEM_RAM_GB: SYSTEM_RAM_GB
 };
