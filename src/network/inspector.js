@@ -19,6 +19,8 @@
 
 'use strict';
 
+const urlModule = require('url');
+
 const logger = require('../utils/logger');
 const jwt = require('../utils/jwt');
 
@@ -104,7 +106,7 @@ function create(session, profileId) {
    */
   function classify(url) {
     try {
-      var u = new (require('url').URL)(url);
+      var u = new urlModule.URL(url);
       var host = u.hostname;
       var fullPath = u.pathname + u.search;
 

@@ -19,6 +19,9 @@
 
 'use strict';
 
+const https = require('https');
+const urlMod = require('url');
+
 const logger = require('../utils/logger');
 const jwt = require('../utils/jwt');
 const pkgVersion = require('../../package.json').version;
@@ -250,7 +253,6 @@ function _generatePassword() {
 
 // HTTP GET returning plain JSON (passport register/checkname, mail.tm)
 async function _httpGetJson(url, authHeader) {
-  const https = require('https');
   return new Promise(function (resolve, reject) {
     const headers = { 'User-Agent': 'Shinobi-Launcher/' + pkgVersion };
     if (authHeader) headers.Authorization = authHeader;
@@ -276,8 +278,7 @@ async function _httpGetJson(url, authHeader) {
 
 // HTTP POST returning JSON (mail.tm accounts/token)
 async function _httpPostJson(url, body) {
-  const https = require('https');
-  const u = new (require('url').URL)(url);
+  const u = new urlMod.URL(url);
   const payload = JSON.stringify(body);
   return new Promise(function (resolve, reject) {
     const req = https.request(
@@ -317,7 +318,6 @@ async function _httpPostJson(url, body) {
 
 // HTTP GET that returns JSON with JSONP wrapper (passport login, odp3)
 async function _httpGetJsonp(url) {
-  const https = require('https');
   return new Promise(function (resolve, reject) {
     const req = https.get(
       url,
