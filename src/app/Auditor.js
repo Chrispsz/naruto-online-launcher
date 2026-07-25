@@ -98,7 +98,7 @@ function create(profileId, opts) {
       merged.networkErrors = Object.assign(defaultState.networkErrors, loaded.networkErrors || {});
       merged.crashes = Object.assign(defaultState.crashes, loaded.crashes || {});
       merged.autoReloads = Object.assign(defaultState.autoReloads, loaded.autoReloads || {});
-      merged.profileId = profileId; // ensures
+      merged.profileId = profileId; // ensures correct identity after Object.assign merge
       return merged;
     } catch (e) {
       logger.warn('Auditor: failed to load ' + fp + ' — ' + e.message + ' (using default)');

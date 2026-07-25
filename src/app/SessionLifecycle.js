@@ -1,13 +1,13 @@
 /**
- * app/SessionLifecycle.js — Game window lifecycle hooks (Fase 3d split)
+ * app/SessionLifecycle.js — Game window lifecycle hooks (Phase 3d split)
  *
  * Single Responsibility (SRP): attach event handlers (did-finish-load,
  * did-fail-load, render-process-gone, unresponsive, will-navigate, new-window,
- * close, closed, ready-to-show) a uma BrowserWindow de jogo. Inclui CSS
- * injection, FB mock, e auto-login via vault.
+ * close, closed, ready-to-show) to a game BrowserWindow. Includes CSS
+ * injection, FB mock, and auto-login via vault.
  *
  * History: was inline in the God Object game-launcher.js (620 lines). Extracted
- * para isolar o lifecycle do launch/orchestration.
+ * to isolate the lifecycle from launch/orchestration.
  */
 
 'use strict';
@@ -20,10 +20,10 @@ const StallDetector = require('./StallDetector');
 /**
  * Loads the game page with pre-authentication via API when possible.
  * If the profile has credentials in the vault, calls apiLogin.loginAndInject() BEFORE
- * from loadURL — so the oas_user cookie is already set and the server redirects
+ * loadURL — so the oas_user cookie is already set and the server redirects
  * straight to the game, without showing the Naruto Online login screen.
  * Fallback: if API login fails, loads the URL normally (form-injection auto-login
- * via MutationObserver cuida do login depois).
+ * via MutationObserver handles the login after that).
  */
 function _loadGameWithPreAuth(profileId, profile, win, ses, getGameUrl) {
   var url = getGameUrl(profile);
@@ -671,14 +671,14 @@ function attach(win, ctx) {
  * Reloads the game page with pre-authentication (same flow as Play).
  *
  * Unlike a raw reload, this method:
- *   1. Limpa cookies + localStorage + sessionStorage + cache da partition
+ *   1. Clears cookies + localStorage + sessionStorage + cache from the partition
  *   2. Pre-authenticates via apiLogin.loginAndInject() BEFORE reloading
  *      → the oas_user cookie comes already set → server redirects straight to the game,
  *        without showing the Naruto Online login screen (email would be visible).
  *
  * If the profile does NOT have credentials in the vault, does just a direct reload (no way to
  * pre-authenticate). If apiLogin fails, falls back to simple loadURL (the
- * form-injection auto-login via did-finish-load cuida do login depois).
+ * form-injection auto-login via did-finish-load handles the login after that).
  *
  * ANTI-RACE: if a reload is already in progress for this window, ignores.
  * Prevents rapid multiple F5 from causing concurrent clearStorageData + double loadURL.

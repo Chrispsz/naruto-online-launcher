@@ -109,7 +109,7 @@ async function checkSession(session) {
  * @param {Object} session
  * @param {string} email
  * @param {string} password
- * @param {number} [thresholdSeconds=300] — renova se faltar menos que isso
+ * @param {number} [thresholdSeconds=300] — renew if fewer seconds remain than this
  * @returns {Promise<{renewed:boolean, loginKey:string|null, expiresAt:number}>}
  */
 async function renewIfNeeded(session, email, password, thresholdSeconds) {

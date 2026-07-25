@@ -35,8 +35,11 @@ const os = require('os');
 const { execFile } = require('child_process');
 const logger = require('../utils/logger');
 
-// Windows priority constants — resolved lazily inside _applyWindowsPriority
-// (mocks in tests lack constants.priority, so it can't be top-level).
+/**
+ * Returns Windows priority constants, resolved lazily.
+ * Cached after first call to avoid repeated property lookups.
+ * @returns {{aboveNormal: number, normal: number, belowNormal: number}}
+ */
 let _winPrioCache = null;
 function _winPrioConstants() {
   if (_winPrioCache) return _winPrioCache;
@@ -286,7 +289,7 @@ function _applyOomScoreAdj(pid, score) {
 
 /**
  * Applies CPU affinity on Windows via PowerShell `Set-Process -ProcessorAffinity`.
- * Windows usa bitmask: bit N = core N. cores [0,1,2,3] → 0b1111 = 15.
+ * Windows uses bitmask: bit N = core N. cores [0,1,2,3] → 0b1111 = 15.
  * PowerShell is the most reliable method on Win10/11 (wmic is deprecated).
  * @param {number} pid
  * @param {number[]} cores
@@ -333,7 +336,7 @@ function _applyWindowsAffinity(pid, cores) {
 
 /**
  * Applies process priority on Windows via Node.js os.setPriority (cross-platform).
- * Mapeia nice-like targets (-5/0/+5) para Windows priority classes:
+ * Maps nice-like targets (-5/0/+5) to Windows priority classes:
  *   -5 → ABOVE_NORMAL (performance preset)
  *    0 → NORMAL (balanced preset)
  *   +5 → BELOW_NORMAL (quality preset)
@@ -368,10 +371,10 @@ function _applyWindowsPriority(pid, niceTarget) {
  * Applies all CPU optimizations to a renderer PID (cross-platform).
  *
  * LINUX: taskset (affinity) + renice (priority) + oom_score_adj (OOM protection).
- * WINDOWS: PowerShell (affinity) + os.setPriority (priority). Sem OOM protection.
+ * WINDOWS: PowerShell (affinity) + os.setPriority (priority). No OOM protection.
  * macOS: no-op.
  *
- * @param {number} pid - PID do processo renderer do Electron
+ * @param {number} pid - PID of the Electron renderer process
  * @param {Object} opts - { preset: 'performance'|'balanced'|'quality',
  *                          topology: detectCoreTopology() result (optional) }
  * @returns {Promise<{affinity, nice, oom}>}
@@ -410,7 +413,7 @@ async function optimizeRenderer(pid, opts) {
   // Quality: does NOT apply affinity (lets scheduler decide — better for multi-task).
   let cores = [];
   if (preset === 'quality') {
-    // Sem affinity
+    // No affinity (quality preset lets scheduler decide)
   } else if (preset === 'performance') {
     // P-cores + 1 E-core (if hybrid) so GC doesn't compete with Flash thread
     if (topology.isHybrid && topology.pCores.length > 0) {
