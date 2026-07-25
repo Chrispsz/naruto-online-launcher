@@ -164,7 +164,6 @@ Object.keys(EVENTS_BY_REGION).forEach(function (region) {
 let _muted = false;
 let _timer = null;
 let _remindListeners = [];
-let _endListeners = [];
 let _globalRemindMin = null; // override; null = use per-event remindMin
 let _lang = 'en'; // 'en' or 'pt' — controls notification language
 
@@ -189,10 +188,6 @@ function getServerOffsetHours(region) {
   const month = now.getUTCMonth(); // 0-11
   const inDST = norm === 'na' ? month >= 2 && month <= 10 : month >= 2 && month <= 9;
   return r.baseOffset + (inDST ? 1 : 0);
-}
-
-function serverToUserOffsetHours(region) {
-  return getUserOffsetHours() - getServerOffsetHours(region);
 }
 
 /**
@@ -335,10 +330,6 @@ function onRemind(cb) {
   if (typeof cb === 'function') _remindListeners.push(cb);
 }
 
-function onEnd(cb) {
-  if (typeof cb === 'function') _endListeners.push(cb);
-}
-
 function localizedEventName(ev, lang) {
   return lang === 'pt' ? ev.name_pt : ev.name_en;
 }
@@ -394,13 +385,6 @@ function showEndNotification(event, region, lang) {
   } catch (e) {
     logger.debug('EventTimers: end-notification failed: ' + e.message);
   }
-  _endListeners.forEach(function (cb) {
-    try {
-      cb({ event: event, region: region });
-    } catch (_) {
-      /* ignore */
-    }
-  });
 }
 
 function startWithProfiles(profiles) {
@@ -516,13 +500,5 @@ module.exports = {
   setRemindMin: setRemindMin,
   setLang: setLang,
   onRemind: onRemind,
-  onEnd: onEnd,
-  REGION_TZ: REGION_TZ,
-  EVENTS_BY_REGION: EVENTS_BY_REGION,
-  getUserOffsetHours: getUserOffsetHours,
-  getServerOffsetHours: getServerOffsetHours,
-  serverToUserOffsetHours: serverToUserOffsetHours,
-  nextOccurrenceMs: nextOccurrenceMs,
-  formatUserTime: formatUserTime,
-  formatServerTime: formatServerTime
+  getUserOffsetHours: getUserOffsetHours
 };

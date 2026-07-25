@@ -146,6 +146,5 @@ function saveConfig(config) {
 
 module.exports = {
   loadConfig: loadConfig,
-  saveConfig: saveConfig,
-  validateConfig: validateConfig
+  saveConfig: saveConfig
 };

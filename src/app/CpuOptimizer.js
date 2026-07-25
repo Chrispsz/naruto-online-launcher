@@ -501,24 +501,7 @@ function getStats() {
   };
 }
 
-/**
- * Resets internal state (used when switching profiles).
- */
-function _reset() {
-  _appliedPids.clear();
-  _winPrioCache = null; // clear Windows constants cache
-}
-
 module.exports = {
-  detectCoreTopology: detectCoreTopology,
   optimizeRenderer: optimizeRenderer,
-  getStats: getStats,
-  _reset: _reset,
-  _parseCpuList: _parseCpuList,
-  _applyTaskset: _applyTaskset,
-  _applyRenice: _applyRenice,
-  _applyOomScoreAdj: _applyOomScoreAdj,
-  _applyWindowsAffinity: _applyWindowsAffinity,
-  _applyWindowsPriority: _applyWindowsPriority,
-  _winPrioConstants: _winPrioConstants
+  getStats: getStats
 };

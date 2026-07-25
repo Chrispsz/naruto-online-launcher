@@ -83,16 +83,6 @@ function getMachineKey() {
   return _cachedKey;
 }
 
-/**
- * Limpa os caches (p/ testes).
- */
-function _resetCache() {
-  _cachedKey = null;
-  _cachedSalt = null;
-}
-
 module.exports = {
-  getMachineKey: getMachineKey,
-  _resetCache: _resetCache,
-  VAULT_SALT_FILE: VAULT_SALT_FILE
+  getMachineKey: getMachineKey
 };
