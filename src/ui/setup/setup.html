@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Shinobi Launcher — Setup</title>
+    <style>
+      :root {
+        --bg: #08080d;
+        --bg2: #111118;
+        --bg3: #1a1a24;
+        --card: #12121a;
+        --border: #252535;
+        --border2: #35354a;
+        --fg: #ececf4;
+        --muted: #9090a0;
+        --dim: #606070;
+        --accent: #ff8c00;
+        --accent2: #dc2626;
+        --ok: #10b981;
+        --warn: #f59e0b;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        overflow: hidden;
+        font-size: 13px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(220, 38, 38, 0.1), transparent 50%),
+          radial-gradient(ellipse at 80% 100%, rgba(255, 140, 0, 0.06), transparent 50%), var(--bg);
+      }
+
+      /* Header */
+      header {
+        padding: 1.1rem 1.5rem 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(180deg, rgba(17, 17, 24, 0.8), transparent);
+      }
+      .logo {
+        width: 2.2rem;
+        height: 2.2rem;
+        background: linear-gradient(135deg, var(--accent2), #7a1414);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow:
+          0 0 12px rgba(220, 38, 38, 0.5),
+          inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+      }
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+      .brand h1 {
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+      }
+      .brand .sub {
+        font-size: 0.65rem;
+        color: var(--muted);
+      }
+
+      /* Main */
+      main {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+      main::-webkit-scrollbar {
+        width: 4px;
+      }
+      main::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      main::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+      }
+
+      /* Section card */
+      .section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.85rem 1rem;
+        transition: border-color 0.2s;
+      }
+      .section:hover {
+        border-color: var(--border2);
+      }
+      .section h2 {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+
+      /* Language selector — 3x2 grid */
+      .lang-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.35rem;
+      }
+      .lang-btn {
+        padding: 0.5rem 0.4rem;
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        border-radius: 0.35rem;
+        color: var(--fg);
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: 0.15s;
+        font-family: inherit;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+      }
+      .lang-btn:hover {
+        border-color: var(--accent);
+        background: rgba(255, 140, 0, 0.04);
+      }
+      .lang-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      }
+      .lang-btn .flag {
+        width: 1.1rem;
+        height: 0.82rem;
+      }
+
+      /* Region selector — 2x4 grid */
+      .region-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.35rem;
+      }
+      .region-btn {
+        padding: 0.5rem 0.5rem;
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        border-radius: 0.35rem;
+        color: var(--fg);
+        font-size: 0.78rem;
+        cursor: pointer;
+        transition: 0.15s;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+      .region-btn:hover {
+        border-color: var(--accent);
+        background: rgba(255, 140, 0, 0.04);
+      }
+      .region-btn.active {
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        border-color: transparent;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      }
+      .region-btn .flag {
+        width: 1.2rem;
+        height: 0.9rem;
+      }
+      /* SVG flags (emoji flags don't render on Windows) */
+      .flag {
+        display: inline-block;
+        border-radius: 2px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        vertical-align: middle;
+      }
+      .flag svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .region-btn .region-name {
+        flex: 1;
+      }
+      .region-btn .region-code {
+        font-size: 0.6rem;
+        opacity: 0.6;
+        text-transform: uppercase;
+      }
+
+      /* Telemetry */
+      .tel-body {
+        font-size: 0.75rem;
+        line-height: 1.5;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+      .tel-control {
+        font-size: 0.68rem;
+        color: var(--ok);
+        margin-bottom: 0.4rem;
+        line-height: 1.4;
+      }
+      .tel-transparency {
+        font-size: 0.64rem;
+        color: var(--accent);
+        margin-bottom: 0.6rem;
+        line-height: 1.4;
+        padding: 0.35rem 0.5rem;
+        background: rgba(255, 140, 0, 0.05);
+        border-left: 2px solid var(--accent);
+        border-radius: 0 0.2rem 0.2rem 0;
+      }
+      .tel-choice {
+        display: flex;
+        gap: 0.4rem;
+      }
+      .tel-choice label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.5rem;
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        border-radius: 0.35rem;
+        cursor: pointer;
+        font-size: 0.73rem;
+        transition: 0.15s;
+      }
+      .tel-choice label:hover {
+        border-color: var(--accent);
+      }
+      .tel-choice input {
+        accent-color: var(--accent);
+      }
+      .tel-choice label.selected {
+        border-color: var(--ok);
+        background: rgba(16, 185, 129, 0.06);
+      }
+
+      /* Mode */
+      .mode-card {
+        padding: 0.55rem 0.7rem;
+        background: var(--bg3);
+        border: 1px solid var(--border2);
+        border-radius: 0.35rem;
+        margin-bottom: 0.35rem;
+        cursor: pointer;
+        transition: 0.15s;
+      }
+      .mode-card:last-child {
+        margin-bottom: 0;
+      }
+      .mode-card:hover {
+        border-color: var(--accent);
+      }
+      .mode-card.active {
+        border-color: var(--accent);
+        background: rgba(255, 140, 0, 0.06);
+        box-shadow: 0 0 0 1px rgba(255, 140, 0, 0.15);
+      }
+      .mode-card .name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 0.1rem;
+      }
+      .mode-card .desc {
+        font-size: 0.68rem;
+        color: var(--muted);
+        line-height: 1.4;
+        margin-bottom: 0.2rem;
+      }
+      .mode-card .hint {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--dim);
+        font-weight: 600;
+      }
+      .mode-card.active .hint {
+        color: var(--accent);
+      }
+
+      /* Footer */
+      footer {
+        padding: 0.7rem 1.5rem;
+        border-top: 1px solid var(--border);
+        background: var(--bg2);
+      }
+      .btn-save {
+        width: 100%;
+        padding: 0.7rem;
+        background: linear-gradient(135deg, var(--accent), var(--accent2));
+        color: #fff;
+        border: none;
+        border-radius: 0.45rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-family: inherit;
+        position: relative;
+        overflow: hidden;
+      }
+      .btn-save::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        transition: left 0.4s;
+      }
+      .btn-save:hover::after {
+        left: 100%;
+      }
+      .btn-save:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+      }
+      .btn-save:active {
+        transform: translateY(0);
+        box-shadow: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">🍥</div>
+      <div class="brand">
+        <h1 data-i18n="setup.title">Bem-vindo ao Shinobi Launcher</h1>
+        <span class="sub" data-i18n="setup.subtitle">Configure sua experiência em 30 segundos</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Language Selector (6 languages) -->
+      <div class="section">
+        <h2 data-i18n="setup.language.label">Idioma</h2>
+        <div class="lang-grid">
+          <button class="lang-btn active" data-lang="pt">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#009b3a"/><path d="M10 2.5L18 7.5L10 12.5L2 7.5Z" fill="#fedf00"/><circle cx="10" cy="7.5" r="3" fill="#002776"/></svg></span> Português
+          </button>
+          <button class="lang-btn" data-lang="en"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#fff"/><rect width="20" height="3" fill="#b22234"/><rect y="6" width="20" height="3" fill="#b22234"/><rect y="12" width="20" height="3" fill="#b22234"/><rect width="8" height="8" fill="#3c3b6e"/></svg></span> English</button>
+          <button class="lang-btn" data-lang="de"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="5" fill="#000"/><rect y="5" width="20" height="5" fill="#dd0000"/><rect y="10" width="20" height="5" fill="#ffce00"/></svg></span> Deutsch</button>
+          <button class="lang-btn" data-lang="es"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#c60b1e"/><rect y="3.75" width="20" height="7.5" fill="#ffc400"/></svg></span> Español</button>
+          <button class="lang-btn" data-lang="pl"><span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="7.5" fill="#fff"/><rect y="7.5" width="20" height="7.5" fill="#dc143c"/></svg></span> Polski</button>
+          <button class="lang-btn" data-lang="fr"><span class="flag"><svg viewBox="0 0 20 15"><rect width="6.67" height="15" fill="#0055a4"/><rect x="6.67" width="6.67" height="15" fill="#fff"/><rect x="13.33" width="6.67" height="15" fill="#ef4135"/></svg></span> Français</button>
+        </div>
+      </div>
+
+      <!-- Region Selector (6 clusters) -->
+      <div class="section">
+        <h2 data-i18n="setup.region.label">Região do Servidor</h2>
+        <div class="region-grid">
+          <button class="region-btn active" data-region="br">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#009b3a"/><path d="M10 2.5L18 7.5L10 12.5L2 7.5Z" fill="#fedf00"/><circle cx="10" cy="7.5" r="3" fill="#002776"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.br">Brasil</span
+            ><span class="region-code">BR</span>
+          </button>
+          <button class="region-btn" data-region="na">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#fff"/><rect width="20" height="3" fill="#b22234"/><rect y="6" width="20" height="3" fill="#b22234"/><rect y="12" width="20" height="3" fill="#b22234"/><rect width="8" height="8" fill="#3c3b6e"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.na">América do Norte</span
+            ><span class="region-code">NA</span>
+          </button>
+          <button class="region-btn" data-region="de">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="5" fill="#000"/><rect y="5" width="20" height="5" fill="#dd0000"/><rect y="10" width="20" height="5" fill="#ffce00"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.de">Alemanha</span
+            ><span class="region-code">DE</span>
+          </button>
+          <button class="region-btn" data-region="es">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="15" fill="#c60b1e"/><rect y="3.75" width="20" height="7.5" fill="#ffc400"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.es">Espanha</span
+            ><span class="region-code">ES</span>
+          </button>
+          <button class="region-btn" data-region="pl">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="20" height="7.5" fill="#fff"/><rect y="7.5" width="20" height="7.5" fill="#dc143c"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.pl">Polônia</span
+            ><span class="region-code">PL</span>
+          </button>
+          <button class="region-btn" data-region="fr">
+            <span class="flag"><svg viewBox="0 0 20 15"><rect width="6.67" height="15" fill="#0055a4"/><rect x="6.67" width="6.67" height="15" fill="#fff"/><rect x="13.33" width="6.67" height="15" fill="#ef4135"/></svg></span
+            ><span class="region-name" data-i18n="setup.region.fr">França</span
+            ><span class="region-code">FR</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Performance Mode -->
+      <div class="section">
+        <h2 data-i18n="setup.mode.title">Modo de Desempenho</h2>
+        <div class="mode-card active" data-mode="default">
+          <div class="name">⚡ <span data-i18n="mode.default">Padrão Otimizado</span></div>
+          <div class="desc" data-i18n="setup.mode.default.body">
+            Recomendado — máxima otimização segura (GPU, GC inteligente, anti-lag).
+          </div>
+          <div class="hint" data-i18n="setup.mode.default.hint">Padrão • Otimizado</div>
+        </div>
+        <div class="mode-card" data-mode="lowpc">
+          <div class="name">🔥 <span data-i18n="mode.lowpc">Modo PC Fraco</span></div>
+          <div class="desc" data-i18n="setup.mode.lowpc.body">
+            PCs fracos (GPU antiga ou <4GB RAM). Zera o cache de assets e força renderização por software. ⚠️ Mais lento em PCs modernos.
+          </div>
+          <div class="hint" data-i18n="setup.mode.lowpc.hint">PC Fraco • Opt-in</div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <button class="btn-save" id="btn-save" data-i18n="setup.save">Começar a jogar</button>
+    </footer>
+
+    <script>
+      (function () {
+        'use strict';
+
+        // ── i18n dictionary (6 languages — matches src/config/i18n.js SUPPORTED) ──
+        var I18N = {
+          pt: {
+            'setup.title': 'Bem-vindo ao Shinobi Launcher',
+            'setup.subtitle': 'Configure sua experiência em 30 segundos',
+            'setup.language.label': 'Idioma',
+            'setup.region.label': 'Região do Servidor',
+            'setup.region.br': 'Brasil',
+            'setup.region.na': 'América do Norte',
+            'setup.region.de': 'Alemanha',
+            'setup.region.es': 'Espanha',
+            'setup.region.pl': 'Polônia',
+            'setup.region.fr': 'França',
+            'setup.mode.title': 'Modo de Desempenho',
+            'setup.mode.default.body':
+              'Recomendado — máxima otimização segura (GPU, GC inteligente, anti-lag).',
+            'setup.mode.lowpc.body':
+              'PCs fracos (GPU antiga ou <4GB RAM). Zera o cache de assets e força renderização por software. ⚠️ Mais lento em PCs modernos.',
+            'setup.mode.default.hint': 'Padrão • Otimizado',
+            'setup.mode.lowpc.hint': 'PC Fraco • Opt-in',
+            'setup.save': 'Começar a jogar',
+            'mode.default': 'Padrão Otimizado',
+            'mode.lowpc': 'Modo PC Fraco'
+          },
+          en: {
+            'setup.title': 'Welcome to Shinobi Launcher',
+            'setup.subtitle': 'Set up your experience in 30 seconds',
+            'setup.language.label': 'Language',
+            'setup.region.label': 'Server Region',
+            'setup.region.br': 'Brazil',
+            'setup.region.na': 'North America',
+            'setup.region.de': 'Germany',
+            'setup.region.es': 'Spain',
+            'setup.region.pl': 'Poland',
+            'setup.region.fr': 'France',
+            'setup.mode.title': 'Performance Mode',
+            'setup.mode.default.body':
+              'Recommended — maximum safe optimization (GPU, smart GC, anti-lag).',
+            'setup.mode.lowpc.body':
+              'Low-end PCs (old GPU or <4GB RAM). Drops the asset cache and forces software rendering. ⚠️ Slower on modern PCs.',
+            'setup.mode.default.hint': 'Default • Optimized',
+            'setup.mode.lowpc.hint': 'Low-end PC • Opt-in',
+            'setup.save': 'Start playing',
+            'mode.default': 'Optimized Default',
+            'mode.lowpc': 'Low-end PC Mode'
+          },
+          de: {
+            'setup.title': 'Willkommen beim Shinobi Launcher',
+            'setup.subtitle': 'Richten Sie Ihre Erfahrung in 30 Sekunden ein',
+            'setup.language.label': 'Sprache',
+            'setup.region.label': 'Serverregion',
+            'setup.region.br': 'Brasilien',
+            'setup.region.na': 'Nordamerika',
+            'setup.region.de': 'Deutschland',
+            'setup.region.es': 'Spanien',
+            'setup.region.pl': 'Polen',
+            'setup.region.fr': 'Frankreich',
+            'setup.mode.title': 'Leistungsmodus',
+            'setup.mode.default.body': 'Empfohlen — maximale sichere Optimierung.',
+            'setup.mode.lowpc.body':
+              'Schwache PCs (alte GPU oder <4GB RAM). Leert den Asset-Cache und erzwingt Software-Rendering. ⚠️ Langsamer auf modernen PCs.',
+            'setup.mode.default.hint': 'Standard • Optimiert',
+            'setup.mode.lowpc.hint': 'Schwacher PC • Opt-in',
+            'setup.save': 'Spiel starten',
+            'mode.default': 'Optimierter Standard',
+            'mode.lowpc': 'Schwacher PC Modus'
+          },
+          es: {
+            'setup.title': 'Bienvenido al Shinobi Launcher',
+            'setup.subtitle': 'Configura tu experiencia en 30 segundos',
+            'setup.language.label': 'Idioma',
+            'setup.region.label': 'Región del servidor',
+            'setup.region.br': 'Brasil',
+            'setup.region.na': 'Norteamérica',
+            'setup.region.de': 'Alemania',
+            'setup.region.es': 'España',
+            'setup.region.pl': 'Polonia',
+            'setup.region.fr': 'Francia',
+            'setup.mode.title': 'Modo de rendimiento',
+            'setup.mode.default.body': 'Recomendado — máxima optimización segura.',
+            'setup.mode.lowpc.body':
+              'PCs de gama baja (GPU antigua o <4GB RAM). Vacía la caché de assets y fuerza renderizado por software. ⚠️ Más lento en PCs modernos.',
+            'setup.mode.default.hint': 'Predeterminado • Optimizado',
+            'setup.mode.lowpc.hint': 'PC débil • Opt-in',
+            'setup.save': 'Empezar a jugar',
+            'mode.default': 'Predeterminado Optimizado',
+            'mode.lowpc': 'Modo PC Débil'
+          },
+          pl: {
+            'setup.title': 'Witaj w Shinobi Launcher',
+            'setup.subtitle': 'Skonfiguruj w 30 sekund',
+            'setup.language.label': 'Język',
+            'setup.region.label': 'Region serwera',
+            'setup.region.br': 'Brazylia',
+            'setup.region.na': 'Ameryka Północna',
+            'setup.region.de': 'Niemcy',
+            'setup.region.es': 'Hiszpania',
+            'setup.region.pl': 'Polska',
+            'setup.region.fr': 'Francja',
+            'setup.mode.title': 'Tryb wydajności',
+            'setup.mode.default.body': 'Zalecany — maksymalna bezpieczna optymalizacja.',
+            'setup.mode.lowpc.body':
+              'Słabe PC (stara GPU lub <4GB RAM). Czuści cache assetów i wymusza renderowanie programowe. ⚠️ Wolniejsze na nowoczesnych PC.',
+            'setup.mode.default.hint': 'Domyślny • Zoptymalizowany',
+            'setup.mode.lowpc.hint': 'Słaby PC • Opt-in',
+            'setup.save': 'Zacznij grać',
+            'mode.default': 'Zoptymalizowany Domyślny',
+            'mode.lowpc': 'Tryb Słabego PC'
+          },
+          fr: {
+            'setup.title': 'Bienvenue dans Shinobi Launcher',
+            'setup.subtitle': 'Configurez en 30 secondes',
+            'setup.language.label': 'Langue',
+            'setup.region.label': 'Région du serveur',
+            'setup.region.br': 'Brésil',
+            'setup.region.na': 'Amérique du Nord',
+            'setup.region.de': 'Allemagne',
+            'setup.region.es': 'Espagne',
+            'setup.region.pl': 'Pologne',
+            'setup.region.fr': 'France',
+            'setup.mode.title': 'Mode de performance',
+            'setup.mode.default.body': 'Recommandé — optimisation sûre maximale.',
+            'setup.mode.lowpc.body':
+              'PC faibles (ancien GPU ou <4Go RAM). Vide le cache d'assets et force le rendu logiciel. ⚠️ Plus lent sur PC modernes.',
+            'setup.mode.default.hint': 'Par défaut • Optimisé',
+            'setup.mode.lowpc.hint': 'PC faible • Opt-in',
+            'setup.save': 'Commencer à jouer',
+            'mode.default': 'Défaut Optimisé',
+            'mode.lowpc': 'Mode PC Faible'
+          }
+        };
+
+        var currentLang = 'pt';
+        var selectedMode = 'default';
+        var selectedRegion = 'br';
+
+        // Detect initial language via query string (?lang=en)
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var lang = params.get('lang');
+          if (lang && I18N[lang]) currentLang = lang;
+        } catch (_) {
+          /* ignore */
+        }
+
+        function applyLanguage(lang) {
+          currentLang = lang;
+          var dict = I18N[lang] || I18N.pt;
+          var langMap = { pt: 'pt-BR', en: 'en', de: 'de', es: 'es', pl: 'pl', fr: 'fr' };
+          document.documentElement.lang = langMap[lang] || 'pt-BR';
+          document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (dict[key]) el.textContent = dict[key];
+          });
+          document.querySelectorAll('.lang-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+          });
+        }
+
+        // Language buttons
+        document.querySelectorAll('.lang-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            applyLanguage(btn.getAttribute('data-lang'));
+          });
+        });
+
+        // Region buttons
+        document.querySelectorAll('.region-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('.region-btn').forEach(function (b) {
+              b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            selectedRegion = btn.getAttribute('data-region');
+          });
+        });
+
+        // Telemetry radio
+        document.querySelectorAll('.tel-choice label').forEach(function (label) {
+          label.addEventListener('click', function () {
+            document.querySelectorAll('.tel-choice label').forEach(function (l) {
+              l.classList.remove('selected');
+            });
+            label.classList.add('selected');
+            var radio = label.querySelector('input[type=radio]');
+            if (radio) radio.checked = true;
+          });
+        });
+
+        // Mode cards
+        document.querySelectorAll('.mode-card').forEach(function (card) {
+          card.addEventListener('click', function () {
+            document.querySelectorAll('.mode-card').forEach(function (c) {
+              c.classList.remove('active');
+            });
+            card.classList.add('active');
+            selectedMode = card.getAttribute('data-mode');
+          });
+        });
+
+        // Save button — communicate via document title hack (main.js intercepts)
+        document.getElementById('btn-save').addEventListener('click', function () {
+          var advancedMode = selectedMode === 'lowpc';
+          window.__setupResult = {
+            language: currentLang,
+            region: selectedRegion,
+            advancedMode: advancedMode
+          };
+          document.title = '__SETUP_DONE__' + JSON.stringify(window.__setupResult);
+          window.close();
+        });
+
+        // Apply initial language
+        applyLanguage(currentLang);
+      })();
+    </script>
+  </body>
+</html>

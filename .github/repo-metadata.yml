@@ -1,0 +1,20 @@
+# Repository metadata for GitHub's topic recommender
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics
+name: Shinobi Launcher
+description: Privacy-first multi-account Flash launcher for Naruto Online
+topics:
+  - naruto-online
+  - electron
+  - flash
+  - ppapi
+  - launcher
+  - game-launcher
+  - multi-account
+  - privacy
+  - encryption
+  - desktop-app
+  - cross-platform
+kind: launcher
+platforms:
+  - linux
+  - windows

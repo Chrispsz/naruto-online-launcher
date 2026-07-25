@@ -1,0 +1,3 @@
+# ✅ [R6] Marcar binários Flash como binários (não diff)
+flash/*.dll binary
+flash/*.so binary

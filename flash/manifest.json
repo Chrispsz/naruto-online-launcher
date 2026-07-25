@@ -1,0 +1,33 @@
+{
+  "name": "Shockwave Flash",
+  "description": "Clean Flash PPAPI 34.0 — darktohka build (committed to repo, Flash EOL)",
+  "version": "34.0.0.376",
+  "linux_version": "34.0.0.137",
+  "windows_version": "34.0.0.376",
+  "type": "ppapi",
+  "arch": "x64",
+  "sources": {
+    "linux": {
+      "file": "libpepflashplayer.so",
+      "release": "v1.7",
+      "source_url": "https://github.com/darktohka/clean-flash-builds/releases/download/v1.7/flash_player_patched_ppapi_linux.x86_64.tar.gz"
+    },
+    "win32": {
+      "file": "pepflashplayer.dll",
+      "release": "v1.54",
+      "source_url": "https://github.com/darktohka/clean-flash-builds/releases/download/v1.54/ChineseFlash-Patched-Win-34.0.0.376.7z"
+    }
+  },
+  "mimeTypes": [
+    {
+      "description": "Shockwave Flash",
+      "suffixes": "swf",
+      "type": "application/x-shockwave-flash"
+    },
+    {
+      "description": "Shockwave Flash Movie",
+      "suffixes": "spl",
+      "type": "application/futuresplash"
+    }
+  ]
+}

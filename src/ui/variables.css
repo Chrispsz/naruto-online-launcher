@@ -1,0 +1,95 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * variables.css — Shinobi Launcher Design Tokens
+ * Rebrand shinobi: ouro + AMOLED black
+ *
+ * Filosofia: AMOLED preto puro (#000) com acento dourado shinobi. Hierarquia
+ * por tipografia e espaçamento. Todos os ícones decorativos usam o mesmo
+ * tom dourado — consistência visual absoluta. Cores semânticas (ok/warn/danger)
+ * reservadas para status pontuais, não para ícones decorativos.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Colors: Base (AMOLED preto puro) ── */
+  --bg: #000000;
+  --bg-elev: #0a0a0a;
+  --bg-elev-2: #121212;
+  --surface: #070707;
+  --surface-hover: #161616;
+
+  /* ── Colors: Border (visíveis sobre preto puro) ── */
+  --border: #1c1c1c;
+  --border-hover: #383838;
+  --border-focus: #d4a543;
+
+  /* ── Colors: Text (escala sobre preto AMOLED) ── */
+  --text: #f2f2f2;
+  --text-dim: #a8a8a8;
+  --text-faint: #5e5e5e;
+
+  /* ── Colors: Accent (ouro shinobi — paleta dourada) ── */
+  --accent: #d4a543;
+  --accent-hover: #e6b85a;
+  --accent-2: #8a6d28;
+  --accent-2-hover: #b8902f;
+  --accent-glow: rgba(212, 165, 67, 0.12);
+  --accent-soft: rgba(212, 165, 67, 0.08);
+  --accent-contrast: #000000;
+
+  /* ── Colors: Semantic (usar com parcimônia — status, não decoração) ── */
+  --ok: #5cb85c;
+  --warn: #d4a543;
+  --danger: #d4574a;
+
+  /* ── Shadows (suaves sobre AMOLED) ── */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.8);
+
+  /* ── Spacing (4px base scale — mantido) ── */
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.5rem; /* 24px */
+  --space-6: 2rem; /* 32px */
+
+  /* ── Typography (sistema refinada com Inter fallback) ── */
+  --font-family: -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', monospace;
+  --font-xs: 0.6875rem; /* 11px */
+  --font-sm: 0.75rem; /* 12px */
+  --font-base: 0.8125rem; /* 13px */
+  --font-md: 0.875rem; /* 14px */
+  --font-lg: 1rem; /* 16px */
+  --font-xl: 1.25rem; /* 20px */
+  --font-2xl: 1.5rem; /* 24px */
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --line-height-base: 1.5;
+  --line-height-tight: 1.25;
+
+  /* ── Border Radius (cantos contidos) ── */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius: 0.375rem; /* 6px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.5rem; /* 8px */
+  --radius-full: 9999px;
+
+  /* ── Transitions (rápidas, precisas) ── */
+  --transition: 120ms ease;
+  --transition-fast: 80ms ease;
+  --transition-slow: 220ms ease;
+
+  /* ── Focus Ring (ouro) ── */
+  --focus-ring: 0 0 0 2px var(--accent);
+
+  /* ── Z-index scale ── */
+  --z-base: 1;
+  --z-overlay: 100;
+  --z-toast: 200;
+  --z-modal: 300;
+}
