@@ -770,9 +770,5 @@ function reloadWithPreAuth(profileId, profile, win, ses, getGameUrl) {
 
 module.exports = {
   attach: attach,
-  reloadWithPreAuth: reloadWithPreAuth,
-  // exposed for tests
-  _sendWindowStatus: _sendWindowStatus,
-  _sendAutoLoginResult: _sendAutoLoginResult,
-  _loadGameWithPreAuth: _loadGameWithPreAuth
+  reloadWithPreAuth: reloadWithPreAuth
 };

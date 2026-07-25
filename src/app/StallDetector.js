@@ -266,7 +266,7 @@ function attach(win, ses, ctx) {
 
   return {
     detach: detach,
-    // exposed for tests/inspection
+    // internal inspection
     _isReady: function () {
       return ready;
     },

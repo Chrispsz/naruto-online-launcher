@@ -191,16 +191,6 @@ function setupPersistentCookies(session, options) {
 }
 
 /**
- * Resets the idempotency state of a session (for tests or explicit reset).
- * Does NOT remove already-registered listeners — use session.cookies.removeAllListeners('changed')
- * se precisar de limpeza profunda.
- * @param {Electron.Session} session
- */
-function forgetSession(session) {
-  _configuredSessions.delete(session);
-}
-
-/**
  * Build URL from cookie for set/remove operations
  * @param {Object} cookie - Cookie object
  * @returns {string} URL string
@@ -212,35 +202,6 @@ function buildCookieUrl(cookie) {
   return protocol + domain + cookiePath;
 }
 
-/**
- * Clear all cookies and cache
- * @param {Electron.Session} session - Browser session
- * @returns {Promise<boolean>}
- */
-async function clearAllCookies(session) {
-  try {
-    const cookies = await session.cookies.get({});
-
-    // Remove all cookies in parallel for speed
-    await Promise.all(
-      cookies.map(function (c) {
-        return session.cookies.remove(buildCookieUrl(c), c.name).catch(function () {});
-      })
-    );
-
-    await session.clearCache();
-    await session.clearStorageData();
-
-    logger.info('Cookies and cache cleared');
-    return true;
-  } catch (e) {
-    logger.error('Failed to clear cookies: ' + e.message);
-    return false;
-  }
-}
-
 module.exports = {
-  setupPersistentCookies: setupPersistentCookies,
-  clearAllCookies: clearAllCookies,
-  forgetSession: forgetSession
+  setupPersistentCookies: setupPersistentCookies
 };

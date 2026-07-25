@@ -197,7 +197,7 @@ module.exports = {
   decrypt: decrypt,
   exportEncryptedBackup: exportEncryptedBackup,
   importEncryptedBackup: importEncryptedBackup,
-  // constants (for tests / documentation)
+  // public constants (documentation reference)
   PBKDF2_ITERATIONS: PBKDF2_ITERATIONS,
   PBKDF2_KEYLEN: PBKDF2_KEYLEN,
   PBKDF2_SALT_LEN: PBKDF2_SALT_LEN,

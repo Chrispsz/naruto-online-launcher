@@ -142,6 +142,7 @@ Repo-wide overhaul to match the hygiene bar of top-starred open-source projects.
 ### Removed
 - **Clean (Caretaker cycle 1)**: removed 14 dead development/debug artifacts — `tools/` (6 AI review scripts), `.launcher-research-backup/` (4 eval reports), `scripts/debug.sh`, `scripts/debug-launcher.sh`, `scripts/build-preview.sh`, `docs/audits/` (2 audit reports). None are referenced by production code.
 - Removed test-only internal exports from `diagnostics.js` (`_sanitize`, `_sanitizeObj`, `_collectSystemInfo` — no longer needed after test removal).
+- **Clean (Caretaker cycle 9)**: removed 5 dead exports + 2 dead functions from 2 files — `cookies.js` (2 exports: `clearAllCookies`, `forgetSession`; both functions deleted entirely), `SessionLifecycle.js` (3 exports: `_sendWindowStatus`, `_sendAutoLoginResult`, `_loadGameWithPreAuth` — functions kept as internal-only). Reworded 4 stale "for tests" comments across 4 files (`cookies.js`, `StallDetector.js`, `SessionLifecycle.js`, `CryptoService.js`).
 - **Clean (Caretaker cycle 5)**: removed 24 dead test-only exports from 4 files — `GpuDetector.js` (14: internal helpers + vendor constants exposed for tests, `_resetCache` function deleted), `blocker.js` (6: `BLOCKED_DOMAINS`, `BLOCKED_PATH_PATTERNS`, `isBlockedDomain`, `isBlockedPath`, `shouldBlock`, `forgetSession`; `forgetSession` function deleted), `inspector.js` (2: `KNOWN_ENDPOINTS`, `KNOWN_PATH_SIGNATURES`), `tempmail.js` (1: `_generatePassword`).
 
 ### Changed
