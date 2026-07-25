@@ -274,18 +274,22 @@ function create(profileId, opts) {
 
   /**
    * Return compact summary (for future IPC/UI).
+   * Reads _state directly — avoids the JSON roundtrip deep clone in getStats().
    */
   function getSummary() {
-    var s = getStats();
+    var currentPlaytime = _state.playtimeMs;
+    if (_sessionStartTs !== null) {
+      currentPlaytime += _now() - _sessionStartTs;
+    }
     return {
-      profileId: s.profileId,
-      playtimeMinutes: Math.round(s.playtimeMs / 60000),
-      sessionCount: s.sessionCount,
-      totalEvents: s.eventsTriggered.exp + s.eventsTriggered.pvp + s.eventsTriggered.war + s.eventsTriggered.other,
-      stallCount: s.stallsDetected.count,
-      crashCount: s.crashes.count,
-      reloadCount: s.autoReloads.count,
-      lastActivity: s.updatedAt
+      profileId: _state.profileId,
+      playtimeMinutes: Math.round(currentPlaytime / 60000),
+      sessionCount: _state.sessionCount,
+      totalEvents: _state.eventsTriggered.exp + _state.eventsTriggered.pvp + _state.eventsTriggered.war + _state.eventsTriggered.other,
+      stallCount: _state.stallsDetected.count,
+      crashCount: _state.crashes.count,
+      reloadCount: _state.autoReloads.count,
+      lastActivity: _state.updatedAt
     };
   }
 
