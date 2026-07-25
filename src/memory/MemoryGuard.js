@@ -31,14 +31,17 @@ let _forceLowSpec = false;
 const _startedAt = Date.now();
 let _crashCount = 0;
 
+/** @returns {boolean} Whether low-spec (Light) mode is active */
 function isLowSpecMode() {
   return _forceLowSpec || IS_LOW_SPEC;
 }
 
+/** @returns {boolean} Whether the machine qualifies for Minimal mode (<2GB RAM) */
 function isMinimal() {
   return IS_MINIMAL;
 }
 
+/** @returns {number} Current memory threshold in MB before alerts trigger */
 function getThreshold() {
   return _thresholdMB;
 }
@@ -88,7 +91,7 @@ function getStats() {
   };
 }
 
-/** Incrementa o contador de crashes registrados. */
+/** Increments the registered crash counter. */
 function reportCrash() {
   _crashCount++;
   logger.warn('MemoryGuard: crash recorded (total: ' + _crashCount + ')');

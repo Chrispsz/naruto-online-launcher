@@ -249,7 +249,6 @@ module.exports = {
   removeCredentials: removeCredentials,
   buildAutoLoginScript: buildAutoLoginScript,
   onChange: onChange,
-  // exposed for tests
   _getVaultPath: _getVaultPath,
   MAX_VAULT_BYTES: MAX_VAULT_BYTES
 };

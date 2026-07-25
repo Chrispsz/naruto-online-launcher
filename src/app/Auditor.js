@@ -43,7 +43,7 @@ var MAX_REASONS_KEPT = 20; // cap reasons array to prevent unbounded growth
 /**
  * Cria um Auditor para um profile.
  * @param {string} profileId
- * @param {Object} [opts] - { userDataPath (string), now (fn for tests) }
+ * @param {Object} [opts] - { userDataPath (string), now (fn override for deterministic time) }
  * @returns {Object} auditor instance
  */
 function create(profileId, opts) {
@@ -290,7 +290,7 @@ function create(profileId, opts) {
   }
 
   /**
-   * Reset state (for tests or manual reset via future UI).
+   * Resets all accumulated state (profile switch or manual reset).
    */
   function reset() {
     _state = {
@@ -359,7 +359,7 @@ function create(profileId, opts) {
     reset: reset,
     persist: persist,
     destroy: destroy,
-    // exposed for tests
+    // internal inspection
     _isDirty: function () { return _dirty; },
     _isDestroyed: function () { return _destroyed; },
     _state: function () { return _state; }

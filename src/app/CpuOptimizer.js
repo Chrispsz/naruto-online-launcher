@@ -499,7 +499,7 @@ function getStats() {
 }
 
 /**
- * Reseta estado interno (para testes).
+ * Resets internal state (used when switching profiles).
  */
 function _reset() {
   _appliedPids.clear();
@@ -510,7 +510,6 @@ module.exports = {
   detectCoreTopology: detectCoreTopology,
   optimizeRenderer: optimizeRenderer,
   getStats: getStats,
-  // exposed for tests
   _reset: _reset,
   _parseCpuList: _parseCpuList,
   _applyTaskset: _applyTaskset,
