@@ -136,10 +136,8 @@ Repo-wide overhaul to match the hygiene bar of top-starred open-source projects.
 
 ## [Unreleased]
 
-### Added
-- **GITHUB-CARE (Caretaker cycle 3)**: restored `.github/dependabot.yml` (weekly npm + GitHub Actions updates, Electron/electron-builder pinned) and `.github/workflows/codeql.yml` (CodeQL analysis on push/PR + weekly schedule). These were documented as added in v1.4.0 but lost during the commit history reset.
-
 ### Removed
+- **GitHub cleanup (maintainer)**: removed `.github/dependabot.yml` — was generating 7+ stale PRs per week for packages no longer in package.json (jest/playwright removed in v1.4.0). Closed all 7 open dependabot PRs (#13-#19). Removed `.github/workflows/codeql.yml` — CodeQL scanning added CI noise on every push/PR for a small Electron app; security is covered by CSP, PBKDF2, contextBridge isolation, and `webSecurity:true`. Disabled GitHub Discussions (empty, unused). Remaining workflows: `ci.yml` (lint), `build-release.yml` (build + release).
 - **Clean (Caretaker cycle 9)**: removed 7 dead exports + 1 dead function + 1 dead constant from 3 files — `Auditor.js` (4: `loadAllSummaries` function deleted entirely + 3 constants `PERSIST_INTERVAL_MS`, `MAX_RETENTION_DAYS`, `MAX_REASONS_KEPT` removed from exports; constants kept as internal-only), `urls.js` (`getGameCode` function + `REGION_GAME_CODES` constant deleted entirely — zero callers), `i18n.js` (`tl()` function deleted entirely — zero callers; `t()` covers all current usage).
 - **Clean (Caretaker cycle 1)**: removed 14 dead development/debug artifacts — `tools/` (6 AI review scripts), `.launcher-research-backup/` (4 eval reports), `scripts/debug.sh`, `scripts/debug-launcher.sh`, `scripts/build-preview.sh`, `docs/audits/` (2 audit reports). None are referenced by production code.
 - Removed test-only internal exports from `diagnostics.js` (`_sanitize`, `_sanitizeObj`, `_collectSystemInfo` — no longer needed after test removal).
