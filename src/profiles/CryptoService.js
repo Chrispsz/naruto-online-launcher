@@ -65,7 +65,7 @@ function decrypt(payload, key) {
 }
 
 /**
- * Exporta perfis + credenciais em arquivo criptografado com senha mestre.
+ * Exports profiles + credentials to an encrypted file with a master password.
  * @security AES-256-GCM, random 12-byte IV per call, 200k PBKDF2-SHA512 iters,
  *   32-byte salt. Envelope stores salt+iv+ct+tag but NEVER the derived key.
  * @param {Array} profiles

@@ -192,7 +192,7 @@ function load() {
     );
   }
   // migrate v1 profiles (without language/notificationsEnabled) to v2
-  // migra region codes legacy (eu/hk/pt/en) para clusters atuais
+  // migrate legacy region codes (eu/hk/pt/en) to current clusters
   let migrated = 0;
   let regionMigrated = 0;
   _profiles.forEach(function (p) {
@@ -600,11 +600,11 @@ function _rmrf(p) {
 // ──────────────────────────────────────────────────────────────────────────
 // Launch log (timeline) — launch log for 7-day chart
 // Persisted in userData/launch-log.json (separate file from profiles.json).
-// Cada entrada: { id: profileId, ts: number }. Cap em MAX_LAUNCH_LOG_ENTRIES.
+// Each entry: { id: profileId, ts: number }. Capped at MAX_LAUNCH_LOG_ENTRIES.
 // ──────────────────────────────────────────────────────────────────────────
 
 /**
- * Retorna o caminho do arquivo de launch log.
+ * Returns the launch log file path.
  * @returns {string}
  */
 function getLaunchLogFile() {
@@ -625,8 +625,8 @@ function _formatDate(ts) {
 }
 
 /**
- * Carrega o launch log do disco. Arquivo ausente → array vazio.
- * JSON malformado → array vazio + warning. Faz cap em MAX_LAUNCH_LOG_ENTRIES.
+ * Loads the launch log from disk. Missing file → empty array.
+ * Malformed JSON → empty array + warning. Caps at MAX_LAUNCH_LOG_ENTRIES.
  * NEVER throws — catches all exceptions.
  * @returns {Array}
  */

@@ -8,7 +8,7 @@
  * History: was part of the God Object vault.js (571 lines). Split into 3:
  *   - CryptoService.js   — pure crypto primitives
  *   - PasswordManager.js — machine key + master password
- *   - ProfileVault.js    (este) — CRUD + buildAutoLoginScript
+ *   - ProfileVault.js    (this module) — CRUD + buildAutoLoginScript
  *
  * vault.js remains as facade re-exporting the 3 modules (API preserved).
  */

@@ -9,7 +9,7 @@
  *   ✅ https://naruto.narutowebgame.com/{lang}/serverlist → REAL LOGIN PAGE
  *
  * The serverlist page contains:
- *   - Form de login com campos: oasun (user), oaspd (password)
+ *   - Login form with fields: oasun (user), oaspd (password)
  *   - List of all servers in the region (/pt/serverlist/s866, etc.)
  *   - Hidden config: passport_url = //passport.oasgames.com
  *   - GameCode: 'narutopt' (PT), 'narutoen' (EN), 'narutozh' (ZH)

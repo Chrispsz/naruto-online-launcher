@@ -4,12 +4,12 @@
  * Single Responsibility (SRP): create an isolated BrowserWindow per profile
  * (own partition, network layer, loading screen, loadURL) and delegate the
  * lifecycle to SessionLifecycle + shortcuts to KeyboardShortcuts. Maintains the
- * registry de janelas abertas (gameWindows Map).
+ * open window registry (gameWindows Map).
  *
  * History: was the God Object game-launcher.js (620 lines). Split into 3:
- *   - Launcher.js          (este) — orchestration + window registry
- *   - SessionLifecycle.js  — hooks de evento (load/fail/close/crash/auto-login)
- *   - KeyboardShortcuts.js — F5/F12/Alt+F4 antes do input do Chromium
+ *   - Launcher.js          (this module) — orchestration + window registry
+ *   - SessionLifecycle.js  — event hooks (load/fail/close/crash/auto-login)
+ *   - KeyboardShortcuts.js — F5/F12/Alt+F4 before Chromium input
  *
  * game-launcher.js remains as facade re-exporting this module.
  */

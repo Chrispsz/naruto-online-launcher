@@ -1,13 +1,13 @@
 /**
- * ui/manager/ManagerWindow.js — Lifecycle da BrowserWindow do manager (Fase 3c split)
+ * ui/manager/ManagerWindow.js — BrowserWindow lifecycle for the manager (Phase 3c split)
  *
  * Single Responsibility (SRP): create, focus, show, hide and destroy the
  * management window (account dashboard). Does not register IPC or do
  * state push — that is the role of IpcRouter and StateBroadcaster.
  *
  * History: was part of the God Object controller.js (648 lines). Split into 3:
- *   - ManagerWindow.js   (este) — lifecycle da BrowserWindow
- *   - IpcRouter.js       — registro dos handlers IPC
+ *   - ManagerWindow.js   (this module) — BrowserWindow lifecycle
+ *   - IpcRouter.js       — IPC handler registration
  *   - StateBroadcaster.js — state push (profiles/memory/events) to UI
  *
  * controller.js remains as facade re-exporting the 3 (API preserved).
