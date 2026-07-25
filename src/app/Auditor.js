@@ -366,40 +366,6 @@ function create(profileId, opts) {
   };
 }
 
-/**
- * Load summaries from all audited profiles (for future UI).
- * @param {string} userDataPath
- * @returns {Array<Object>} list of summaries
- */
-function loadAllSummaries(userDataPath) {
-  var dir = path.join(userDataPath, 'audit');
-  var out = [];
-  try {
-    if (!fs.existsSync(dir)) return out;
-    var files = fs.readdirSync(dir);
-    for (var i = 0; i < files.length; i++) {
-      if (!files[i].endsWith('.json')) continue;
-      try {
-        var raw = fs.readFileSync(path.join(dir, files[i]), 'utf8');
-        var data = JSON.parse(raw);
-        out.push({
-          profileId: data.profileId,
-          playtimeMinutes: Math.round((data.playtimeMs || 0) / 60000),
-          sessionCount: data.sessionCount || 0,
-          stallCount: (data.stallsDetected && data.stallsDetected.count) || 0,
-          crashCount: (data.crashes && data.crashes.count) || 0,
-          updatedAt: data.updatedAt
-        });
-      } catch (_) { /* ignore individual file parse errors */ }
-    }
-  } catch (_) { /* ignore dir read errors */ }
-  return out;
-}
-
 module.exports = {
-  create: create,
-  loadAllSummaries: loadAllSummaries,
-  PERSIST_INTERVAL_MS: PERSIST_INTERVAL_MS,
-  MAX_RETENTION_DAYS: MAX_RETENTION_DAYS,
-  MAX_REASONS_KEPT: MAX_REASONS_KEPT
+  create: create
 };

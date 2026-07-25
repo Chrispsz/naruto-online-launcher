@@ -180,12 +180,6 @@ function t(key) {
   return dict[key] || DICTIONARY.en[key] || DICTIONARY.pt[key] || key;
 }
 
-/** Translates a key to a specific language, with en/pt fallback. @param {string} key @param {string} lang @returns {string} */
-function tl(key, lang) {
-  const dict = DICTIONARY[lang] || DICTIONARY.en;
-  return dict[key] || DICTIONARY.en[key] || DICTIONARY.pt[key] || key;
-}
-
 /** Returns the complete dictionary for a language (or the current one). @param {string} [lang] @returns {Object} */
 function getAll(lang) {
   const l = lang || _currentLang;
@@ -196,6 +190,5 @@ module.exports = {
   setLanguage: setLanguage,
   getLanguage: getLanguage,
   t: t,
-  tl: tl,
   getAll: getAll
 };

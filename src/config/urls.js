@@ -38,18 +38,6 @@ const REGION_URLS = {
   fr: 'https://naruto.narutowebgame.com/fr/serverlist'
 };
 
-// GameCode by region (used by the passport.oasgames.com API)
-const REGION_GAME_CODES = {
-  br: 'narutopt',
-  na: 'narutoen',
-  eu: 'narutoen',
-  hk: 'narutozh',
-  de: 'narutode',
-  es: 'narutoes',
-  pl: 'narutopl',
-  fr: 'narutofr'
-};
-
 // Launcher identification params (recognized by server)
 const LAUNCHER_PARAMS = 'logintype=4&leftbar_collapse=Yes&launcher=shinobi';
 
@@ -95,15 +83,6 @@ function getServerlistUrl(region) {
 }
 
 /**
- * Returns the GameCode of a region (for passport API).
- * @param {string} region
- * @returns {string}
- */
-function getGameCode(region) {
-  return REGION_GAME_CODES[region] || REGION_GAME_CODES.br;
-}
-
-/**
  * Returns launcher parameters (for will-navigate injection).
  * @returns {string}
  */
@@ -115,6 +94,5 @@ module.exports = {
   LAUNCHER_PARAMS: LAUNCHER_PARAMS,
   getGameUrl: getGameUrl,
   getServerlistUrl: getServerlistUrl,
-  getGameCode: getGameCode,
   getLauncherParams: getLauncherParams
 };
