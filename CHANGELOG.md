@@ -136,9 +136,9 @@ Repo-wide overhaul to match the hygiene bar of top-starred open-source projects.
 
 ## [Unreleased]
 
-### Added
-- `tools/ai-eval.js` — OpenRouter-powered AI code review pipeline. Uses free-tier models with focus modes (security / refactor / all).
-- `.launcher-research-backup/ai-apis-research.md` — survey of free AI API providers with rate limits, context windows, and recommended stack.
+### Removed
+- **Clean (Caretaker cycle 1)**: removed 14 dead development/debug artifacts — `tools/` (6 AI review scripts), `.launcher-research-backup/` (4 eval reports), `scripts/debug.sh`, `scripts/debug-launcher.sh`, `scripts/build-preview.sh`, `docs/audits/` (2 audit reports). None are referenced by production code.
+- Removed test-only internal exports from `diagnostics.js` (`_sanitize`, `_sanitizeObj`, `_collectSystemInfo` — no longer needed after test removal).
 
 ### Changed
 - Code-polish passes (17 cron runs, 7 productive): removed dead CSS selectors, tombstone comments, and redundant polling. Net −420 lines across 8 files with zero functional regression.

@@ -392,9 +392,5 @@ async function exportZip(parentWindow) {
 
 module.exports = {
   exportZip: exportZip,
-  // exposed for tests
-  _sanitize: _sanitize,
-  _sanitizeObj: _sanitizeObj,
-  _collectSystemInfo: _collectSystemInfo,
   MAX_SANITIZE_DEPTH: MAX_SANITIZE_DEPTH
 };
