@@ -442,7 +442,7 @@ async function optimizeRenderer(pid, opts) {
   let affinityPromise, nicePromise, oomPromise;
 
   if (process.platform === 'win32') {
-    // ── WINDOWS: PowerShell affinity + os.setPriority. Sem oom_score_adj. ──
+    // ── WINDOWS: PowerShell affinity + os.setPriority. No oom_score_adj. ──
     affinityPromise =
       cores.length > 0
         ? _applyWindowsAffinity(pid, cores)

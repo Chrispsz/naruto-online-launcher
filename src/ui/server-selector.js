@@ -4,15 +4,15 @@
  * Fetches the server list from the Oasis Games serverlist page
  * and returns a structured list for the launcher to render.
  *
- * COMO FUNCIONA:
+ * HOW IT WORKS:
  *   1. Makes GET to naruto.narutowebgame.com/{lang}/serverlist
- *   2. Extrai links /serverlist/sNNN do HTML
+ *   2. Extracts /serverlist/sNNN links from the HTML
  *   3. Returns array of { id, number, url } sorted by number
  *
  * PERFORMANCE:
  *   - In-memory cache per region (avoids re-fetch)
  *   - Non-blocking async fetch (Electron net module)
- *   - Timeout de 10s
+ *   - 10s timeout
  */
 
 'use strict';

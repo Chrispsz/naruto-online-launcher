@@ -411,9 +411,9 @@ function getEnvVars(preset) {
       }
     }
   } else if (gpu.vendor === 'amd') {
-    // Mesa radeonsi (AMD open-source). zerovram = zera VRAM em context destroy
+    // Mesa radeonsi (AMD open-source). zerovram = clears VRAM on context destroy
     // (prevents memory leak of unreleased textures — Flash is bad at this).
-    // Documentação: https://docs.mesa3d.org/envvars.html
+    // Docs: https://docs.mesa3d.org/envvars.html
     env.RADEONSI_ZERO_VRAM = '1';
     // RADEONSI_CLEAR_DB_SHADER_CACHE removed — is not a recognized env var
     // by Mesa radeonsi. Setting it was placebo. The DB shader cache is
