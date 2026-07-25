@@ -108,16 +108,15 @@ function _persistSnapshots() {
   const file = _getSnapshotsPath();
   const tmp = file + '.tmp';
   try {
-    const json = JSON.stringify(_snapshots);
+    let json = JSON.stringify(_snapshots);
     if (Buffer.byteLength(json, 'utf8') > MAX_SNAPSHOTS_BYTES) {
       logger.warn('partition: snapshots exceed 512KB — truncating oldest');
-      // Drop oldest entries
+      // Drop oldest entries until under 80% capacity, then re-stringify once
       const keys = Object.keys(_snapshots);
-      while (
-        Buffer.byteLength(JSON.stringify(_snapshots), 'utf8') > MAX_SNAPSHOTS_BYTES * 0.8 &&
-        keys.length > 1
-      ) {
+      while (keys.length > 1) {
         delete _snapshots[keys.shift()];
+        json = JSON.stringify(_snapshots);
+        if (Buffer.byteLength(json, 'utf8') <= MAX_SNAPSHOTS_BYTES * 0.8) break;
       }
     }
     fs.writeFileSync(tmp, json, 'utf8');
