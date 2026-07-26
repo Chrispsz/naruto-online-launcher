@@ -90,7 +90,10 @@ function create(session, profileId) {
     capturedJwts: [],
     startedAt: Date.now()
   };
-  var maxEntries = 500;
+  // Cap on captured entries — older entries are evicted (FIFO) once exceeded.
+  // Keeps inspector memory bounded during long sessions with heavy network traffic.
+  var MAX_INSPECTOR_ENTRIES = 500;
+  var maxEntries = MAX_INSPECTOR_ENTRIES;
   var listeners = { onCapture: [] };
   var enabled = false;
   // Filter used in enable() — required for precise removable in disable().

@@ -60,7 +60,7 @@ function _loadSalt() {
  * @security Machine-bound (hostname+username+userDataPath+32-byte salt). Key is
  *   cached in memory ONLY — NEVER written to disk. Stolen vault.json+salt is
  *   useless on another machine. 100k iters acceptable (seed is unguessable).
- * @returns {Buffer} chave de 32 bytes
+ * @returns {Buffer} 32-byte key
  */
 function getMachineKey() {
   if (_cachedKey) return _cachedKey;

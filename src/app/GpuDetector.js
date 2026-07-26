@@ -403,7 +403,7 @@ function getEnvVars(preset) {
       }
 
       // PRIME offload: if NVIDIA is available but not active, forces offload
-      // para renderizar na dGPU (ganho real em laptops Optimus).
+      // to render on the dGPU (real gain on Optimus laptops).
       if (gpu.isPrime && process.env.__NV_PRIME_RENDER_OFFLOAD !== '1') {
         env.__NV_PRIME_RENDER_OFFLOAD = '1';
         env.__GLX_VENDOR_LIBRARY_NAME = 'nvidia';
