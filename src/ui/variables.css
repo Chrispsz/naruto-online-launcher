@@ -1,32 +1,32 @@
 /* ═══════════════════════════════════════════════════════════════════════════
  * variables.css — Shinobi Launcher Design Tokens
- * Rebrand shinobi: ouro + AMOLED black
+ * Rebrand shinobi: gold + AMOLED black
  *
- * Filosofia: AMOLED preto puro (#000) com acento dourado shinobi. Hierarquia
- * por tipografia e espaçamento. Todos os ícones decorativos usam o mesmo
- * tom dourado — consistência visual absoluta. Cores semânticas (ok/warn/danger)
- * reservadas para status pontuais, não para ícones decorativos.
+ * Philosophy: pure AMOLED black (#000) with golden shinobi accent. Hierarchy
+ * by typography and spacing. All decorative icons use the same golden tone —
+ * absolute visual consistency. Semantic colors (ok/warn/danger) reserved for
+ * status indicators only, not for decorative icons.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Colors: Base (AMOLED preto puro) ── */
+  /* ── Colors: Base (pure AMOLED black) ── */
   --bg: #000000;
   --bg-elev: #0a0a0a;
   --bg-elev-2: #121212;
   --surface: #070707;
   --surface-hover: #161616;
 
-  /* ── Colors: Border (visíveis sobre preto puro) ── */
+  /* ── Colors: Border (visible on pure black) ── */
   --border: #1c1c1c;
   --border-hover: #383838;
   --border-focus: #d4a543;
 
-  /* ── Colors: Text (escala sobre preto AMOLED) ── */
+  /* ── Colors: Text (scale on AMOLED black) ── */
   --text: #f2f2f2;
   --text-dim: #a8a8a8;
   --text-faint: #5e5e5e;
 
-  /* ── Colors: Accent (ouro shinobi — paleta dourada) ── */
+  /* ── Colors: Accent (shinobi gold — golden palette) ── */
   --accent: #d4a543;
   --accent-hover: #e6b85a;
   --accent-2: #8a6d28;
@@ -35,17 +35,17 @@
   --accent-soft: rgba(212, 165, 67, 0.08);
   --accent-contrast: #000000;
 
-  /* ── Colors: Semantic (usar com parcimônia — status, não decoração) ── */
+  /* ── Colors: Semantic (use sparingly — status, not decoration) ── */
   --ok: #5cb85c;
   --warn: #d4a543;
   --danger: #d4574a;
 
-  /* ── Shadows (suaves sobre AMOLED) ── */
+  /* ── Shadows (soft on AMOLED) ── */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
   --shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
   --shadow-lg: 0 4px 24px rgba(0, 0, 0, 0.8);
 
-  /* ── Spacing (4px base scale — mantido) ── */
+  /* ── Spacing (4px base scale — kept) ── */
   --space-1: 0.25rem; /* 4px */
   --space-2: 0.5rem; /* 8px */
   --space-3: 0.75rem; /* 12px */
@@ -53,7 +53,7 @@
   --space-5: 1.5rem; /* 24px */
   --space-6: 2rem; /* 32px */
 
-  /* ── Typography (sistema refinada com Inter fallback) ── */
+  /* ── Typography (refined system with Inter fallback) ── */
   --font-family: -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'SF Mono', 'JetBrains Mono', 'Cascadia Code', monospace;
   --font-xs: 0.6875rem; /* 11px */
@@ -72,19 +72,19 @@
   --line-height-base: 1.5;
   --line-height-tight: 1.25;
 
-  /* ── Border Radius (cantos contidos) ── */
+  /* ── Border Radius (contained corners) ── */
   --radius-sm: 0.25rem; /* 4px */
   --radius: 0.375rem; /* 6px */
   --radius-md: 0.5rem; /* 8px */
   --radius-lg: 0.5rem; /* 8px */
   --radius-full: 9999px;
 
-  /* ── Transitions (rápidas, precisas) ── */
+  /* ── Transitions (fast, precise) ── */
   --transition: 120ms ease;
   --transition-fast: 80ms ease;
   --transition-slow: 220ms ease;
 
-  /* ── Focus Ring (ouro) ── */
+  /* ── Focus Ring (gold) ── */
   --focus-ring: 0 0 0 2px var(--accent);
 
   /* ── Z-index scale ── */

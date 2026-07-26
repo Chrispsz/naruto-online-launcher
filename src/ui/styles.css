@@ -553,7 +553,7 @@ body {
   color: var(--text);
 }
 
-/* events meta simplified — no "Próximo:" prefix (the banner position
+/* events meta simplified — no "Next:" prefix (the banner position
    already implies "next"). Event name in gold, time in dim text. */
 .events-meta-name {
   color: var(--accent);
@@ -894,8 +894,8 @@ body {
   align-items: center;
   justify-content: center;
   z-index: var(--z-overlay);
-  /* sem backdrop-filter:blur — blur é GPU-heavy, causa lag em PC fraco.
-     Solid rgba 0.88 dá o mesmo efeito visual de "escurecer o fundo" a custo zero. */
+  /* no backdrop-filter:blur — blur is GPU-heavy, causes lag on weak PCs.
+     Solid rgba 0.88 gives the same visual effect of "dimming the background" at zero cost. */
 }
 .overlay.show {
   display: flex;

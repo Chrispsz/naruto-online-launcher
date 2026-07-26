@@ -328,8 +328,8 @@ function attach(win, ctx) {
     //
     // Uses MutationObserver + polling (same robust pattern as auto-login)
     // instead of a single check on did-finish-load. Naruto Online loads the
-    // embed #oas-player ASYNC via JS — no did-finish-load ele geralmente ainda
-    // doesn't exist in the DOM, so the single check failed and the CSS didn't inject.
+    // embed #oas-player ASYNC via JS — at did-finish-load it generally
+    // doesn't exist in the DOM yet, so the single check failed and the CSS didn't inject.
     // Result: the top bar sometimes disappeared (on a sub-navigation where #oas-player
     // already existed) and sometimes stayed visible — inconsistent. Now the observer
     // detects #oas-player as soon as it appears and injects CSS reliably.
