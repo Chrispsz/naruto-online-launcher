@@ -225,6 +225,11 @@ function renderProfiles() {
     return;
   }
   grid.innerHTML = '';
+  // Batch cards into a DocumentFragment and append once — avoids N separate
+  // reflows (one per grid.appendChild) for ~30-card profile grids. Layout is
+  // computed a single time after all cards are in the fragment. Standard DOM
+  // optimization, critical on the launcher's low-spec target machines.
+  const frag = document.createDocumentFragment();
   filtered.forEach(function (p) {
     const card = document.createElement('div');
     card.tabIndex = 0;
@@ -281,8 +286,9 @@ function renderProfiles() {
         else if (act === 'del') del(p.id);
       });
     });
-    grid.appendChild(card);
+    frag.appendChild(card);
   });
+  grid.appendChild(frag);
 }
 
 // Sort profiles alphabetically by name.

@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Optimize (Caretaker cycle 50)**: batched profile-card creation into a `DocumentFragment` in `renderProfiles()` (`src/ui/app.js`). Previously each of N cards was appended directly to `grid` via `grid.appendChild(card)` inside the forEach loop, triggering N separate reflows (one per append). Now all cards are collected into a fragment and appended once at the end — single reflow. Eliminates N-1 layout recalculations for ~30-card grids on the launcher's low-spec target machines. Zero functional change (event listeners attached before append; same DOM result).
+
 ### Removed
 - **Clean (Caretaker cycle 33)**: removed dead `tryExtractJwt()` function + unused `jwt` require from `inspector.js` — the function read `details.requestHeaders.Cookie` but Electron 11's `onBeforeRequest` / `onResponseStarted` callbacks don't expose `requestHeaders` (only `onBeforeSendHeaders` does). As a result the condition was always falsy and the JWT capture code path was effectively dead (capturedJwts/capturedCookies arrays always stayed empty). The arrays are intentionally KEPT in the public `getStats()` output to avoid breaking UI consumers — they will simply remain empty until a future behavior cycle wires up `onBeforeSendHeaders`. Net −23 lines.
 - **GitHub cleanup (maintainer)**: removed `.github/dependabot.yml` — was generating 7+ stale PRs per week for packages no longer in package.json (jest/playwright removed in v1.4.0). Closed all 7 open dependabot PRs (#13-#19). Removed `.github/workflows/codeql.yml` — CodeQL scanning added CI noise on every push/PR for a small Electron app; security is covered by CSP, PBKDF2, contextBridge isolation, and `webSecurity:true`. Disabled GitHub Discussions (empty, unused). Remaining workflows: `ci.yml` (lint), `build-release.yml` (build + release).
