@@ -14,7 +14,7 @@
  *     on the Events nav item disappears; the start toast auto-dismisses)
  *
  * SUPPORTED REGIONS (6 real Naruto Online server clusters):
- *   br — America/Sao_Paulo (UTC-3, sem DST)
+ *   br — America/Sao_Paulo (UTC-3, no DST)
  *   na — America/New_York   (UTC-5/-4 DST)
  *   de — Europe/Berlin      (UTC+1/+2 DST)
  *   es — Europe/Madrid      (UTC+1/+2 DST)
@@ -43,7 +43,7 @@ const MAX_FIRED_ENTRIES = 200; // threshold to trigger eviction cleanup
 // flag field uses [XX] text tag (not emoji) — native OS notifications
 // can't render SVG and Windows doesn't render flag emoji. Text tag works everywhere.
 const REGION_TZ = {
-  br: { name: 'Brasil', name_en: 'Brazil', flag: '[BR]', baseOffset: -3 }, // UTC-3, sem DST
+  br: { name: 'Brasil', name_en: 'Brazil', flag: '[BR]', baseOffset: -3 }, // UTC-3, no DST
   na: { name: 'América do Norte', name_en: 'North America', flag: '[NA]', baseOffset: -5 }, // UTC-5, DST -4
   de: { name: 'Deutschland', name_en: 'Germany', flag: '[DE]', baseOffset: 1 }, // UTC+1, DST +2
   es: { name: 'España', name_en: 'Spain', flag: '[ES]', baseOffset: 1 }, // UTC+1, DST +2
@@ -183,7 +183,7 @@ function getServerOffsetHours(region) {
   const norm = normalizeRegion(region);
   const r = REGION_TZ[norm];
   if (!r) return 0;
-  if (norm === 'br') return r.baseOffset; // sem DST
+  if (norm === 'br') return r.baseOffset; // no DST
   const now = new Date();
   const month = now.getUTCMonth(); // 0-11
   const inDST = norm === 'na' ? month >= 2 && month <= 10 : month >= 2 && month <= 9;

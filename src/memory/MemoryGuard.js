@@ -15,8 +15,8 @@ const os = require('os');
 const logger = require('../utils/logger');
 
 const TOTAL_RAM_GB = os.totalmem() / (1024 * 1024 * 1024);
-const IS_LOW_SPEC = TOTAL_RAM_GB < 4; // Modo Leve auto-detect
-const IS_MINIMAL = TOTAL_RAM_GB < 2; // Minimal Mode — manager-only (sem UI)
+const IS_LOW_SPEC = TOTAL_RAM_GB < 4; // Low-Spec Mode auto-detect
+const IS_MINIMAL = TOTAL_RAM_GB < 2; // Minimal Mode — manager-only (no UI)
 
 const CONFIG = {
   normal: { thresholdMB: 700 },

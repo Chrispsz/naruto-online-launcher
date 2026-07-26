@@ -433,10 +433,10 @@ async function optimizeRenderer(pid, opts) {
   }
 
   // Nice-like target: -5 performance / 0 balanced / +5 quality
-  // (mapeado para Windows priority class em _applyWindowsPriority)
+  // (mapped to Windows priority class in _applyWindowsPriority)
   let niceTarget = preset === 'performance' ? -5 : preset === 'balanced' ? 0 : 5;
 
-  // OOM protection: -500 em performance/balanced, 0 em quality (Linux only)
+  // OOM protection: -500 in performance/balanced, 0 in quality (Linux only)
   const oomScore = preset === 'quality' ? 0 : -500;
 
   let affinityPromise, nicePromise, oomPromise;
