@@ -916,10 +916,19 @@ function updateEventBadge() {
       }
     });
   });
-  if (activeCount > 0 && !notificationsMuted) {
-    badge.textContent = activeCount > 9 ? '9+' : activeCount;
+  // Guard against redundant DOM mutations — updateEventBadge runs every 30s
+  // via setInterval. Without these guards, badge.textContent and classList
+  // would be mutated on every tick even when the count/visibility hasn't
+  // changed, causing unnecessary layout invalidations.
+  var shouldShow = activeCount > 0 && !notificationsMuted;
+  var newLabel = shouldShow ? (activeCount > 9 ? '9+' : String(activeCount)) : '';
+  if (badge.textContent !== newLabel) {
+    badge.textContent = newLabel;
+  }
+  var isShown = badge.classList.contains('show');
+  if (shouldShow && !isShown) {
     badge.classList.add('show');
-  } else {
+  } else if (!shouldShow && isShown) {
     badge.classList.remove('show');
   }
 }
