@@ -4,8 +4,8 @@
 
 | Version | Supported | Status |
 |---------|-----------|--------|
-| 1.3.x   | ✅        | Active development |
-| 1.0–1.2 | ✅        | Maintenance (security fixes only) |
+| 1.4.x   | ✅        | Active development |
+| 1.0–1.3 | ✅        | Maintenance (security fixes only) |
 | < 1.0   | ❌        | End of life |
 
 ## Known security considerations
