@@ -1,7 +1,7 @@
 /**
  * profiles/PasswordManager.js — Machine key + master password (Phase 3e split)
  *
- * Single Responsibility (SRP): derive and cache the symmetric key usada pelo
+ * Single Responsibility (SRP): derive and cache the symmetric key used by
  * CryptoService to encrypt credentials at rest. The key is derived from
  * a machine identifier (hostname + username + userDataPath) + salt
  * random persisted salt, via PBKDF2.
@@ -10,7 +10,7 @@
  * machine/user. Does NOT protect against an attacker with access to the running process.
  *
  * History: was part of the God Object vault.js. Split: this module handles only
- * chaves; CryptoService cuida das primitivas; ProfileVault cuida do CRUD.
+ * keys; CryptoService handles the primitives; ProfileVault handles the CRUD.
  */
 
 'use strict';
