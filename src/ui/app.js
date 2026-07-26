@@ -807,6 +807,11 @@ var _ESC_REGEX = /[&<>"']/g;
 function esc(s) {
   return String(s || '').replace(_ESC_REGEX, c => _ESC_MAP[c]);
 }
+// Toast timing (ms). TOAST_VISIBLE_MS controls how long the toast stays on
+// screen before starting its fade-out; TOAST_FADE_MS matches the CSS transition
+// duration on .toast.hiding — must stay in sync with styles.css.
+const TOAST_VISIBLE_MS = 2800;
+const TOAST_FADE_MS = 200;
 let toastT;
 function toast(msg, type) {
   const t = document.getElementById('toast');
@@ -829,8 +834,8 @@ function toast(msg, type) {
     t.classList.add('hiding');
     setTimeout(function () {
       t.classList.remove('hiding');
-    }, 200);
-  }, 2800);
+    }, TOAST_FADE_MS);
+  }, TOAST_VISIBLE_MS);
 }
 
 // ── i18n ──
@@ -1237,10 +1242,13 @@ initDragDrop();
 updateEventBadge();
 // Card state changes (openWindows, autoLoginStatus) are pushed via IPC
 // and already trigger renderProfiles() — no polling needed.
-// Refresh event badge + active event countdowns every 30s
+// Refresh event badge + active event countdowns periodically. Coarse interval
+// is fine — event start/end times are minute-granular and StateBroadcaster
+// pushes immediate updates when the schedule changes.
+const EVENT_BADGE_INTERVAL_MS = 30000;
 var _eventBadgeTimer = setInterval(function () {
   updateEventBadge();
-}, 30000);
+}, EVENT_BADGE_INTERVAL_MS);
 
 // Cleanup lifetime-bound intervals on unload
 window.addEventListener('beforeunload', function () {
