@@ -36,6 +36,16 @@ const BACKUP_FILE = 'profiles.json.bak';
 const MAX_PROFILES = 10;
 const MAX_FILE_BYTES = 1024 * 1024; // 1MB sane limit
 
+// Profile field validation limits — used by isValidProfile() to reject
+// malformed/corrupt data read from disk. Names make the schema contract
+// self-documenting; centralizing here ensures UI input maxlengths (in
+// app.js profile modal) stay in sync with backend validation.
+const MAX_NAME_LENGTH = 40;
+const MAX_SERVER_LENGTH = 20;
+const MAX_NOTES_LENGTH = 200;
+const MAX_TAGS_COUNT = 5;
+const MAX_TAG_LENGTH = 20;
+
 // Launch log (timeline) — persisted separately from profiles.json to
 // avoid interfering with profile schema migrations. Limit of 5000 entries
 // prevents unlimited growth (~6 months of intensive use).
@@ -44,12 +54,12 @@ const MAX_LAUNCH_LOG_ENTRIES = 5000;
 
 // Schema validator — never trust data read from disk
 // added language (pt/en) and notificationsEnabled (boolean) per profile
-// adicionado notes (string, max 200), launchCount (number), totalPlayMs (number)
+// added notes (string, max MAX_NOTES_LENGTH), launchCount (number), totalPlayMs (number)
 function isValidProfile(p) {
   if (!p || typeof p !== 'object') return false;
   if (typeof p.id !== 'string' || !/^p_[a-f0-9]{8,16}$/.test(p.id)) return false;
-  if (typeof p.name !== 'string' || p.name.length === 0 || p.name.length > 40) return false;
-  if (typeof p.server !== 'string' || p.server.length > 20) return false;
+  if (typeof p.name !== 'string' || p.name.length === 0 || p.name.length > MAX_NAME_LENGTH) return false;
+  if (typeof p.server !== 'string' || p.server.length > MAX_SERVER_LENGTH) return false;
   // accept 6 current clusters (br/na/de/es/pl/fr) + 4 legacy codes
   // (eu/hk/pt/en) which are auto-migrated to current clusters on load via
   // normalizeRegion(). isValidRegion accepts both current + legacy.
@@ -63,8 +73,8 @@ function isValidProfile(p) {
     return false;
   if (typeof p.createdAt !== 'number' || p.createdAt < 0) return false;
   if (typeof p.lastUsed !== 'number' || p.lastUsed < 0) return false;
-  // notes optional (string, max 200 chars)
-  if (p.notes !== undefined && (typeof p.notes !== 'string' || p.notes.length > 200)) return false;
+  // notes optional (string, max MAX_NOTES_LENGTH chars)
+  if (p.notes !== undefined && (typeof p.notes !== 'string' || p.notes.length > MAX_NOTES_LENGTH)) return false;
   // launchCount optional (number, >= 0)
   if (
     p.launchCount !== undefined &&
@@ -79,12 +89,12 @@ function isValidProfile(p) {
     return false;
   // favorite optional (boolean)
   if (p.favorite !== undefined && typeof p.favorite !== 'boolean') return false;
-  // tags optional (array of strings, max 5 tags, each max 20 chars)
+  // tags optional (array of strings, max MAX_TAGS_COUNT tags, each max MAX_TAG_LENGTH chars)
   if (p.tags !== undefined) {
     if (!Array.isArray(p.tags)) return false;
-    if (p.tags.length > 5) return false;
+    if (p.tags.length > MAX_TAGS_COUNT) return false;
     for (var i = 0; i < p.tags.length; i++) {
-      if (typeof p.tags[i] !== 'string' || p.tags[i].length > 20 || p.tags[i].length === 0)
+      if (typeof p.tags[i] !== 'string' || p.tags[i].length > MAX_TAG_LENGTH || p.tags[i].length === 0)
         return false;
     }
   }
