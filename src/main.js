@@ -412,7 +412,7 @@ function _initManagerAndLaunch() {
     return {
       preset: config.optimizationPreset || getDefaultPreset(),
       presets: listForUI(),
-      // expose advancedMode (Modo PC Fraco) so the UI toggle reflects persisted state.
+      // expose advancedMode (Low-end PC mode) so the UI toggle reflects persisted state.
       advancedMode: config.advancedMode === true,
       // expose cpuRender (Force CPU rendering) — maps to hardwareProfile='cpu'.
       cpuRender: config.hardwareProfile === 'cpu',
@@ -444,7 +444,7 @@ function _initManagerAndLaunch() {
 
   // PRESETS/listForUI are kept for backwards compat with optimization:get-status response.
 
-  // Toggle Modo PC Fraco (advancedMode / Flash low quality).
+  // Toggle Low-end PC mode (advancedMode / Flash low quality).
   // Re-creates mms.cfg immediately so the change takes effect on next game launch
   // (no launcher restart needed — only the Flash plugin reads mms.cfg at load).
   ipcMain.handle('optimization:set-lowpc', function (_e, enabled) {

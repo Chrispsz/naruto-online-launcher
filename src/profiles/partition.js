@@ -47,13 +47,13 @@ let _lowSpecMode = false;
 
 /**
  * Set whether shadow (ephemeral) partitions should be the default.
- * Called from memory/guard when Modo Low-Spec toggles.
+ * Called from memory/guard when Low-Spec Mode toggles.
  * @param {boolean} lowSpec
  */
 function setLowSpecMode(lowSpec) {
   _lowSpecMode = !!lowSpec;
   logger.info(
-    'partition: Modo Low-Spec = ' + _lowSpecMode + ' → shadow default = ' + shouldUseShadow(null)
+    'partition: Low-Spec Mode = ' + _lowSpecMode + ' → shadow default = ' + shouldUseShadow(null)
   );
 }
 
