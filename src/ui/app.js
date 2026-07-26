@@ -1031,14 +1031,19 @@ renderEventsSingle = function (list) {
   var el = document.getElementById('eventList');
   // Update the events meta header with the next upcoming event.
   var metaEl = document.getElementById('eventsMetaText');
+  // Hoist Date.now() to function top — previously called per-event inside the
+  // forEach loop (~11 calls per render) AND inside the meta-header loop.
+  // All events in a single render pass use the same "now" reference, so
+  // calling it once at function entry is semantically equivalent and avoids
+  // N redundant syscalls. Critical for low-spec machines rendering events.
+  var now = Date.now();
   if (metaEl) {
-    var now = Date.now();
     var nextEv = null;
     var nextDelta = Infinity;
     if (list && list.length) {
       for (var i = 0; i < list.length; i++) {
         var ev = list[i];
-        var startsAt = ev.startsAtMs || (Date.now() + (ev.nextFireMs || 0));
+        var startsAt = ev.startsAtMs || (now + (ev.nextFireMs || 0));
         if (startsAt > now && startsAt - now < nextDelta) {
           nextDelta = startsAt - now;
           nextEv = ev;
@@ -1063,11 +1068,10 @@ renderEventsSingle = function (list) {
       '</div>';
     return;
   }
-  var WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-  var WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   el.innerHTML = '';
   // Increased from 12 to 20 — expanded event list now has 11 events per region.
+  // `now` is declared at function top (hoisted) — reused across meta-header
+  // loop + this forEach to avoid N redundant Date.now() syscalls.
   list.slice(0, 20).forEach(function (ev) {
     var category = ev.category || 'daily';
     var iconSvg = getEventIconSvg(category);
@@ -1077,8 +1081,7 @@ renderEventsSingle = function (list) {
     // EventTimers returns nextFireMs (ms until next reminder fire).
     // startsAtMs = when event actually starts (without remind offset)
     // endsAtMs = startsAtMs + durationMin
-    var now = Date.now();
-    var startsAt = ev.startsAtMs || (Date.now() + (ev.nextFireMs || 0));
+    var startsAt = ev.startsAtMs || (now + (ev.nextFireMs || 0));
     var endsAt = ev.endsAtMs || (startsAt + durationMin * 60000);
     var isActive = now >= startsAt && now < endsAt;
     var isEnded = now >= endsAt;
@@ -1162,6 +1165,12 @@ renderEventsSingle = function (list) {
 
 // SVG icons per event category (inline for self-containment)
 // Added escort + instance categories (Escort, Ninja Instance, Training)
+// Weekday name arrays hoisted to module scope — previously re-declared inside
+// renderEventsSingle on every call (per region tab switch). These are
+// identical across all calls, so allocating them once at module load avoids
+// 2 array allocations per render.
+var WEEKDAYS_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+var WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 function getEventIconSvg(category) {
   switch (category) {
     case 'boss':
