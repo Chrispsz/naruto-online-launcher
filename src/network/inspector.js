@@ -22,7 +22,6 @@
 const urlModule = require('url');
 
 const logger = require('../utils/logger');
-const jwt = require('../utils/jwt');
 
 // Interesting endpoints for classifying captures
 // added login flow endpoints observed in F12:
@@ -139,29 +138,19 @@ function create(session, profileId) {
   }
 
   /**
-   * Attempts to extract JWT from cookie header or query param.
+   * JWT capture from request cookies was removed in cycle 33.
+   *
+   * The previous implementation read `details.requestHeaders.Cookie`, but
+   * Electron 11's `webRequest.onBeforeRequest` and `onResponseStarted`
+   * callbacks do NOT expose `requestHeaders` — only `onBeforeSendHeaders`
+   * does. As a result the condition `details.requestHeaders && ...` was
+   * always falsy and the function was effectively dead code.
+   *
+   * The `capturedJwts` / `capturedCookies` arrays are intentionally KEPT
+   * in the public `getStats()` output (exposed via IpcRouter) so existing
+   * UI consumers don't break — they will simply stay empty until a future
+   * behavior cycle wires up `onBeforeSendHeaders`.
    */
-  function tryExtractJwt(details) {
-    // Cookie header
-    var cookieHdr = details.requestHeaders && details.requestHeaders.Cookie;
-    if (cookieHdr && cookieHdr.indexOf('oas_user=') !== -1) {
-      var m = cookieHdr.match(/oas_user=([^;]+)/);
-      if (m) {
-        var decoded = jwt.decode(m[1]);
-        if (decoded && stats.capturedJwts.indexOf(m[1]) === -1) {
-          stats.capturedJwts.push(m[1]);
-          stats.capturedCookies.push({
-            name: 'oas_user',
-            value: m[1].slice(0, 30) + '...',
-            decoded: decoded,
-            capturedAt: Date.now()
-          });
-          return decoded;
-        }
-      }
-    }
-    return null;
-  }
 
   function record(details, kind) {
     var info = classify(details.url);
@@ -183,11 +172,9 @@ function create(session, profileId) {
       resourceType: details.resourceType || null
     };
 
-    // Only extracts JWT from requests to passport/oasgames
-    if (info.type === 'auth' || info.type === 'parent' || info.type === 'site') {
-      var decoded = tryExtractJwt(details);
-      if (decoded) entry.jwt = decoded;
-    }
+    // JWT capture from request cookies removed (see note above) — was dead
+    // code: onBeforeRequest / onResponseStarted don't expose requestHeaders
+    // in Electron 11. Would need onBeforeSendHeaders to revive.
 
     entries.push(entry);
     if (entries.length > maxEntries) entries.shift();
