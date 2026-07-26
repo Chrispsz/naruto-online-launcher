@@ -253,7 +253,7 @@ function getUpcoming(region, lang) {
         durationMin: durationMin,
         region: norm,
         nextFireMs: ms,
-        nextFireLabel: formatCountdown(ms),
+        nextFireLabel: formatCountdown(ms, useLang),
         // User-local time when the event starts
         userTimeLabel: formatUserTime(soonest),
         // Server-local time (string HH:MM)
@@ -269,8 +269,8 @@ function getUpcoming(region, lang) {
     });
 }
 
-function formatCountdown(ms) {
-  if (ms < 0) return 'agora';
+function formatCountdown(ms, lang) {
+  if (ms < 0) return (lang || _lang) === 'pt' ? 'agora' : 'now';
   const totalMin = Math.floor(ms / 60000);
   const h = Math.floor(totalMin / 60);
   const m = totalMin % 60;

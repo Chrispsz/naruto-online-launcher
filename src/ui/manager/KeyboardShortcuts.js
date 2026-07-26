@@ -1,18 +1,18 @@
 /**
- * ui/manager/KeyboardShortcuts.js — Atalhos de teclado do jogo (Fase 3d split)
+ * ui/manager/KeyboardShortcuts.js — Game keyboard shortcuts (Phase 3d split)
  *
- * Single Responsibility (SRP): intercept keyboard shortcuts in game
- * jogo via webContents 'before-input-event'. Includes the inherited shortcuts:
+ * Single Responsibility (SRP): intercept keyboard shortcuts in the game
+ * via webContents 'before-input-event'. Includes the inherited shortcuts:
  *   - F5  → Clear Login (clears cookies + storage from partition, then reloads)
  *   - F12 → toggle DevTools
  *   - Alt+F4 → closes the window (graceful kill switch)
  *   - Blocks F10/Alt (Chromium menu bar), Ctrl+Shift+I/J (use F12)
  *
- * F5 agora aceita callback `onClearLogin`. Se fornecido, delega pra ele
+ * F5 now accepts an `onClearLogin` callback. When provided, it delegates to it
  * (Launcher passes a function that does clear + pre-authentication via API before
  * reloading — same as Play — to avoid showing the game login screen, preventing
- * vazar o email). If `onClearLogin` is not provided, keeps the behavior
- * antigo (clear + reload direto) — backward compat.
+ * the email from leaking). If `onClearLogin` is not provided, keeps the legacy
+ * behavior (clear + direct reload) — backward compat.
  *
  * History: was inline in the God Object game-launcher.js (620 lines). Extracted
  * to isolate input logic.

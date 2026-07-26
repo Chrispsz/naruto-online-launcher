@@ -118,7 +118,7 @@ function shouldBlock(url) {
  * Setup request blocker on a session.
  * Idempotent: skips if already configured.
  * @param {Electron.Session} session - Browser session
- * @returns {boolean} true se configurou agora
+ * @returns {boolean} true if newly configured this call (false if already set up)
  */
 function setupBlocker(session) {
   if (_configuredSessions.has(session)) {
