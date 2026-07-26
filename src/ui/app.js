@@ -316,6 +316,13 @@ function getStatusLabel(status) {
 }
 
 // ── Render: Events ──
+// renderEventsSingle is assigned later in this file as an expanded bilingual
+// implementation (DocumentFragment batching + Date.now() hoist). Declared here
+// as a module-scope var so the assignment site can overwrite it without
+// triggering no-undef. All callers (region-tab switch, renderEvents, events:get
+// promise resolution) resolve to the expanded version after top-level execution.
+var renderEventsSingle;
+
 function renderRegionTabs() {
   const tabs = document.getElementById('regionTabs');
   const active = [...new Set(profiles.map(p => p.region))];
@@ -341,22 +348,6 @@ function renderEvents(data) {
   lastEventsByRegion = data.byRegion;
   renderEventsSingle(data.byRegion[selectedRegion] || data.byRegion['br'] || []);
   updateEventBadge();
-}
-
-function renderEventsSingle(list) {
-  const el = document.getElementById('eventList');
-  if (!list || !list.length) {
-    el.innerHTML =
-      '<div style="color:var(--text-faint);text-align:center;padding:3rem;font-size:var(--font-sm)">Nenhum evento.</div>';
-    return;
-  }
-  el.innerHTML = '';
-  list.slice(0, 10).forEach(ev => {
-    const item = document.createElement('div');
-    item.className = 'event';
-    item.innerHTML = `<div class="info"><div class="n">${esc(ev.name)}</div><div class="t">${ev.userTimeLabel || ''}</div></div><div class="cd">${ev.nextFireLabel || ''}</div>`;
-    el.appendChild(item);
-  });
 }
 
 // ── Actions ──
