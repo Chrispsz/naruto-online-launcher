@@ -1075,6 +1075,11 @@ renderEventsSingle = function (list) {
     return;
   }
   el.innerHTML = '';
+  // Batch event items into a DocumentFragment and append once — avoids N
+  // separate reflows (one per el.appendChild) for ~11-event region lists.
+  // Same pattern as renderProfiles() (cycle 50). Layout is computed a single
+  // time after all items are in the fragment.
+  var frag = document.createDocumentFragment();
   // Increased from 12 to 20 — expanded event list now has 11 events per region.
   // `now` is declared at function top (hoisted) — reused across meta-header
   // loop + this forEach to avoid N redundant Date.now() syscalls.
@@ -1165,8 +1170,9 @@ renderEventsSingle = function (list) {
       '">' +
       statusLabel +
       '</div>';
-    el.appendChild(item);
+    frag.appendChild(item);
   });
+  el.appendChild(frag);
 };
 
 // SVG icons per event category (inline for self-containment)
