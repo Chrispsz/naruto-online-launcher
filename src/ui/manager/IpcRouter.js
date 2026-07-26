@@ -1,13 +1,13 @@
 /**
- * ui/manager/IpcRouter.js — Registro dos handlers IPC (Fase 3c split)
+ * ui/manager/IpcRouter.js — IPC handler registry (Phase 3c split)
  *
- * Single Responsibility (SRP): register ipcMain.on/handle handlers que
+ * Single Responsibility (SRP): register ipcMain.on/handle handlers that
  * connect the renderer (index.html) to subsystems (store, vault, memory,
  * events, tempmail, inspector, etc.). One method per domain.
  *
  * History: was part of the God Object controller.js (648 lines). Split: this
  * module handles only IPC routing; ManagerWindow handles the window;
- * StateBroadcaster cuida do push de estado.
+ * StateBroadcaster handles state push.
  */
 
 'use strict';
@@ -22,6 +22,12 @@ const vault = require('../../profiles/vault');
 const partition = require('../../profiles/partition');
 const ManagerWindow = require('./ManagerWindow');
 const StateBroadcaster = require('./StateBroadcaster');
+
+// ── Size limits (named for clarity; raw byte values were magic numbers) ──
+const MAX_IMPORT_JSON_BYTES = 2 * 1024 * 1024; // 2 MB — profiles:import payload
+const MAX_BACKUP_FILE_BYTES = 10 * 1024 * 1024; // 10 MB — encrypted/JSON backup file
+const MAX_PASSWORD_LEN = 1024; // chars — sane upper bound for vault passwords
+const MIN_PASSWORD_LEN = 8; // chars — CryptoService enforces ≥8
 
 let _handlers = {};
 let _inspectors = new Map(); // profileId -> inspector instance
@@ -547,7 +553,7 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('profiles:import', function (_e, jsonStr) {
-    if (typeof jsonStr !== 'string' || jsonStr.length > 2 * 1024 * 1024) {
+    if (typeof jsonStr !== 'string' || jsonStr.length > MAX_IMPORT_JSON_BYTES) {
       return { imported: 0, error: 'Invalid or too large import data' };
     }
     const res = store.importJSON(jsonStr);
@@ -557,7 +563,7 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('profiles:export-encrypted', async function (_e, password) {
-    if (typeof password !== 'string' || password.length < 8 || password.length > 1024) {
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD_LEN || password.length > MAX_PASSWORD_LEN) {
       return { ok: false, error: 'Password must be at least 8 characters (max 1024)' };
     }
     const win = _getWin();
@@ -591,7 +597,7 @@ function registerIpcHandlers(handlers) {
   });
 
   ipcMain.handle('profiles:import-encrypted', async function (_e, password) {
-    if (typeof password !== 'string' || password.length > 1024) {
+    if (typeof password !== 'string' || password.length > MAX_PASSWORD_LEN) {
       return { ok: false, error: 'Password required (max 1024 chars)' };
     }
     const win = _getWin();
@@ -606,7 +612,7 @@ function registerIpcHandlers(handlers) {
 
       const filePath = result.filePaths[0];
       const stat = fs.statSync(filePath);
-      if (stat.size > 10 * 1024 * 1024) return { ok: false, error: 'File too large (max 10MB)' };
+      if (stat.size > MAX_BACKUP_FILE_BYTES) return { ok: false, error: 'File too large (max 10MB)' };
       const encrypted = fs.readFileSync(filePath, 'utf8');
       const payload = vault.importEncryptedBackup(encrypted, password);
 
@@ -675,7 +681,7 @@ function registerIpcHandlers(handlers) {
     try {
       const filePath = result.filePaths[0];
       const stat = fs.statSync(filePath);
-      if (stat.size > 10 * 1024 * 1024)
+      if (stat.size > MAX_BACKUP_FILE_BYTES)
         return { ok: false, error: 'File too large (max 10MB)', imported: 0 };
       const raw = fs.readFileSync(filePath, 'utf8');
       const res = store.importJSON(raw);
