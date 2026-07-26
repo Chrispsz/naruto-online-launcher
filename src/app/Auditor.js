@@ -41,7 +41,7 @@ var MAX_RETENTION_DAYS = 90;
 var MAX_REASONS_KEPT = 20; // cap reasons array to prevent unbounded growth
 
 /**
- * Cria um Auditor para um profile.
+ * Creates an Auditor for a profile.
  * @param {string} profileId
  * @param {Object} [opts] - { userDataPath (string), now (fn override for deterministic time) }
  * @returns {Object} auditor instance

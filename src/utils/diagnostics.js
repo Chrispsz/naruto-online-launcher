@@ -8,20 +8,20 @@
  *
  * ZIP CONTENTS:
  *   - system-info.json   → version, Electron, Node, OS, RAM, CPU (sanitized)
- *   - config.json        → config do launcher (sanitizada: sem senhas, sem paths)
+ *   - config.json        → launcher config (sanitized: no passwords, no paths)
  *   - profiles.json      → profiles (sanitized: name + region + server, no creds)
  *   - logs/main.log      → main electron-log (last 500 lines)
- *   - logs/old-*.log     → logs rotacionados (se existirem)
+ *   - logs/old-*.log     → rotated logs (if any exist)
  *   - crash-reports.json → legacy crash reports (if any, may be empty)
  *
  * SANITIZATION:
- *   - Remove paths absolutos (/home/user, C:\Users\user)
+ *   - Remove absolute paths (/home/user, C:\Users\user)
  *   - Remove tokens (40+ hex chars)
  *   - Remove emails
  *   - Does not include vault credentials (never)
  *   - Does not include game cookies (never)
  *
- * USO:
+ * USAGE:
  *   const diag = require('./utils/diagnostics');
  *   const result = await diag.exportZip(parentWindow);
  *   // → { ok:true, path:'/tmp/shinobi-diag-2026-07-14.zip' }
