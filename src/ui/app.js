@@ -793,11 +793,13 @@ document.getElementById('btnPickServer').onclick = async () => {
 // ── Keyboard ──
 
 // ── Utils ──
+// Hoisted to module scope — avoids creating a new object literal on every
+// regex match inside esc(). The map is identical across all esc() calls,
+// so allocating it per-match was pure waste (1 allocation per special char).
+var _ESC_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+var _ESC_REGEX = /[&<>"']/g;
 function esc(s) {
-  return String(s || '').replace(
-    /[&<>"']/g,
-    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
-  );
+  return String(s || '').replace(_ESC_REGEX, c => _ESC_MAP[c]);
 }
 let toastT;
 function toast(msg, type) {
