@@ -50,3 +50,6 @@ test-results/
 # Backup files
 *.bak
 *.tmp
+
+# Caretaker worklog (project-local, self-contained — not committed)
+worklog.md
