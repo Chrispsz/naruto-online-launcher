@@ -7,7 +7,7 @@
 
 ## Overview
 
-Shinobi Launcher is an Electron 11 app that hosts multiple isolated Naruto Online game sessions (one per profile) inside a single manager window. Each profile gets its own `persist:profile-<id>` session partition, its own encrypted credential entry in a machine-bound vault, and its own `BrowserWindow` opened on demand. The manager process owns the daemons (MemoryGuard, GcDaemon, EventTimers) and the IPC router; game windows are isolated renderers that load the Flash PPAPI plugin.
+Shinobi Launcher is an Electron 11 app that hosts multiple isolated Naruto Online game sessions (one per profile) inside a single manager window. Each profile gets its own `persist:profile-<id>` session partition, its own encrypted credential entry in a machine-bound vault, and its own `BrowserWindow` opened on demand. The manager process owns the daemons (MemoryGuard, EventTimers) and the IPC router; game windows are isolated renderers that load the Flash PPAPI plugin.
 
 The codebase is organized into eight domains under `src/` (map below), with a facade module preserving the legacy public API wherever a god-object was split (`controller.js`, `game-launcher.js`, `vault.js`, `guard.js`).
 
@@ -42,7 +42,7 @@ src/
 │   │   ├── ManagerWindow.js      Owns the launcher BrowserWindow (1000x760)
 │   │   ├── IpcRouter.js          Single ipcMain handler registry
 │   │   ├── StateBroadcaster.js   main→renderer push (30s tick + onChange)
-│   │   └── KeyboardShortcuts.js  before-input-event: F5/F8/F12 etc.
+│   │   └── KeyboardShortcuts.js  before-input-event: F5/F12/Alt+F4 etc.
 │   ├── loading/loading.html      Short-lived Flash-provisioning window
 │   └── setup/setup.html          First-boot wizard (currently skipped)
 ├── profiles/
@@ -68,8 +68,7 @@ src/
 │   └── inspector.js              Dev-only network inspector
 ├── memory/
 │   ├── MemoryGuard.js            RSS monitor + active webContents registry
-│   ├── GcDaemon.js               Layered GC: idle sessions → V8 → working set
-│   └── guard.js                  Facade over MemoryGuard + GcDaemon
+│   └── guard.js                  Backward-compat alias for MemoryGuard (GcDaemon was removed pre-v1.0.0)
 ├── app/
 │   ├── Launcher.js               Per-profile BrowserWindow factory + registry
 │   ├── SessionLifecycle.js       did-finish-load/crash/close handlers + pre-auth
@@ -102,8 +101,8 @@ Two Electron process types:
 │  single instance                   │ ──────► │  one BrowserWindow per Play │
 │  ─ UI (renderer)                   │         │  ─ partition: persist:profile-<id>│
 │  ─ IpcRouter + StateBroadcaster    │         │  ─ own cookies/cache/storage │
-│  ─ MemoryGuard + GcDaemon          │         │  ─ Flash PPAPI plugin        │
-│  ─ EventTimers                     │         │  ─ KeyboardShortcuts (F5/F8) │
+│  ─ MemoryGuard                     │         │  ─ Flash PPAPI plugin        │
+│  ─ EventTimers                     │         │  ─ KeyboardShortcuts (F5/F12) │
 └────────────────────────────────────┘         └──────────────────────────────┘
 ```
 
@@ -122,10 +121,9 @@ The manager is the only main process; game windows are separate `BrowserWindow`s
 5. `IpcRouter.register()` — registers all `ipcMain` handlers.
 6. `StateBroadcaster.startAutoRefresh()` — wires `store`/`vault`/`memory`/`event` listeners.
 7. `EventTimers.startWithProfiles(store.getAll())`.
-8. `GcDaemon.start()` — interval = `MemoryGuard.getIntervalMs()`.
-9. `CpuOptimizer.applyToMain()` — main-process affinity (Linux only).
+8. `CpuOptimizer.applyToMain()` — main-process affinity (Linux only).
 
-Daemons (steps 6–8) all `unref()` their timers so they don't keep the process alive on quit.
+Daemons (steps 6–7) all `unref()` their timers so they don't keep the process alive on quit.
 
 ---
 
@@ -138,7 +136,7 @@ The renderer (`src/ui/app.js`) talks to the main process via `ipcRenderer` (rend
 | `profiles:*` | Profile CRUD | `list`, `create`, `update`, `delete`, `reorder` |
 | `vault:*` | Credential vault | `set`, `get`, `has`, `remove`, `export`, `import` |
 | `launch:*` | Game window lifecycle | `profile`, `close`, `focus` |
-| `memory:*` | Memory state | `stats`, `gc` (manual F8), `set-threshold` |
+| `memory:*` | (no IPC channel) | Memory state is **push-only** via `StateBroadcaster.pushMemory` (30s tick + `MemoryGuard.onMemoryUpdate`/`onGC` onChange). The legacy `memory:gc` manual-force handler was removed with `GcDaemon` pre-v1.0.0. |
 | `events:*` | Event timers | `upcoming`, `mute`, `set-remind-min`, `set-lang` |
 | `tempmail:*` | Alt account | `create`, `status` |
 | `inspector:*` | Devtools panel | `open`, `close`, `poll` |
@@ -164,7 +162,7 @@ Each handler delegates to a domain module (`store`, `vault`, `Launcher`, `Memory
 
 **`src/ui/manager/StateBroadcaster.js`** is the inverse direction (main → renderer push). It owns four push functions (`pushProfiles`, `pushMemory`, `pushEvents`, `pushAll`) and a periodic 30-second timer. It also subscribes to `store.onChange`, `MemoryGuard.onMemoryUpdate`, `MemoryGuard.onGC`, and `EventTimers.onRemind`, so changes push immediately, not only on the 30s tick.
 
-**`src/ui/manager/KeyboardShortcuts.js`** attaches a `before-input-event` listener to each game window: F5 (clear login + pre-auth + reload), F8 (manual GC), F12 (toggle DevTools), Alt+F4 (graceful close). F10 and Ctrl+Shift+I/J are blocked (force users to F12 instead of Chromium menu shortcuts).
+**`src/ui/manager/KeyboardShortcuts.js`** attaches a `before-input-event` listener to each game window: F5 (clear login + pre-auth + reload), F12 (toggle DevTools), Alt+F4 (graceful close). F10 and Ctrl+Shift+I/J are blocked (force users to F12 instead of Chromium menu shortcuts). The legacy F8 (manual GC) binding was removed alongside `GcDaemon` pre-v1.0.0 — F8 is no longer intercepted.
 
 ---
 
@@ -204,17 +202,11 @@ Renderer sends `launch:profile(profileId)` → IpcRouter → `Launcher.launchPro
 
 ## Memory management
 
-Two modules split out of the former `guard.js` god-object:
+MemoryGuard was split out of the former `guard.js` god-object (the split also produced a `GcDaemon` companion, since removed — see historical note below):
 
-**MemoryGuard (`src/memory/MemoryGuard.js`) — monitor + registry.** Samples `process.memoryUsage().rss` via `getStats()`. Maintains the registry of active game webContents (`registerGameWebContents`/`unregister`) — the key data structure that lets GcDaemon know which partitions **must not** be cache-cleared (clearing cache on a partition with an active Flash player causes a black canvas). Two profiles: Normal (≥4 GB RAM, 5-min interval, 700 MB threshold, no preventive GC) and Low-Spec (<4 GB or forced, 2-min interval, 450 MB threshold, preventive GC every tick). Exposes `onMemoryUpdate(cb)` and `onGC(cb)`. Renderer-side `window.gc()` injection is a NO-OP since v4.9.1 — it paused Flash — but the registry is still populated.
+**MemoryGuard (`src/memory/MemoryGuard.js`) — monitor + registry.** Samples `process.memoryUsage().rss` via `getStats()`. Maintains the registry of active game webContents (`registerGameWebContents`/`unregister`) — a low-cost observability hook that records which partitions currently host an active Flash player (clearing cache on a partition with an active Flash player causes a black canvas; the registry was originally consumed by `GcDaemon` to skip such partitions, but `GcDaemon` was removed pre-v1.0.0 as a useless optimization — see CHANGELOG entry for `94b587b` — and the registry is now self-standing). Two profiles: Normal (≥4 GB RAM, 5-min interval, 700 MB threshold, no preventive GC) and Low-Spec (<4 GB or forced, 2-min interval, 450 MB threshold, preventive GC every tick). Exposes `onMemoryUpdate(cb)` and `onGC(cb)`. Renderer-side `window.gc()` injection is a NO-OP since v4.9.1 — it paused Flash — but the registry is still populated.
 
-**GcDaemon (`src/memory/GcDaemon.js`) — periodic GC + `collect()`.** `collect({ manual })` runs layered cleanup, throttled to ≥30s between runs and guarded against reentrance:
-
-- Layer 1 — `session.defaultSession.clearCache()` + `clearStorageData({ storages:['cachestorage'] })`, then for each profile whose id is **not** in `MemoryGuard.getActiveProfileIds()`: same on its partition. `shadercache` is intentionally NOT cleared (recompiling GPU shaders mid-session blanks the Flash canvas).
-- Layer 2 — V8 major GC on the main process: `process.gc(true)` if available (safe — doesn't touch the renderer where Flash runs).
-- Layer 3 (Windows only) — `EmptyWorkingSet` via PowerShell, fallback `SetProcessWorkingSetSize` to zero.
-
-`F8` calls `collect({ manual: true })` directly — bypasses the threshold check, still respects throttle + anti-reentrance.
+> **Historical note.** The launcher previously shipped a companion `GcDaemon` (`src/memory/GcDaemon.js`) that ran periodic layered GC (idle-session cache clear → V8 major GC → Windows `EmptyWorkingSet`) and was bound to `F8` for manual invocation. It was removed pre-v1.0.0 (`commit 94b587b`) because the forced GC on the main process every 50 MB provided no measurable benefit and the cache-clear pass risked blanking active Flash canvases. The `F8` binding was removed alongside it — `F8` is no longer intercepted (Chromium's default F8 behavior applies).
 
 ---
 

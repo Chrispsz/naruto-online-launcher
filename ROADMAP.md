@@ -25,7 +25,7 @@ Every release must respect four constraints, in priority order:
 
 Major milestones in the public history (post-v1.0.0 squash):
 
-- **v1.0.0** — First public release. Squashed the legacy v4.x/v5.x history into a clean single commit; GitHub Release with full notes. Multi-account runtime, AES-256-GCM machine-bound vault, EventTimers (4 regions, DST-aware), MemoryGuard + GcDaemon, Flash PPAPI native, F5/F8/F12 shortcuts.
+- **v1.0.0** — First public release. Squashed the legacy v4.x/v5.x history into a clean single commit; GitHub Release with full notes. Multi-account runtime, AES-256-GCM machine-bound vault, EventTimers (4 regions, DST-aware), MemoryGuard (RSS monitor + active-webContents registry), Flash PPAPI native, F5/F8/F12 shortcuts.
 - **v1.0.1** — Removed `FlashUpdater` auto-download fallback (legal/size); Flash binary is now user-supplied. Removed `tempmail.readInbox()`. Documented recovery in `FLASH_SETUP.md`.
 - **v1.1.0** — 6-region cluster model (br/na/de/es/pl/fr) with SVG flag icons (font-independent — renders identically on Windows/Linux/macOS); license headers across all source files; `SHINOBI_DEBUG` boot flag + Ctrl+Shift+D UI toggle; Dev Tools tab hidden by default.
 - **v1.1.1** — 6-cluster alignment across launcher + site mock; dead-code removal (10 unused React components, 1 orphan mock file, `request-logger.js`, `configureFlash()`, no-op `injectGC`); renderer interval leak fixes; net -876 lines.

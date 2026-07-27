@@ -68,7 +68,6 @@ chmod +x install.sh
 | `F5` | Clear current account's login (cookies + storage, then pre-auth via API and reload) |
 | `F6` | Switch region |
 | `F7` | Switch hardware profile (auto / cpu / gpu) |
-| `F8` | Force garbage collection |
 | `F11` | Fullscreen |
 | `Ctrl+N` | New account |
 | `Ctrl+Shift+S` | Screenshot |
@@ -90,7 +89,7 @@ src/
 ├── flash/               # plugin (findFlashPlugin) · mms (Low-Spec mms.cfg generator)
 ├── network/             # blocker · inspector · cookies · tempmail · api-login
 ├── profiles/            # store · ProfileVault · CryptoService · PasswordManager · partition
-├── memory/              # MemoryGuard (RSS monitor) · GcDaemon (layered GC)
+├── memory/              # MemoryGuard (RSS monitor + active-webContents registry)
 ├── ui/                  # index.html · styles.css · app.js · manager/ · controller facades
 └── utils/               # logger · diagnostics · EventTimers · jwt
 ```
@@ -188,7 +187,7 @@ chmod +x install.sh
 
 **Windows:** baixe o `.zip` portátil, extraia, rode `NarutoOnline.exe`.
 
-**Atalhos de teclado:** a tabela em inglês acima é a referência canônica (F5 limpa login, F6 troca região, F7 troca perfil de hardware, F8 força GC, F11 tela cheia, Ctrl+N nova conta, Ctrl+Shift+S screenshot, Ctrl+Shift+T sempre visível, Alt+1..9 quick-launch).
+**Atalhos de teclado:** a tabela em inglês acima é a referência canônica (F5 limpa login, F6 troca região, F7 troca perfil de hardware, F11 tela cheia, Ctrl+N nova conta, Ctrl+Shift+S screenshot, Ctrl+Shift+T sempre visível, Alt+1..9 quick-launch).
 
 **Documentação completa:** [ARCHITECTURE.md](ARCHITECTURE.md) · [FLASH_SETUP.md](FLASH_SETUP.md) · [ROADMAP.md](ROADMAP.md) · [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
 
