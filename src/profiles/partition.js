@@ -111,12 +111,58 @@ function _persistSnapshots() {
     let json = JSON.stringify(_snapshots);
     if (Buffer.byteLength(json, 'utf8') > MAX_SNAPSHOTS_BYTES) {
       logger.warn('partition: snapshots exceed 512KB — truncating oldest');
-      // Drop oldest entries until under 80% capacity, then re-stringify once
+      // Drop oldest entries until under 80% capacity.
+      // OPTIMIZATION (cycle 74): previously re-stringified the entire
+      // _snapshots object on every iteration of this loop — O(n²) on the
+      // number of dropped profiles. Now we drop entries in one pass using
+      // a running byte estimate (each profile's cookies array is small
+      // and independently stringify-able), then re-stringify at most
+      // TWICE total: once after the batch drop, once after the optional
+      // largest-entry fallback. For the typical case (4-10 profiles,
+      // ~5KB each), this is a no-op (the cap is rarely hit). For the
+      // degenerate case (50+ profiles with many cookies), this avoids
+      // ~50 full re-stringifies of a 500KB object — measurable on slow
+      // ARM CPUs where JSON.stringify is ~5-10MB/s.
+      const targetBytes = MAX_SNAPSHOTS_BYTES * 0.8;
       const keys = Object.keys(_snapshots);
-      while (keys.length > 1) {
-        delete _snapshots[keys.shift()];
+      // Estimate per-profile size by stringifying each independently;
+      // a single cookie entry is ~150-300 bytes JSON-encoded, so each
+      // profile with ~5-20 auth cookies is ~1-6KB. We sum these to find
+      // how many oldest entries to drop in one batch.
+      let runningBytes = Buffer.byteLength(json, 'utf8');
+      let dropCount = 0;
+      while (dropCount < keys.length - 1 && runningBytes > targetBytes) {
+        const key = keys[dropCount];
+        const entryBytes = Buffer.byteLength(JSON.stringify(_snapshots[key]), 'utf8');
+        runningBytes -= entryBytes;
+        delete _snapshots[key];
+        dropCount++;
+      }
+      // Re-stringify once after the batch drop (runningBytes is an estimate;
+      // the actual post-drop size is what matters for the cap check below).
+      json = JSON.stringify(_snapshots);
+      // If we're still over the cap after dropping oldest entries (or didn't
+      // drop any because the loop bound was hit), drop the largest remaining
+      // entry as a last resort. This catches the degenerate case where a
+      // single profile's snapshot is huge (e.g. 3000 cookies from a broken
+      // auth flow) — the per-profile estimate correctly identifies it.
+      if (Buffer.byteLength(json, 'utf8') > MAX_SNAPSHOTS_BYTES && keys.length > 1) {
+        let largestKey = keys[0];
+        let largestBytes = 0;
+        for (let i = 0; i < keys.length; i++) {
+          const k = keys[i];
+          if (!Object.prototype.hasOwnProperty.call(_snapshots, k)) continue; // already dropped
+          const b = Buffer.byteLength(JSON.stringify(_snapshots[k]), 'utf8');
+          if (b > largestBytes) {
+            largestBytes = b;
+            largestKey = k;
+          }
+        }
+        delete _snapshots[largestKey];
         json = JSON.stringify(_snapshots);
-        if (Buffer.byteLength(json, 'utf8') <= MAX_SNAPSHOTS_BYTES * 0.8) break;
+        logger.info('partition: truncated ' + dropCount + ' oldest + 1 largest snapshot(s)');
+      } else {
+        logger.info('partition: truncated ' + dropCount + ' oldest snapshot(s)');
       }
     }
     fs.writeFileSync(tmp, json, 'utf8');
