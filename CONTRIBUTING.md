@@ -39,7 +39,7 @@ src/
 ├── config/              # i18n, regions, URLs, optimization presets
 ├── flash/               # mms.cfg generation + plugin loader
 ├── main/                # Chromium flags (single source of truth)
-├── memory/              # MemoryGuard + GcDaemon
+├── memory/              # MemoryGuard (guard.js is a backward-compat alias — GcDaemon was removed pre-v1.0.0)
 ├── network/             # Cookies, blocker, API login, tempmail
 ├── profiles/            # CRUD + encrypted vault + auto-login script
 ├── ui/                  # index.html + styles.css + app.js + variables.css

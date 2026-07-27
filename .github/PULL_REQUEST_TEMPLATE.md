@@ -10,7 +10,7 @@ Brief description of what this PR changes and why.
 
 ## Checklist
 - [ ] `npm run lint` passes with no errors
-- [ ] If UI/config changed: `bash scripts/build-preview.sh` run and preview verified
+- [ ] If UI/config changed: manual visual verification on Linux and/or Windows (the `scripts/build-preview.sh` helper was removed in caretaker cycle 1 — there is no longer an automated preview script)
 - [ ] No new dependencies added without justification
 - [ ] No indigo or blue colors introduced (design system: AMOLED black + shinobi gold #d4a543)
 - [ ] User-facing copy is bilingual (EN + PT-BR) where applicable
