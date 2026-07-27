@@ -155,8 +155,6 @@ function getAppliedSnapshot() {
 
 /** True when the machine has less than 4 GB RAM (triggers low-spec mode). */
 const IS_LOW_SPEC = TOTAL_RAM_GB < 4;
-/** True when the machine has less than 2 GB RAM (extreme low-spec, reduced functionality). */
-const IS_MINIMAL = TOTAL_RAM_GB < 2;
 /** Total system RAM in GB, rounded to 1 decimal. Used for heap/cache sizing. */
 const SYSTEM_RAM_GB = Math.round(TOTAL_RAM_GB * 10) / 10;
 
@@ -164,7 +162,6 @@ module.exports = {
   applyAll,
   getAppliedSnapshot,
   IS_LOW_SPEC: IS_LOW_SPEC,
-  IS_MINIMAL: IS_MINIMAL,
   IS_WAYLAND: IS_WAYLAND,
   SYSTEM_RAM_GB: SYSTEM_RAM_GB
 };
