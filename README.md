@@ -10,11 +10,11 @@ Encrypted vault · Isolated sessions · GPU/CPU tuning · Zero tracking · Linux
 
 <br />
 
-[![Version](https://img.shields.io/badge/version-1.4.0-d4a543?style=flat-square)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
+[![Version](https://img.shields.io/github/v/release/Chrispsz/naruto-online-launcher?style=flat-square&color=d4a543)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
 [![CI](https://github.com/Chrispsz/naruto-online-launcher/actions/workflows/ci.yml/badge.svg)](https://github.com/Chrispsz/naruto-online-launcher/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/Chrispsz/naruto-online-launcher?style=flat-square)](LICENSE)
 [![Downloads](https://img.shields.io/github/downloads/Chrispsz/naruto-online-launcher/total?style=flat-square&color=6e7681)](https://github.com/Chrispsz/naruto-online-launcher/releases/latest)
-[![Electron](https://img.shields.io/badge/electron-11.5.0-47848f?style=flat-square)](#-architecture)
+[![Electron](https://img.shields.io/github/package-json/dependency-version/Chrispsz/naruto-online-launcher/dev/electron?style=flat-square&color=47848f)](#-architecture)
 [![Platforms](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-6e7681?style=flat-square)](#-install)
 
 </div>
@@ -33,8 +33,8 @@ Shinobi Launcher is a desktop launcher for the browser MMO **Naruto Online** (Oa
 | 🔐 | **AES-256 encrypted vault** | Credentials stored with AES-256-GCM; key derived from a machine-bound seed via PBKDF2-SHA512 (100k rounds). A stolen `vault.json` is useless on any other machine. |
 | ⚡ | **GPU / CPU optimization** | Curated Chromium flags for Flash PPAPI, plus Force-CPU and Modo Low-Spec profiles, CPU affinity pinning and `oom_score_adj` tuning. |
 | 🛡️ | **Stall auto-recovery** | Renderer crashes auto-reload (3/10 min per profile); a `StallDetector` watches SWF failures and zero-network stalls, then triggers `reloadWithPreAuth`. |
-| ⏰ | **Multi-region event timers** | 11 events × 4 regions (BR · NA · EU · HK), native desktop notifications N minutes before start, DST auto-detected, bilingual names. |
-| 📧 | **Temp email for alts** | One-click mail.tm inbox + Oasgames passport registration; captures the 2h JWT login key automatically (5 accounts/hour cap). |
+| ⏰ | **Multi-region event timers** | Scheduled events per region across 6 server clusters (BR · NA · DE · ES · PL · FR), native desktop notifications N minutes before start, DST auto-detected, bilingual names. |
+| 📧 | **Temp email for alts** | One-click mail.tm inbox + Oasgames passport registration; captures the JWT login key automatically (rate-limited to prevent abuse). |
 | 🚫 | **Tracker blocker** | `network/blocker.js` filters Google Analytics, DoubleClick, Facebook pixels and Oasgames analytics at the WebRequest layer — game APIs whitelisted. |
 | 🌐 | **Bilingual EN + PT-BR** | Every user-facing string ships in both English and Brazilian Portuguese; toggle persists to `config.json`. |
 
@@ -141,14 +141,14 @@ Contributions welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)**. Golden rul
 
 ## 🌍 Regions
 
-🇧🇷 **BR** · 🇺🇸 **NA** · 🇫🇷🇩🇪🇪🇸🇵🇱 **EU** · 🇭🇰 **HK** — eleven scheduled events per region, native notifications, DST-aware.
+🇧🇷 **BR** · 🇺🇸 **NA** · 🇩🇪 **DE** · 🇪🇸 **ES** · 🇵🇱 **PL** · 🇫🇷 **FR** — scheduled events per region, native notifications, DST-aware.
 
 ---
 
 ## 💎 Credits
 
 - **Flash PPAPI builds** — [darktohka/clean-flash-builds](https://github.com/darktohka/clean-flash-builds) (Clean Flash 34.0.0.x)
-- **Naruto Online community** — BR / NA / EU / HK players, for validating event schedules
+- **Naruto Online community** — BR / NA / DE / ES / PL / FR players, for validating event schedules
 - Not affiliated with Oasis Games. "Naruto Online" is a trademark of its respective owners.
 
 ---
@@ -174,7 +174,7 @@ O **Shinobi Launcher** é um launcher desktop para o MMO de navegador **Naruto O
 - 🔐 Cofre AES-256-GCM com chave derivada por PBKDF2-SHA512 (100k iterações)
 - ⚡ Otimização de GPU/CPU — flags Chromium, Modo Low-Spec, afinidade de CPU
 - 🛡️ Auto-recuperação de stall — reloader de renderer + `StallDetector` de SWF
-- ⏰ Timer de eventos multi-região (BR · NA · EU · HK), 11 eventos por região
+- ⏰ Timer de eventos multi-região (BR · NA · DE · ES · PL · FR), eventos agendados por região
 - 📧 Email temporário via mail.tm para criar alts em um clique
 - 🚫 Bloqueador de trackers (GA, DoubleClick, Facebook, Oasgames)
 - 🌐 UI bilíngue EN + PT-BR
