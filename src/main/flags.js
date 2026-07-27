@@ -15,6 +15,21 @@ const CPU_CORES = os.cpus().length;
 /** True when running under Wayland (affects GPU flag selection on Linux). */
 const IS_WAYLAND = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY;
 
+// V8 heap size tiers (MB) — sized to leave headroom for the OS + Electron + Flash
+// PPAPI while giving the renderer enough room for long Naruto Online sessions.
+// Values are deliberately conservative: the game's working set is small, but
+// GC pressure spikes during region-switch and event-burst rendering.
+const HEAP_MB_LOW_SPEC = 384;   // <4GB RAM — survival tier, frequent GC
+const HEAP_MB_MID = 768;       // 4-8GB RAM — comfortable for single-account
+const HEAP_MB_HIGH = 1024;     // 8-16GB RAM — multi-account + heavy events
+const HEAP_MB_DEFAULT = 1536;  // >=16GB RAM — cap; more is wasteful for this workload
+
+// Chromium disk cache — sized per RAM tier. Larger cache reduces repeat fetches
+// of game assets (SWF, images) but eats disk; low-spec machines get the small
+// tier to avoid SSD wear on machines that may have eMMC storage.
+const DISK_CACHE_LOW_SPEC_BYTES = 128 * 1024 * 1024;  // 128MB
+const DISK_CACHE_DEFAULT_BYTES = 256 * 1024 * 1024;  // 256MB
+
 const _disabled = new Set([
   'IsolateOrigins',
   'site-per-process',
@@ -33,10 +48,10 @@ let _applied = false;
  */
 function _computeHeapMB(forceLowSpec) {
   const low = forceLowSpec || TOTAL_RAM_GB < 4;
-  if (low) return 384;
-  if (TOTAL_RAM_GB < 8) return 768;
-  if (TOTAL_RAM_GB < 16) return 1024;
-  return 1536;
+  if (low) return HEAP_MB_LOW_SPEC;
+  if (TOTAL_RAM_GB < 8) return HEAP_MB_MID;
+  if (TOTAL_RAM_GB < 16) return HEAP_MB_HIGH;
+  return HEAP_MB_DEFAULT;
 }
 
 /**
@@ -85,7 +100,8 @@ function applyAll(opts) {
   app.commandLine.appendSwitch('disable-plugin-power-saver');
 
   // Cache
-  app.commandLine.appendSwitch('disk-cache-size', low ? '134217728' : '268435456');
+  app.commandLine.appendSwitch('disk-cache-size',
+    low ? String(DISK_CACHE_LOW_SPEC_BYTES) : String(DISK_CACHE_DEFAULT_BYTES));
 
   // Hardware profile
   if (opts.hardwareProfile === 'cpu') {
