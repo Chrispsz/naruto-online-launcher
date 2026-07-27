@@ -2,7 +2,7 @@
  * profiles/partition.js — Shadow Partition manager (disruptive RAM saver)
  * DISRUPTIVE INNOVATION
  *
- * PROBLEMA QUE RESOLVE:
+ * PROBLEM SOLVED:
  *   Each profile with `persist:profile-<id>` writes ~30-80MB to disk and keeps
  *   cache/localStorage/indexedDB loaded in RAM. On a 2-4GB PC with 4
  *   accounts, that is 120-320MB JUST from partitions — unfeasible.
@@ -16,14 +16,14 @@
  *
  *   Result: even multi-account on low-spec PC doesn't accumulate 300MB of partitions.
  *   The cost is re-download of static assets (mitigated by disk-cache-size
- *   global compartilhado na default session).
+ *   shared globally on the default session).
  *
  * POLICY:
  *   - Low-Spec mode (RAM <4GB) or forceLowSpec → shadow ACTIVE for all profiles.
  *   - Normal mode → persist (default behavior, backwards-compatible).
  *   - Profile can force shadow via profile.shadow=true (power-user opt-in).
  *
- * ISOLAMENTO:
+ * ISOLATION:
  *   Shadow partitions remain 100% isolated from each other by Chromium
  *   (each `partition:name` is a separate session/cookies/storage sandbox).
  *   The difference is only disk persistence.
@@ -81,10 +81,22 @@ function getPartitionName(profile) {
 
 // ── Snapshot persistence ──
 
+/**
+ * Returns the absolute path to the cookie-snapshots.json file.
+ * Lives in the Electron userData directory so it survives app updates.
+ * @returns {string}
+ */
 function _getSnapshotsPath() {
   return path.join(app.getPath('userData'), SNAPSHOTS_FILE);
 }
 
+/**
+ * Lazy-loads the snapshots index from disk on first access.
+ * Guards against: missing file (initial state), oversized file (>512KB —
+ * treated as corrupt, reset to empty), unparseable JSON (corrupt, reset).
+ * Subsequent calls are no-ops (the `_snapshots !== null` guard).
+ * @returns {void}
+ */
 function _ensureSnapshotsLoaded() {
   if (_snapshots !== null) return;
   const file = _getSnapshotsPath();
@@ -103,6 +115,23 @@ function _ensureSnapshotsLoaded() {
   }
 }
 
+/**
+ * Persists the in-memory snapshots index to cookie-snapshots.json atomically.
+ *
+ * Writes to a `.tmp` file first, then renames to the final path — guarantees
+ * the snapshots file is never left half-written if the process crashes
+ * mid-write (Chromium's partition data corruption would force a re-login
+ * on all profiles, which is exactly what this module exists to avoid).
+ *
+ * Cap enforcement: if the serialized JSON exceeds MAX_SNAPSHOTS_BYTES
+ * (512KB), drops oldest entries first in a single forward pass using a
+ * running byte estimate (O(n), not O(n²) — see cycle 74 optimization
+ * comment below). If still over cap after dropping oldest, drops the
+ * single largest entry as a last resort (catches the degenerate case
+ * where one profile has thousands of cookies from a broken auth flow).
+ *
+ * @returns {void}
+ */
 function _persistSnapshots() {
   _ensureSnapshotsLoaded();
   const file = _getSnapshotsPath();
@@ -262,12 +291,12 @@ function removeSnapshot(profileId) {
  * Needed so that bunshin/clone of a newly-created profile doesn't fail with
  * "user-data-dir of the source does not exist" (Chromium only creates the dir on the first
  * launch — without this, operations that depend on the dir before the first launch
- * quebram).
+ * would break).
  *
  * In shadow mode (partition:profile-<id>), the partition is ephemeral and has NO
  * dir on disk — this method is a no-op.
  *
- * @param {Object|string} profile - profile object ou id
+ * @param {Object|string} profile - profile object or id
  * @returns {boolean} true if created or already existed
  */
 function ensurePartitionDir(profile) {
