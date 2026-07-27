@@ -235,6 +235,9 @@ function renderProfiles() {
     card.tabIndex = 0;
     card.className = 'card' + (p.hasVault ? ' has-vault' : '');
     card.setAttribute('data-card-id', p.id);
+    // Mark draggable at creation time — avoids a second querySelectorAll sweep
+    // of the grid after render (the old post-render wrapper did this).
+    card.setAttribute('draggable', 'true');
     var editLabel = currentLang === 'pt' ? 'Editar' : 'Edit';
     var vaultLabel = currentLang === 'pt' ? 'Credenciais' : 'Credentials';
     var delLabel = currentLang === 'pt' ? 'Excluir' : 'Delete';
@@ -1020,14 +1023,11 @@ function initDragDrop() {
   });
 }
 
-// Make cards draggable after render
-var origRenderProfiles = renderProfiles;
-renderProfiles = function () {
-  origRenderProfiles();
-  document.querySelectorAll('.card[data-card-id]').forEach(function (card) {
-    card.setAttribute('draggable', 'true');
-  });
-};
+// Note: card draggable attribute is now set inline in renderProfiles()
+// at creation time (cycle 66 OPTIMIZE). The previous pattern rebuilt the
+// grid and then did a second querySelectorAll sweep to mark each card
+// draggable — redundant, since the attribute can be set on the same
+// element handle before it's appended to the DocumentFragment.
 
 // ── Event Rendering (bilingual + days/daily + duration) ──
 // Each event now shows:
