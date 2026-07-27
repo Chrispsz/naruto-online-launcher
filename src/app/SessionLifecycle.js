@@ -301,7 +301,7 @@ function attach(win, ctx) {
 
     // LAYER 1: light cleanup (ads, cookies, popups, game site clutter)
     // Uses executeJavaScript with idempotency guard — insertCSS() adds
-    // um novo <style> a CADA chamada (incluindo sub-frame loads do Flash),
+    // a new <style> on EVERY call (including Flash sub-frame loads),
     // accumulating duplicate styles. With the guard, injects exactly once.
     win.webContents
       .executeJavaScript(

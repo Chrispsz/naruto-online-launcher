@@ -1,5 +1,5 @@
 /**
- * profiles/vault.js — FACADE (Fase 3e split)
+ * profiles/vault.js — FACADE (Phase 3e split)
  *
  * Was the God Object (571 lines). Now it's a thin facade that composes:
  *   - CryptoService.js   — pure AES-256-GCM + PBKDF2 primitives

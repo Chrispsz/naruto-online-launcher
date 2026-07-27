@@ -14,7 +14,7 @@
 
 /**
  * Decodes a JWT (header + payload) without validating the signature.
- * @param {string} token — JWT completo (xxx.yyy.zzz)
+ * @param {string} token — Full JWT (xxx.yyy.zzz)
  * @returns {{header:Object, payload:Object, signature:string, exp:Date, iat:Date, expired:boolean, expiresInSeconds:number}|null}
  */
 function decode(token) {
