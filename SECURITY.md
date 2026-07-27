@@ -47,7 +47,7 @@ Credentials are injected into the login form via `webContents.executeJavaScript(
 - Never logs credential values — the script string contains them, but it executes in the renderer's main world, isolated from the manager process's console.
 - Uses a React/Vue-compatible value setter (descriptor-based) to trigger the framework's change handlers — setting `.value` directly would submit an empty form.
 
-See **[docs/AUTO-LOGIN.md](docs/AUTO-LOGIN.md)** for the full flow.
+See **[`src/app/SessionLifecycle.js`](src/app/SessionLifecycle.js)** (`did-finish-load` handler) for the implementation.
 
 ### Diagnostics export
 
