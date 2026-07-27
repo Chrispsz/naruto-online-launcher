@@ -761,15 +761,25 @@ function getLaunchTimeline(days) {
   }
 
   // Aggregates launch log by local date
+  // Pre-build a Map<profileId, profile> so each launch-log entry is an O(1)
+  // lookup instead of an O(_profiles.length) linear scan via _profiles.find().
+  // Without this Map, the worst case (MAX_LAUNCH_LOG_ENTRIES=5000 × ~50
+  // profiles) is ~250,000 iterations per call; with it, the aggregation is
+  // O(_launchLog.length + _profiles.length) — a ~50× reduction at the cap.
+  // The Map is built once per call (cheap — _profiles is typically <50 items)
+  // and replaces the inner .find() closure allocation that previously
+  // happened once per launch-log entry.
+  var profileById = new Map();
+  _profiles.forEach(function (p) {
+    profileById.set(p.id, p);
+  });
   _launchLog.forEach(function (entry) {
     const dateStr = _formatDate(entry.ts);
     const idx = dateToIdx[dateStr];
     if (idx === undefined) return; // fora da janela de dias
     const b = buckets[idx];
     b.count++;
-    const p = _profiles.find(function (x) {
-      return x.id === entry.id;
-    });
+    const p = profileById.get(entry.id);
     if (!p) return; // profile deleted — doesn't count in profiles array
     if (!b._byId[entry.id]) {
       b._byId[entry.id] = { id: entry.id, name: p.name, count: 0 };
