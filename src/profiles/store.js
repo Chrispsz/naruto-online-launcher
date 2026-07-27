@@ -444,11 +444,15 @@ function reorder(order) {
   if (!Array.isArray(order)) return;
   var reordered = [];
   var seen = new Set();
+  // Pre-build a Map<profileId, profile> so each order entry is an O(1)
+  // lookup instead of an O(_profiles.length) linear scan.
+  var profileById = new Map();
+  _profiles.forEach(function (p) {
+    profileById.set(p.id, p);
+  });
   // First, place profiles in the specified order
   order.forEach(function (id) {
-    var p = _profiles.find(function (x) {
-      return x.id === id;
-    });
+    var p = profileById.get(id);
     if (p && !seen.has(id)) {
       reordered.push(p);
       seen.add(id);
