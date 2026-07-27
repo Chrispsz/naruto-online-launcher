@@ -63,16 +63,23 @@ chmod +x install.sh
 
 ## ⌨️ Keyboard shortcuts
 
+Shortcuts are scoped per window. Game windows (the `BrowserWindow` opened when you click **Play**) intercept a small set of keys via `before-input-event`; the manager window only listens for `Esc` to close any open modal.
+
+**Game window** (`src/ui/manager/KeyboardShortcuts.js`):
+
 | Key | Action |
 |---|---|
 | `F5` | Clear current account's login (cookies + storage, then pre-auth via API and reload) |
-| `F6` | Switch region |
-| `F7` | Switch hardware profile (auto / cpu / gpu) |
-| `F11` | Fullscreen |
-| `Ctrl+N` | New account |
-| `Ctrl+Shift+S` | Screenshot |
-| `Ctrl+Shift+T` | Always on top |
-| `Alt+1` … `Alt+9` | Quick-launch profile 1–9 |
+| `F12` | Toggle DevTools (debug) |
+| `Alt+F4` | Close the game window (graceful shutdown via SessionLifecycle) |
+
+**Manager window** (`src/ui/app.js`):
+
+| Key | Action |
+|---|---|
+| `Esc` | Close any open modal (profile editor / vault) |
+
+**Blocked in game windows** (Chromium defaults overridden to avoid leaking the game's email or opening dev menus by accident): `F10` and bare `Alt` (Chromium menu bar), `Ctrl+Shift+I` / `Ctrl+Shift+J` (use `F12` instead).
 
 ---
 
@@ -187,7 +194,7 @@ chmod +x install.sh
 
 **Windows:** baixe o `.zip` portátil, extraia, rode `NarutoOnline.exe`.
 
-**Atalhos de teclado:** a tabela em inglês acima é a referência canônica (F5 limpa login, F6 troca região, F7 troca perfil de hardware, F11 tela cheia, Ctrl+N nova conta, Ctrl+Shift+S screenshot, Ctrl+Shift+T sempre visível, Alt+1..9 quick-launch).
+**Atalhos de teclado:** a tabela em inglês acima é a referência canônica (janela de jogo: F5 limpa login, F12 alterna DevTools, Alt+F4 fecha; janela do gerenciador: Esc fecha modais).
 
 **Documentação completa:** [ARCHITECTURE.md](ARCHITECTURE.md) · [FLASH_SETUP.md](FLASH_SETUP.md) · [ROADMAP.md](ROADMAP.md) · [CHANGELOG.md](CHANGELOG.md) · [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md).
 

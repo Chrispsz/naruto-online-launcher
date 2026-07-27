@@ -59,8 +59,14 @@ function _getWin() {
 /**
  * Registers ALL IPC handlers. Idempotent (guard _registered).
  * @security Every handler MUST validate input (type+length+shape) before
- *   delegating to subsystems. See SECURITY_AUDIT.md for the per-handler matrix.
- * @param {Object} handlers - { launchProfile, getMemoryStats, forceGC, ... }
+ *   delegating to subsystems. The per-handler validation matrix lives inline
+ *   in each handler's body (length caps, type guards, profileId allow-list).
+ * @param {Object} handlers - launcher-level callbacks injected from main.js:
+ *   { launchProfile, closeProfile, getEvents, setMuted, getVault, setVault,
+ *     removeVault, hasVault, isLowSpecMode, isMinimal, toggleLowSpec }.
+ *   (Historical note: a `forceGC` handler existed here when GcDaemon was
+ *   present — both were removed pre-v1.0.0, see commit 94b587b. Memory state
+ *   is now push-only via StateBroadcaster; there is no `memory:*` IPC channel.)
  */
 function registerIpcHandlers(handlers) {
   _handlers = handlers || {};
