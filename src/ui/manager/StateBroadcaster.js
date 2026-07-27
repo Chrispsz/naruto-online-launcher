@@ -4,7 +4,7 @@
  * Single Responsibility (SRP): push state snapshots (profiles, memory,
  * events) to the manager renderer via IPC, at intervals and in response to
  * changes. Does not create windows or register action handlers — that is the role of
- * ManagerWindow e IpcRouter.
+ * ManagerWindow and IpcRouter.
  *
  * History: was part of the God Object controller.js. Split: this module handles
  * only state broadcast.
@@ -17,6 +17,8 @@ const et = require('../../utils/EventTimers');
 const vault = require('../../profiles/vault');
 const partition = require('../../profiles/partition');
 const ManagerWindow = require('./ManagerWindow');
+
+const PUSH_INTERVAL_MS = 30000; // 30s — state push interval to manager renderer
 
 // Anti-duplication guards for listeners
 let _remindCb = null;
@@ -78,7 +80,7 @@ function startAutoRefresh() {
   if (_pushTimer) clearInterval(_pushTimer);
   _pushTimer = setInterval(function () {
     pushEvents();
-  }, 30000);
+  }, PUSH_INTERVAL_MS);
   if (_pushTimer.unref) _pushTimer.unref();
 
   if (!_storeChangeCb) {
